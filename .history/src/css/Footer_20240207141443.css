@@ -1,0 +1,40 @@
+/* Footer.css */
+footer {
+    background-color: #333; /* Dark background for the footer */
+    color: #fff; /* Light text color */
+    padding: 20px;
+    font-size: 14px;
+  }
+  
+  .footer-layer {
+    margin-bottom: 20px; /* Space between layers */
+  }
+  
+  .app-advertisement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .app-advertisement img {
+    max-width: 100px; /* Adjust based on your image size */
+  }
+  
+  .app-advertisement div a {
+    display: inline-block;
+    margin: 0 10px;
+  }
+  
+  .info-social-links, .legal-info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  .social-media-links img {
+    width: 24px; /* Adjust based on your preference */
+    margin: 0 5px;
+  }
+  
+  /* Add more styles as needed */
+  

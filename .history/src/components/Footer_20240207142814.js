@@ -1,0 +1,33 @@
+import React from "react";
+import AppStore from "../assets/app-store-badge.png"
+import PlayStore from   "../assets/google-play-badge.png"  
+
+const Footer = () => {
+  return (
+    <>
+      <appAdd className="footer-layer app-advertisement">
+      <div className="app-image">
+    <img src="/path-to-your-app-image.png" alt="App on Phone" style={{ width: '100%' }} />
+  </div>        <div>
+          <p>Discover a World of Anime Merchandise - Anytime, Anywhere.</p>
+          <a href="apple-store-link">
+            <img
+              src={AppStore}
+              alt="Download on the App Store"
+            />
+          </a>
+          <a href="google-play-store-link">
+            <img
+              src={PlayStore}
+              alt="Get it on Google Play"
+            />
+          </a>
+        </div>
+      </appAdd>
+      <footer></footer>
+      <legal></legal>
+    </>
+  );
+};
+
+export default Footer;

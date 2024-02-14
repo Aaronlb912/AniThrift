@@ -1,0 +1,43 @@
+.carousel-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .carousel-wrapper {
+    overflow: hidden;
+    width: 100%;
+  }
+  
+  .carousel-items {
+    display: flex;
+    transition: transform 0.5s ease;
+  }
+  
+  .carousel-item {
+    flex: 0 0 20%; /* Each item takes full width of the container */
+    text-align: center;
+  }
+  
+  .carousel-item img {
+    width: auto; /* Adjust based on your design */
+    max-width: 100%; /* Ensure it fits in the container */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  .arrow {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  
+  .left {
+    left: 10px;
+  }
+  
+  .right {
+    right: 10px;
+  }
+  

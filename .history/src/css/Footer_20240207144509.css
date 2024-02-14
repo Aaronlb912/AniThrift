@@ -1,0 +1,59 @@
+/* Footer.css */
+footer {
+    background-color: #333; /* Dark background for the footer */
+    color: #fff; /* Light text color */
+    padding: 20px;
+    font-size: 14px;
+  }
+  
+  .footer-layer {
+    margin-bottom: 20px; /* Space between layers */
+  }
+  
+  .app-promotion-layer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #912f2f; /* Light grey background, adjust as needed */
+  }
+  
+  .app-image {
+    flex-basis: 50%; /* Adjust based on your preference */
+  }
+  
+  .app-info {
+    flex-basis: 50%; /* Adjust based on your preference */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .app-ad-text {
+    /* Styling for the advertisement text */
+    margin-bottom: 20px; /* Adds space between the text and the app store links */
+    
+  }
+  
+  .app-store-links img {
+    height: 60px; /* Adjust based on your preference */
+    margin-right: 10px; /* Adds space between the app store icons */
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .app-promotion-layer {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .app-store-links img {
+      margin: 0 auto; /* Center the images on smaller screens */
+      display: block;
+      margin-bottom: 10px; /* Adds space between the app store icons */
+    }
+  }
+  
+  
+  /* Add more styles as needed */
+  

@@ -1,0 +1,13 @@
+.homepage {
+    width: 90%;
+    margin: auto;
+  }
+  
+  /* Additional styles for slideshow, carousel, arrows, and placeholders */
+  .slideshow {
+   
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    height: 300px;
+  }
