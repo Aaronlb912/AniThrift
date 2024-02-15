@@ -1,6 +1,0 @@
-.star-rating span {
-    color: gold;
-    font-size: 20px;
-    margin-right: 2px;
-  }
-  
