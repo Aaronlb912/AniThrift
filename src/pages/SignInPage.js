@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase-config";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
 import {
   signInWithEmailAndPassword,
@@ -67,7 +67,7 @@ const SignInPage = () => {
       const creationDate = new Date().toISOString();
 
       // Add user details to Firestore
-      await addDoc(collection(db, "users"), {
+      await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid, // Unique identifier for the user
         email: newEmail,
         firstName: firstName,
