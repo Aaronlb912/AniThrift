@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../firebase-config";
+
+import { db } from "../firebase-config";
+import { doc, getDoc } from "firebase/firestore";
+import { auth } from "../firebase-config";
 import "../css/Profile.css";
 import StarRating from "../components/StarRating";
 import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -102,13 +98,7 @@ const Profile = () => {
       </div>
       <hr />
       <div className="profile-info">
-        {
-          userProfile.profileImage ? (
-            <img src={userProfile.profileImage} alt="Profile" />
-          ) : (
-            <AccountCircleIcon style={{ fontSize: 100 }} />
-          ) // Adjust the icon size as needed
-        }{" "}
+        <img src={userProfile.profileImage} \\ alt="Profile" />
         <div>
           <h2>{userProfile.name}</h2>
           <p>Username: {userProfile.username}</p> {/* Add username */}

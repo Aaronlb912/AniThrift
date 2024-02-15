@@ -12,7 +12,7 @@
   .profile-info {
     display: flex;
     align-items: center;
-    gap: 150px; /* Adds space between the image/icon and the text */
+    gap: 200px; /* Adds space between the image/icon and the text */
   }
   
   .profile-info img, .profile-info .MuiSvgIcon-root {

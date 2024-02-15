@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../firebase-config";
+import { db , auth } from "../firebase-config";
+import { doc, getDoc } from "firebase/firestore";
 import "../css/Profile.css";
 import StarRating from "../components/StarRating";
 import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const Profile = () => {
