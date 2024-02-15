@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../firebase-config";
+
+import { db } from "../firebase-config";
+import { doc, getDoc } from "firebase/firestore";
 import "../css/Profile.css";
 import StarRating from "../components/StarRating";
 import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { collection, getDocs, query } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
 
 const Profile = () => {
+  let auth = getAuth();
   const navigate = useNavigate();
 
   const [userProfile, setUserProfile] = useState({
@@ -34,9 +31,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       const user = auth.currentUser;
-      const docRef = doc(db, "users", user.uid);
+      const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
-
       if (docSnap.exists()) {
         const data = docSnap.data();
         setUserProfile({
@@ -46,8 +42,8 @@ const Profile = () => {
           userId: user.uid,
           rating: data.rating || 0,
           reviews: data.reviews || 0,
-          memberSince: data.memberSince
-            ? data.memberSince.toDate().toDateString()
+          memberSince: data.creationDate
+            ? data.creationDate
             : "N/A",
         });
       } else {
