@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, setDoc } from "firebase/firestore";
+import moment from "moment/moment";
 
 import {
   signInWithEmailAndPassword,
@@ -74,7 +75,7 @@ const SignInPage = () => {
         lastName: lastName,
         username: username, // Include username
         signUpPromo: signUpPromo,
-        creationDate: creationDate, // Log the account creation date
+        creationDate: moment().format("MMM Do YY"), // Log the account creation date
       });
 
       navigate("/"); // This will navigate the user to the homepage after successful registration

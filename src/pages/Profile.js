@@ -9,7 +9,7 @@ import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel";
 import { collection, getDocs, query } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const Profile = () => {
   let auth = getAuth();
@@ -31,7 +31,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       const user = auth.currentUser;
-      const docRef = doc(db, 'users', user.uid);
+      const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -42,9 +42,7 @@ const Profile = () => {
           userId: user.uid,
           rating: data.rating || 0,
           reviews: data.reviews || 0,
-          memberSince: data.creationDate
-            ? data.creationDate
-            : "N/A",
+          memberSince: data.creationDate ? data.creationDate : "N/A",
         });
       } else {
         console.log("No such document!");

@@ -25,20 +25,17 @@ const EditProfile = () => {
     e.preventDefault();
     if (!user) return;
 
-    // Check if the new password and re-entered password match
-    if (newPassword && newPassword !== reEnteredPassword) {
-      alert("Passwords do not match. Please try again.");
-      return;
-    }
-
     let imageUrl = user.photoURL; // Default to existing photoURL if no new image is selected
+
+    // Upload new profile image if selected
     if (selectedImage) {
       const imageRef = ref(
         storage,
         `profileImages/${user.uid}/${selectedImage.name}`
       );
-      const uploadResult = await uploadBytes(imageRef, selectedImage);
-      imageUrl = await getDownloadURL(uploadResult.ref);
+      await uploadBytes(imageRef, selectedImage).then(async (snapshot) => {
+        imageUrl = await getDownloadURL(snapshot.ref);
+      });
     }
 
     // Update Firebase Authentication profile
@@ -51,25 +48,25 @@ const EditProfile = () => {
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, {
       username: username,
+      photoURL: imageUrl, // Ensure you have a field for photoURL if you want to store it in Firestore too
     });
 
-    // Update password if newPassword is provided
-    if (newPassword) {
+    // Update password if newPassword is provided and matches reEnteredPassword
+    if (newPassword && newPassword === reEnteredPassword) {
       await updatePassword(user, newPassword).catch((error) => {
         alert(
           "Failed to update password. You might need to re-login and try again."
         );
         console.error("Password update error:", error);
       });
+    } else if (newPassword !== reEnteredPassword) {
+      alert("Passwords do not match. Please try again.");
+      return;
     }
 
     alert("Profile updated successfully.");
-
-    navigate("/profile");
-
-    // Optionally, navigate the user to a different page or refresh the profile page to show updated information
+    navigate("/profile"); // Navigate to profile page or wherever you wish
   };
-
   return (
     <div className="edit-profile">
       <h2>Edit Profile</h2>
