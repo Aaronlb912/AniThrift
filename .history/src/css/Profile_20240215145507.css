@@ -1,0 +1,63 @@
+.profile-container {
+    padding-left: 20px;
+  }
+  
+  .profile-header {
+    text-align: left;
+  }
+  
+  .profile-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .profile-info img {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    margin-right: 20px;
+  }
+  
+  .profile-header, .selling-info, .reviews-section {
+    margin-bottom: 20px;
+  }
+  
+  .selling-info {
+    display: flex;
+    justify-content: space-between; /* Adjust this to control spacing between boxes */
+  }
+  
+  .info-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 5%;
+    flex: 1; /* Makes each box take equal space */
+    margin: 0 10px; /* Adds some space between the boxes */
+    border-radius: 5px;
+    text-align: center; /* Center-aligns the text in each box */
+    height: flex ;
+}
+
+
+
+  
+  .reviews-section button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px; /* Adds space between the buttons */
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .reviews-section button:hover {
+    background-color: #0056b3;
+  }
+  
+  .no-reviews {
+    text-align: center;
+    color: #666;
+    margin-top: 20px;
+  }
