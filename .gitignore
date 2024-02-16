@@ -23,9 +23,11 @@ yarn-debug.log*
 yarn-error.log*
 
 .env
-functions/
 
 .history/
 .history
 # Local Netlify folder
 .netlify
+
+functions/node_modules/
+**/node_modules/
