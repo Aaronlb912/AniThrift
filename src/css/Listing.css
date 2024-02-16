@@ -1,0 +1,71 @@
+.listing-page {
+    width: 100%;
+    /* height: 100%; */
+  }
+  
+  .hero-section {
+    height: 40vh; /* 40% of the viewport height */
+    background-image: url('../assets/accout_icon.png'); /* Add the path to your background image */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  
+  .tagline-box {
+    width: 450px; /* Adjust based on your design */
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+    padding: 20px;
+    margin-right: 50px; /* Adjust based on your design */
+    text-align: center;
+    border-radius: 30px;
+  }
+  
+  .tagline-box h1 {
+    margin-bottom: 10px;
+  }
+  
+  .tagline-box p {
+    margin-bottom: 20px;
+  }
+  
+  .tagline-box button {
+    background-color: #007bff; /* Example button color */
+    color: white;
+    border: none ;
+    border-radius: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 70%;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+    font-size: 90%;
+  }
+  
+  .tagline-box button:hover {
+    background-color: #0056b3;
+  }
+  
+  .listing-simple h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.reasons-container {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.reason-box {
+    flex-basis: 30%; /* Adjust based on your preference */
+    padding: 20px;
+    border: 1px solid #ddd; /* For visual structure */
+    border-radius: 10px; /* Rounded corners */
+}
+
+.reason-number {
+    font-size: 48px; /* Large number */
+    font-weight: bold;
+}
