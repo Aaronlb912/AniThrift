@@ -27,3 +27,5 @@ functions/
 
 .history/
 .history
+# Local Netlify folder
+.netlify

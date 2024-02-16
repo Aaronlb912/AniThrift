@@ -1,93 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { db } from "../firebase-config";
 import { doc, getDoc } from "firebase/firestore";
 import "../css/Profile.css";
 import StarRating from "../components/StarRating";
 import ReviewsSection from "../components/ReviewSection";
-import { Carousel } from "../components/Carousel";
-import { collection, getDocs, query } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { Carousel } from "../components/Carousel"; // Make sure this is the correct import based on your file structure
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const Profile = () => {
-  let auth = getAuth();
+  const auth = getAuth();
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState(null);
 
-  const [userProfile, setUserProfile] = useState({
-    name: "",
-    username: "",
-    profileImage: "",
-    userId: "",
-    rating: 0,
-    reviews: 0,
-    memberSince: "",
+  const [sellingInfo, setSellingInfo] = useState({
+    activeListings: 0, // Default value, adjust as necessary
+    sales: 0, // Default value, adjust as necessary
+    accountBalance: 0, // Default value, adjust as necessary
   });
 
   const [watchListItems, setWatchListItems] = useState([]);
   const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const user = auth.currentUser;
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUserProfile({
-          name: data.name || "",
-          username: data.username || "",
-          profileImage: data.profileImage || "defaultProfileImageUrl",
-          userId: user.uid,
-          rating: data.rating || 0,
-          reviews: data.reviews || 0,
-          memberSince: data.creationDate ? data.creationDate : "N/A",
-        });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserProfile(user.uid);
       } else {
-        console.log("No such document!");
+        navigate("/signin");
       }
-    };
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
-    fetchUserProfile();
-  }, []);
+  const fetchUserProfile = async (uid) => {
+    const docRef = doc(db, "users", uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setUserProfile(docSnap.data());
+    } else {
+      console.error("No such document!");
+    }
+  };
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      const user = auth.currentUser;
-      if (!user) return; // Ensure user is logged in
-
-      // Fetch Watch List Items
-      const watchListQuery = query(
-        collection(db, `users/${user.uid}/Watching`)
-      );
-      const watchListSnapshot = await getDocs(watchListQuery);
-      const watchListData = watchListSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setWatchListItems(watchListData);
-
-      // Fetch Recently Viewed Items
-      const recentlyViewedQuery = query(
-        collection(db, `users/${user.uid}/Recently Viewed`)
-      );
-      const recentlyViewedSnapshot = await getDocs(recentlyViewedQuery);
-      const recentlyViewedData = recentlyViewedSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setRecentlyViewedItems(recentlyViewedData);
-    };
-
-    fetchItems();
-  }, []);
-
-  const [sellingInfo, setSellingInfo] = useState({
-    activeListings: 5,
-    sales: 12,
-    accountBalance: 150.5,
-  });
+  if (!userProfile) return <div>Loading...</div>; // Loading state
 
   return (
     <div className="profile-container">
@@ -96,23 +53,24 @@ const Profile = () => {
       </div>
       <hr />
       <div className="profile-info">
-        {
-          userProfile.profileImage ? (
-            <img src={userProfile.profileImage} alt="Profile" />
-          ) : (
-            <AccountCircleIcon style={{ fontSize: 100 }} />
-          ) // Adjust the icon size as needed
-        }{" "}
+        {userProfile.photoURL ? (
+          <img
+            src={userProfile.photoURL}
+            alt="Profile"
+            style={{ width: 100, height: 100, borderRadius: "50%" }}
+          />
+        ) : (
+          <AccountCircleIcon style={{ fontSize: 100 }} />
+        )}
         <div>
           <h2>{userProfile.name}</h2>
-          <p>Username: {userProfile.username}</p> {/* Add username */}
+          <p>Username: {userProfile.username}</p>
           <p>User ID: {userProfile.userId}</p>
           <p>
             Rating: <StarRating rating={userProfile.rating} />
             Reviews: {userProfile.reviews}
-          </p>{" "}
-          {/* Move reviews next to rating */}
-          <p>Member since: {userProfile.memberSince}</p>
+          </p>
+          <p>Member since: {userProfile.creationDate}</p>
         </div>
       </div>
       <button
@@ -138,7 +96,7 @@ const Profile = () => {
           Account Balance:
         </div>
       </div>
-      <ReviewsSection reviews={userProfile.reviews} />
+      {/* <ReviewsSection reviews={userProfile.reviews} /> */}
       <h2>My Watch List</h2>
       <Carousel items={watchListItems} />
 

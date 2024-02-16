@@ -65,7 +65,7 @@ const SignInPage = () => {
         displayName: firstName,
       });
 
-      const creationDate = new Date().toISOString();
+      // const creationDate = new Date().toISOString();
 
       // Add user details to Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {

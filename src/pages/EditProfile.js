@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db, storage } from "../firebase-config"; // Assuming these are correctly set up
+import { auth, db, storage } from "../firebase-config";
 import { updateProfile, updatePassword } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-import "../css/EditProfile.css"; // Make sure this path is correct
+import "../css/EditProfile.css";
 
 const EditProfile = () => {
   const user = auth.currentUser;
-  const [username, setUsername] = useState(user.displayName || "");
+  const [username, setUsername] = useState(user?.displayName || "");
   const [newPassword, setNewPassword] = useState("");
   const [reEnteredPassword, setReEnteredPassword] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Ensure user is not null
+    if (!user) {
+      navigate("/signin");
+      return;
+    }
+  }, [user, navigate]);
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
@@ -25,48 +33,41 @@ const EditProfile = () => {
     e.preventDefault();
     if (!user) return;
 
-    let imageUrl = user.photoURL; // Default to existing photoURL if no new image is selected
+    let imageUrl = user.photoURL; // Keep existing photoURL by default
 
-    // Upload new profile image if selected
     if (selectedImage) {
       const imageRef = ref(
         storage,
         `profileImages/${user.uid}/${selectedImage.name}`
       );
-      await uploadBytes(imageRef, selectedImage).then(async (snapshot) => {
-        imageUrl = await getDownloadURL(snapshot.ref);
+      await uploadBytes(imageRef, selectedImage);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
+    if (username) {
+      await updateProfile(user, {
+        displayName: username,
+        photoURL: imageUrl,
       });
     }
 
-    // Update Firebase Authentication profile
-    await updateProfile(user, {
-      displayName: username,
-      photoURL: imageUrl,
-    });
-
-    // Update Firestore document with new username (and any other information you wish to store)
-    const userDocRef = doc(db, "users", user.uid);
-    await updateDoc(userDocRef, {
-      username: username,
-      photoURL: imageUrl, // Ensure you have a field for photoURL if you want to store it in Firestore too
-    });
-
-    // Update password if newPassword is provided and matches reEnteredPassword
     if (newPassword && newPassword === reEnteredPassword) {
-      await updatePassword(user, newPassword).catch((error) => {
-        alert(
-          "Failed to update password. You might need to re-login and try again."
-        );
-        console.error("Password update error:", error);
-      });
+      await updatePassword(user, newPassword);
     } else if (newPassword !== reEnteredPassword) {
       alert("Passwords do not match. Please try again.");
       return;
     }
 
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+      username: username,
+      photoURL: imageUrl,
+    });
+
     alert("Profile updated successfully.");
-    navigate("/profile"); // Navigate to profile page or wherever you wish
+    navigate("/profile");
   };
+
   return (
     <div className="edit-profile">
       <h2>Edit Profile</h2>

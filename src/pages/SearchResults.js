@@ -12,16 +12,16 @@ const SearchResults = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      // Replace this URL with your server endpoint that proxies eBay API requests
-      const url = 'https://searchebayitems-4f2wbghdla-uc.a.run.app';
-      const data = {
-        query: query
-      };
-      let response = await axios.post(url, data)
-      setProducts(response.data.itemSummaries); // Adjust according to the actual response structure
+      const url = "https://searchebayitems-4f2wbghdla-uc.a.run.app";
+      try {
+        const response = await axios.post(url, { query });
+        setProducts(response.data.itemSummaries); // Make sure this matches the structure of your response
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
     };
 
-    if (query) fetchProducts();
+    fetchProducts();
   }, [query]);
 
   return (
@@ -29,15 +29,19 @@ const SearchResults = () => {
       <h2>Search Results</h2>
       <h3>{query}</h3>
       <div>
-        {products.map((product, index) => (
-          <div key={index}>
-            <img src={product.image.imageUrl} alt={product.title} />
-            <div>{product.title}</div>
-            <div>
-              {product.price.value} {product.price.currency}
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <div key={index}>
+              <img src={product.image.imageUrl} alt={product.title} />
+              <div>{product.title}</div>
+              <div>
+                {product.price.value} {product.price.currency}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div>No results found</div>
+        )}
       </div>
     </div>
   );
