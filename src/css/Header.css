@@ -48,3 +48,45 @@
     background-color: #555; /* Darker shade on hover */
   }
   
+/* Styles for the topbar */
+topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #333; /* Customize the background color */
+  color: white;
+}
+
+/* Typography and Button on the left side */
+.topbar Button, .topbar Typography {
+  color: #fff; /* White color for better visibility */
+  margin-right: 15px; /* Space between welcome message and sign-in button */
+}
+
+/* Container for right side items */
+.right-side {
+  display: flex;
+  align-items: center;
+}
+
+/* Style for the Sell button and Cart icon on the right side */
+.right-side Button, .right-side IconButton {
+  margin-left: 15px; /* Space between sell button and cart icon */
+}
+
+/* Additional styling for Menu items */
+.Menu {
+  background-color: #444; /* Slightly darker than topbar for contrast */
+  color: #fff; /* White color text for menu items */
+}
+
+.MenuItem {
+  color: #fff; /* Ensuring menu items text is white for visibility */
+}
+
+/* Hover effects for interactivity */
+.MenuItem:hover, .topbar Button:hover, .topbar IconButton:hover {
+  background-color: #555; /* Slightly lighter on hover for feedback */
+}
+

@@ -8,10 +8,15 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  MenuItem,
+  Menu,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -23,6 +28,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [searchInput, setSearchInput] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
 
   console.log(user);
 
@@ -44,8 +50,71 @@ const Header = () => {
       });
   };
 
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <>
+      <topbar>
+        {/* Left Side - Welcome Message */}
+        {user ? (
+          <>
+            <Typography
+              variant="body1"
+              sx={{
+                marginRight: 2,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+              onClick={handleMenu}
+            >
+              Welcome, {user.displayName || "User"}
+              {/* Conditionally render the arrow icon based on menu open state */}
+              {Boolean(anchorEl) ? <ArrowDropDownIcon /> : <ArrowRightIcon />}
+            </Typography>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={() => navigate("/profile")}>
+                My Profile
+              </MenuItem>
+              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+            </Menu>
+          </>
+        ) : (
+          <Button
+            color="inherit"
+            startIcon={<AccountCircleIcon />}
+            component={Link}
+            to="/signin"
+          >
+            Sign In
+          </Button>
+        )}
+
+        {/* Right Side - Sell and Cart */}
+        <div className="right-side">
+          <Button color="inherit" component={Link} to="/sell">
+            Sell
+          </Button>
+          <IconButton
+            color="inherit"
+            aria-label="cart"
+            component={Link}
+            to="/cart"
+          >
+            <ShoppingCartIcon />
+          </IconButton>
+        </div>
+      </topbar>
       <header className="header">
         <AppBar position="static" sx={{ bgcolor: "black" }}>
           <Toolbar>
@@ -91,41 +160,6 @@ const Header = () => {
                 }}
               />
             </div>
-
-            {/* Sign In / Profile */}
-            {user ? (
-              <>
-                <Typography
-                  variant="body1"
-                  style={{ marginRight: 10, cursor: "pointer" }}
-                  onClick={() => navigate("/profile")}
-                >
-                  Welcome, {user.displayName || "User"}
-                </Typography>
-                <Button color="inherit" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Button
-                color="inherit"
-                startIcon={<AccountCircleIcon />}
-                component={Link}
-                to="/signin"
-              >
-                Sign In
-              </Button>
-            )}
-
-            {/* Cart */}
-            <IconButton
-              color="inherit"
-              aria-label="cart"
-              component={Link}
-              to="/cart"
-            >
-              <ShoppingCartIcon />
-            </IconButton>
           </Toolbar>
         </AppBar>
       </header>
