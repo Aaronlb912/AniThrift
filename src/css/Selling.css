@@ -1,0 +1,112 @@
+.selling-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Ensure the text boxes (and all form inputs) hit the edges of the form box */
+  .selling-form input[type="text"],
+  .selling-form textarea,
+  .selling-form select {
+    width: calc(100% - 20px); /* Subtracting padding */
+    margin: 5px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Additional styles to ensure consistency and aesthetic appeal */
+  .selling-form {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 800px; /* Adjust based on your layout */
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  /* Centering the title and giving some spacing */
+  .selling-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .section {
+    margin-bottom: 20px;
+  }
+  
+  /* Adjust the height and width of the description box */
+  .description-section textarea {
+    width: 100%;
+    height: 150px; /* Adjust as needed */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Styling for category and price boxes */
+  .category-section select,
+  .pricing-section input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Centering and styling the buttons at the bottom */
+  .form-actions {
+    text-align: center;
+  }
+  
+  .form-actions button {
+    padding: 10px 20px;
+    margin: 0 10px; /* Space between buttons */
+    background-color: #007bff; /* Button color */
+    color: #fff;
+    border: none;
+    border-radius: 20px; /* Rounded borders */
+    cursor: pointer;
+    font-size: 16px; /* Larger font size */
+  }
+  
+  .form-actions button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+  }
+  
+  /* For the larger box requirement around specific inputs */
+  .large-box {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 5px;
+  }
+  
+
+  .photos-section {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .product-info-section input, .product-info-section textarea, .product-info-section select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .product-info-section textarea {
+    resize: vertical;
+  }
+  
+  button {
+    background-color: blue;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  

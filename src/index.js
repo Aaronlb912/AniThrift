@@ -18,6 +18,8 @@ import AudioPage from "./pages/AudioPage";
 import GamesPage from "./pages/GamesPage";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import Listing from "./pages/Listing";
+import Selling from "./pages/Selling.js";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -52,6 +54,8 @@ ReactDOM.render(
         <Route path="/games" element={<GamesPage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="edit-profile" element={<EditProfile />} />
+        <Route path="/listing" element={<Listing />} />
+        <Route path="/sell" element={<Selling />} />
       </Routes>
       <Footer />
     </BrowserRouter>

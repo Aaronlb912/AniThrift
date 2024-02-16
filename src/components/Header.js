@@ -102,7 +102,7 @@ const Header = () => {
 
         {/* Right Side - Sell and Cart */}
         <div className="right-side">
-          <Button color="inherit" component={Link} to="/sell">
+          <Button color="inherit" component={Link} to="/listing">
             Sell
           </Button>
           <IconButton

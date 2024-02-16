@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import AppStore from "../assets/app-store-badge.png";
 import PlayStore from "../assets/google-play-badge.png";
 import Phones from "../assets/phones.png";
+import placeholder from "../assets/accout_icon.png";
 
 import "../css/Footer.css";
 
@@ -94,10 +95,12 @@ const Footer = () => {
           <h2>Follow Us</h2>
           {/* Link and images for social media */}
           <a href="https://facebook.com/yourpage">
-            <img src="/path-to-facebook-icon.png" alt="Facebook" />
+            <img src={placeholder} alt="Facebook" />
+            <p>Facebook</p>
           </a>
           <a href="https://twitter.com/yourpage">
-            <img src="/path-to-twitter-icon.png" alt="Twitter" />
+            <img src={placeholder} alt="Twitter" />
+            <p>Twitter</p>
           </a>
           {/* Add more social media links */}
         </div>
@@ -122,12 +125,8 @@ const Footer = () => {
         </div>
       </footer>
       <legal className="footer-layer legal-info">
-        <img
-          src="/path-to-your-logo.png"
-          alt="AniThrift Logo"
-          className="footer-logo"
-        />
-        © 2024 AniThrift
+        <img src={placeholder} alt="AniThrift Logo" className="footer-logo" />©
+        2024 AniThrift
         <div className="legal-links">
           <a href="/cookie-settings">Cookie Settings</a>
           <a href="/cookie-policy">Cookie Policy</a>
