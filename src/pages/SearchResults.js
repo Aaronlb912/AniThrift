@@ -12,9 +12,9 @@ const SearchResults = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const url = "https://searchebayitems-4f2wbghdla-uc.a.run.app";
-      const body = JSON.stringify({ query: query })
       try {
+        const url = "https://searchebayitems-4f2wbghdla-uc.a.run.app";
+        const body = await JSON.stringify({ query })
         const response = await axios.post(url, body);
         setProducts(response.data.itemSummaries); // Make sure this matches the structure of your response
       } catch (error) {
@@ -24,7 +24,7 @@ const SearchResults = () => {
 
     fetchProducts();
   }, [query]);
-
+  
   return (
     <div>
       <h2>Search Results</h2>
@@ -33,7 +33,7 @@ const SearchResults = () => {
         {products.length > 0 ? (
           products.map((product, index) => (
             <div key={index}>
-              <img src={product.image.imageUrl} alt={product.title} />
+              <img src={product.image? product.image.imageUrl : null} alt={product.title} />
               <div>{product.title}</div>
               <div>
                 {product.price.value} {product.price.currency}
