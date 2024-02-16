@@ -13,8 +13,9 @@ const SearchResults = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       const url = "https://searchebayitems-4f2wbghdla-uc.a.run.app";
+      const body = JSON.stringify({ query: query })
       try {
-        const response = await axios.post(url, { query });
+        const response = await axios.post(url, body);
         setProducts(response.data.itemSummaries); // Make sure this matches the structure of your response
       } catch (error) {
         console.error("Failed to fetch products:", error);
