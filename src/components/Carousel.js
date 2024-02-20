@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import "../css/Carousel.css"; // Make sure to create this CSS file
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -31,7 +32,7 @@ function PrevArrow(props) {
 export const Carousel = ({ items }) => {
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: false,
     speed: 500,
     slidesToShow: 5,
     slidesToScroll: 1,
@@ -61,10 +62,13 @@ export const Carousel = ({ items }) => {
     <div className="carousel-container">
       <Slider {...settings}>
         {items.map((item, index) => (
-          <div className="carousel-item" key={index}>
-            <img src={item.imageUrl} alt={`Item ${index + 1}`} />
-            <p>{item.name}</p>
-            <p>{item.price}</p>
+          // Key is moved to the outermost element
+          <div key={index} className="carousel-item">
+            <Link to={`/item/${item.id}`} className="carousel-item-link">
+              <img src={item.imageUrl} alt={`Item ${index + 1}`} />
+              <p>{item.name}</p>
+              <p>{item.price}</p>
+            </Link>
           </div>
         ))}
       </Slider>

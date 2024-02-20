@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase-config";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import "../css/Profile.css";
 import StarRating from "../components/StarRating";
 import ReviewsSection from "../components/ReviewSection";
-import { Carousel } from "../components/Carousel"; // Make sure this is the correct import based on your file structure
+import { Carousel } from "../components/Carousel"; // Adjust the path as necessary
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
@@ -13,6 +20,9 @@ const Profile = () => {
   const auth = getAuth();
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState(null);
+  const [userItems, setUserItems] = useState([]); // State to store the user's selling items
+  const [watchListItems, setWatchListItems] = useState([]);
+  const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
 
   const [sellingInfo, setSellingInfo] = useState({
     activeListings: 0, // Default value, adjust as necessary
@@ -20,13 +30,11 @@ const Profile = () => {
     accountBalance: 0, // Default value, adjust as necessary
   });
 
-  const [watchListItems, setWatchListItems] = useState([]);
-  const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserProfile(user.uid);
+        fetchUserItems(user.uid); // Fetch the user's selling items
       } else {
         navigate("/signin");
       }
@@ -42,6 +50,22 @@ const Profile = () => {
     } else {
       console.error("No such document!");
     }
+  };
+
+  const fetchUserItems = async (uid) => {
+    const q = query(collection(db, "items"), where("sellerId", "==", uid));
+    const querySnapshot = await getDocs(q);
+    const items = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id, // Consider adding an ID if you need to reference the item later
+        ...doc.data(),
+        imageUrl: doc.data().photos[0],
+        name: data.title,
+        price: data.price,
+      };
+    });
+    setUserItems(items);
   };
 
   if (!userProfile) return <div>Loading...</div>; // Loading state
@@ -96,6 +120,12 @@ const Profile = () => {
           Account Balance:
         </div>
       </div>
+      <h2>Items I'm Selling</h2>
+      {userItems.length > 0 ? (
+        <Carousel items={userItems} />
+      ) : (
+        <p>You currently have no items listed for sale.</p>
+      )}
       {/* <ReviewsSection reviews={userProfile.reviews} /> */}
       <h2>My Watch List</h2>
       <Carousel items={watchListItems} />

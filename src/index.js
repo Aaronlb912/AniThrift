@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Listing from "./pages/Listing";
 import Selling from "./pages/Selling.js";
+import ItemListing from "./pages/ItemInfo.js";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -56,6 +57,7 @@ ReactDOM.render(
         <Route path="edit-profile" element={<EditProfile />} />
         <Route path="/listing" element={<Listing />} />
         <Route path="/sell" element={<Selling />} />
+        <Route path="/item/:id" element={<ItemListing />} />
       </Routes>
       <Footer />
     </BrowserRouter>

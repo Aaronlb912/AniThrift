@@ -23,12 +23,14 @@
   .carousel-item {
     flex: 0 0 40%; /* Adjust this value based on your design to control the item width */
     text-align: center;
+    margin: 0 10px; /* Add space between items. Adjust as necessary */
+
   }
   
   .carousel-item img {
-    width: auto;
-    max-width: 100%; /* Ensure it fits in the container */
-    height: auto; /* Maintain aspect ratio */
+    width: 10em;
+    height: 10em; /* Maintain aspect ratio */
+    border: 2px black solid;
   }
   
   .arrow {
@@ -46,4 +48,5 @@
   .right {
     right: 10px;
   }
+  
   
