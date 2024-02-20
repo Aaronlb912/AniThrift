@@ -1,38 +1,67 @@
 /* ItemInfo.css */
 .item-info-container {
-    display: flex;
-    flex-direction: column;
-    max-width: 1200px;
-    margin: auto;
-  }
-  
-  .item-images {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 10px;
-    gap: 10px;
-  }
-  
-  .item-image {
-    max-width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-  }
-  
-  .item-details {
-    flex: 1;
-    padding: 20px;
-  }
-  
-  .seller-info {
-    padding: 20px;
-  }
-  
-  button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    cursor: pointer;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: auto;
+  align-items: center; /* Center align the content */
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers children horizontally */
+  justify-content: center; /* Centers children vertically, if needed */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 5px;
+  margin: 20px 0;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.item-images {
+  display: flex;
+  overflow-x: auto; /* Makes the image list horizontally scrollable */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
+  gap: 10px;
+  padding: 10px;
+  justify-content: flex-start; /* Align items to the start of the container */
+}
+
+.item-image {
+  flex: 0 0 auto; /* Do not grow, do not shrink, and base size on the width of the image */
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border: 1px solid #ddd; /* Optional: adds a slight border around images */
+  border-radius: 5px; /* Optional: rounds corners of images */
+}
+
+.item-details, .seller-info {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds shadow for separation */
+  border-radius: 5px; /* Rounds the corners of the boxes */
+  margin: 20px 0; /* Adds space between sections */
+  padding: 20px;
+  width: 100%; /* Ensures full width within the container */
+  box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+}
+
+.item-details p, .item-details h2, .seller-info h3, .seller-info p {
+  text-align: center; /* Centers the text */
+}
+
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  display: inline-block; /* This makes `text-align: center;` effective */
+}
+
+button:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}

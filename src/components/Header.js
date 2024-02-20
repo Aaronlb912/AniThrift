@@ -5,6 +5,10 @@ import {
   Typography,
   InputBase,
   Button,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
   IconButton,
   useMediaQuery,
   useTheme,
@@ -16,7 +20,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
-
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -29,8 +33,37 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
 
   console.log(user);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen); // Toggle Drawer open state
+  };
+
+  const drawer = (
+    <List>
+      {[
+        "Anime & Videos",
+        "Manga & Novels",
+        "Merchandise",
+        "Figures & Trinkets",
+        "Apparel",
+        "Audio",
+        "Games",
+        "All Categories",
+      ].map((text, index) => (
+        <ListItem
+          button
+          key={text}
+          component={Link}
+          to={`/${text.toLowerCase().replace(/ & /g, "-").replace(/ /g, "")}`}
+        >
+          <ListItemText primary={text} />
+        </ListItem>
+      ))}
+    </List>
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -163,32 +196,55 @@ const Header = () => {
           </Toolbar>
         </AppBar>
       </header>
-      <nav className="navbar">
-        <Link to="/anime" className="nav-link">
-          Anime & Videos
-        </Link>
-        <Link to="/manga" className="nav-link">
-          Manga & Novels
-        </Link>
-        <Link to="/merchandise" className="nav-link">
-          Merchandise
-        </Link>
-        <Link to="/figures-trinkets" className="nav-link">
-          Figures & Trinkets
-        </Link>
-        <Link to="/apparel" className="nav-link">
-          Apparel
-        </Link>
-        <Link to="/audio" className="nav-link">
-          Audio
-        </Link>
-        <Link to="/games" className="nav-link">
-          Games
-        </Link>
-        <Link to="/all-categories" className="nav-link">
-          All Categories
-        </Link>
-      </nav>
+      {isMobile ? (
+        <>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+          >
+            {drawer}
+          </Drawer>
+        </>
+      ) : (
+        <nav className="navbar">
+          <Link to="/anime" className="nav-link">
+            Anime & Videos
+          </Link>
+          <Link to="/manga" className="nav-link">
+            Manga & Novels
+          </Link>
+          <Link to="/merchandise" className="nav-link">
+            Merchandise
+          </Link>
+          <Link to="/figures-trinkets" className="nav-link">
+            Figures & Trinkets
+          </Link>
+          <Link to="/apparel" className="nav-link">
+            Apparel
+          </Link>
+          <Link to="/audio" className="nav-link">
+            Audio
+          </Link>
+          <Link to="/games" className="nav-link">
+            Games
+          </Link>
+          <Link to="/all-categories" className="nav-link">
+            All Categories
+          </Link>
+        </nav>
+      )}
     </>
   );
 };

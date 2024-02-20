@@ -1,25 +1,22 @@
 /* header.css */
 .appBar {
-    background-color: #8b1818; /* Customize as needed */
+  background-color: #8b1818; /* Customize as needed */
 }
 
-/* header.css */
 .header {
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1000; /* Ensures the header stays on top of other content */
-    background-color: #333333; /* Example background color */
-  }
-  
-
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensures the header stays on top of other content */
+  background-color: #333333; /* Example background color */
+}
 
 .searchBar {
-    color: inherit;
-    background-color: rgba(236, 236, 236, 0.938);
-    padding: 0 10px;
-    border-radius: 5px;
-    width: 90%; /* Adjust the width as needed */
+  color: inherit;
+  background-color: rgba(236, 236, 236, 0.938);
+  padding: 0 10px;
+  border-radius: 5px;
+  width: 90%; /* Adjust the width as needed */
 }
 
 .navbar {
@@ -28,17 +25,12 @@
   align-items: center; /* Adjusted to center */
   height: 60px; /* Example height */
   background-color: #222; /* Background color */
-  overflow-x: auto; /* Allows navbar to scroll horizontally on smaller screens */
-  overflow-y: hidden; /* Prevents vertical scrolling */
 }
 
 .nav-link {
-  display: flex;
-  align-items: center; /* This centers the text vertically */
-  justify-content: center; /* This centers the text horizontally */
   text-decoration: none;
   color: white;
-  padding: 0 30px; /* Adjust horizontal padding as needed, but remove vertical padding */
+  padding: 10px; /* Adjusted padding */
   white-space: nowrap; /* Prevents the text from wrapping */
 }
 
@@ -46,24 +38,69 @@
   background-color: #555; /* Darker shade on hover */
 }
 
-/* Style for the scrollbar to make it less intrusive */
-.navbar::-webkit-scrollbar {
-  height: 0px; /* Adjust the height of the scrollbar */
-}
-
-.navbar::-webkit-scrollbar-thumb {
-  background: #888; /* Color of the scrollbar thumb */
-}
-
-.navbar::-webkit-scrollbar-thumb:hover {
-  background: #555; /* Color of the scrollbar thumb on hover */
-}
 
 
-   .nav-link:last-child {
-    border-right: none; /* Removes border from the last item, as previously specified */
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .navbar {
+      display: none; /* Hide navbar links on smaller screens */
   }
-/* Styles for the topbar */
+
+  .menu-icon {
+      display: block; /* Show menu icon on smaller screens */
+      cursor: pointer;
+
+  }
+  
+  /* Ensure the drawer (hamburger menu) style matches your theme */
+  .drawer-list {
+      width: 250px;
+  }
+  
+  .drawer-item {
+      padding: 8px 16px;
+      color: #fff; /* Adjust based on your color scheme */
+  }
+}
+
+/* Adjustments for larger screens */
+@media (min-width: 769px) {
+  .menu-icon {
+      display: none; /* Hide menu icon on larger screens */
+  }
+}
+
+/* Typography and Button on the left side */
+.topbar Button, .topbar Typography {
+color: #fff; /* White color for better visibility */
+margin-right: 15px; /* Space between welcome message and sign-in button */
+}
+
+/* Container for right side items */
+.right-side {
+display: flex;
+align-items: center;
+}
+
+/* Style for the Sell button and Cart icon on the right side */
+.right-side Button, .right-side IconButton {
+margin-left: 15px; /* Space between sell button and cart icon */
+}
+
+/* Additional styling */
+.Menu {
+background-color: #444; /* Slightly darker than topbar for contrast */
+color: #fff; /* White color text for menu items */
+}
+
+.MenuItem {
+color: #fff; /* Ensuring menu items text is white for visibility */
+}
+
+.MenuItem:hover, .topbar Button:hover, .topbar IconButton:hover {
+background-color: #555; /* Slightly lighter on hover for feedback */
+}
+
 topbar {
   display: flex;
   justify-content: space-between;
@@ -78,30 +115,3 @@ topbar {
   color: #fff; /* White color for better visibility */
   margin-right: 15px; /* Space between welcome message and sign-in button */
 }
-
-/* Container for right side items */
-.right-side {
-  display: flex;
-  align-items: center;
-}
-
-/* Style for the Sell button and Cart icon on the right side */
-.right-side Button, .right-side IconButton {
-  margin-left: 15px; /* Space between sell button and cart icon */
-}
-
-/* Additional styling for Menu items */
-.Menu {
-  background-color: #444; /* Slightly darker than topbar for contrast */
-  color: #fff; /* White color text for menu items */
-}
-
-.MenuItem {
-  color: #fff; /* Ensuring menu items text is white for visibility */
-}
-
-/* Hover effects for interactivity */
-.MenuItem:hover, .topbar Button:hover, .topbar IconButton:hover {
-  background-color: #555; /* Slightly lighter on hover for feedback */
-}
-
