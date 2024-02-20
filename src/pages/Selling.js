@@ -4,6 +4,7 @@ import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import moment from "moment/moment";
 import {
   getStorage,
   ref as storageRef,
@@ -142,6 +143,8 @@ const Selling = () => {
       return;
     }
 
+    const creationDate = moment().toISOString(); // Get current date in ISO string format
+
     try {
       // Add to the user's 'selling' collection
       const userSellingDocRef = await addDoc(
@@ -156,6 +159,7 @@ const Selling = () => {
           deliveryOption,
           price,
           photos: photoUrls,
+          creationDate, // Include the creation date
         }
       );
 
@@ -171,6 +175,7 @@ const Selling = () => {
         deliveryOption,
         price,
         photos: photoUrls,
+        creationDate, // Include the creation date
       });
 
       console.log(
