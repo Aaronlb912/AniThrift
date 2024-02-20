@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { db } from "../firebase-config";
 import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { Snackbar, Alert } from "@mui/material";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 
@@ -11,6 +12,11 @@ const ItemInfo = () => {
   const [item, setItem] = useState(null);
   const [seller, setSeller] = useState(null);
   const [userId, setUserId] = useState(null); // Initialize userId state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // Can be "error", "warning", "info", or "success"
+  });
 
   useEffect(() => {
     const auth = getAuth();
@@ -65,8 +71,10 @@ const ItemInfo = () => {
   }, [id]);
 
   const addToWatchlist = async () => {
-    if (!item || !userId) {
-      console.error("No item data available or user not logged in");
+    if (!item || !userId || !seller) {
+      console.error(
+        "No item data available, user not logged in, or seller info missing"
+      );
       return;
     }
 
@@ -78,18 +86,27 @@ const ItemInfo = () => {
         title: item.title,
         imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
         price: item.price,
+        sellerId: item.sellerId, // Push sellerId
+        sellerName: seller.name, // Include seller's name
         addedOn: new Date(), // Optional: track when item was added
       });
 
       console.log("Item added to watchlist");
+      setSnackbar({
+        open: true,
+        message: "Added to watchlist",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error adding item to watchlist: ", error);
     }
   };
 
   const addToCart = async () => {
-    if (!item || !userId) {
-      console.error("No item data available or user not logged in");
+    if (!item || !userId || !seller) {
+      console.error(
+        "No item data available, user not logged in, or seller info missing"
+      );
       return;
     }
 
@@ -101,10 +118,17 @@ const ItemInfo = () => {
         title: item.title,
         imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
         price: item.price,
+        sellerId: item.sellerId, // Push sellerId
+        sellerName: seller.name, // Include seller's name
         addedOn: new Date(), // Optional: track when item was added
       });
 
       console.log("Item added to cart");
+      setSnackbar({
+        open: true,
+        message: "Added to cart",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error adding item to cart: ", error);
     }
@@ -127,10 +151,18 @@ const ItemInfo = () => {
       </div>
       <div className="item-details">
         <h2>{item.title}</h2>
-        <p>{item.description}</p>
-        <p>Category: {item.category}</p>
-        <p>Condition: {item.condition}</p>
-        <p>Price: ${item.price}</p>
+        <p>
+          <h3>Description:</h3> {item.description}
+        </p>
+        <p>
+          <h3>Category:</h3> {item.category}
+        </p>
+        <p>
+          <h3>Condition:</h3> {item.condition}
+        </p>
+        <p>
+          <h3>Price: ${item.price}</h3>
+        </p>
         <button onClick={addToWatchlist}>Add to Watchlist</button>
         <button onClick={addToCart}>Add to Cart</button>
       </div>
@@ -140,6 +172,23 @@ const ItemInfo = () => {
           <p>Rating: {seller.rating}</p>
         </div>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

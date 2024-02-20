@@ -35,6 +35,7 @@ const Profile = () => {
       if (user) {
         fetchUserProfile(user.uid);
         fetchUserItems(user.uid); // Fetch the user's selling items
+        fetchWatchListItems(user.uid); // Fetch the user's watchlist items
       } else {
         navigate("/signin");
       }
@@ -66,6 +67,25 @@ const Profile = () => {
       };
     });
     setUserItems(items);
+  };
+  const fetchWatchListItems = async (uid) => {
+    const watchlistRef = collection(db, "users", uid, "watchlist");
+    const querySnapshot = await getDocs(watchlistRef);
+    const watchlist = [];
+    for (const docSnapshot of querySnapshot.docs) {
+      const itemRef = doc(db, "items", docSnapshot.data().itemId);
+      const itemSnapshot = await getDoc(itemRef);
+      if (itemSnapshot.exists()) {
+        watchlist.push({
+          id: itemSnapshot.id,
+          ...itemSnapshot.data(),
+          imageUrl: itemSnapshot.data().photos[0], // Assuming the first photo is what you want to display
+          name: itemSnapshot.data().title,
+          price: itemSnapshot.data().price,
+        });
+      }
+    }
+    setWatchListItems(watchlist);
   };
 
   if (!userProfile) return <div>Loading...</div>; // Loading state
@@ -124,11 +144,15 @@ const Profile = () => {
       {userItems.length > 0 ? (
         <Carousel items={userItems} />
       ) : (
-        <p>You currently have no items listed for sale.</p>
+        <p>You do not have any items listed for sale.</p>
       )}
       {/* <ReviewsSection reviews={userProfile.reviews} /> */}
       <h2>My Watch List</h2>
-      <Carousel items={watchListItems} />
+      {watchListItems.length > 0 ? (
+        <Carousel items={watchListItems} />
+      ) : (
+        <p>You are not currently watching any items.</p>
+      )}
 
       <h2>Recently Viewed Items</h2>
       <Carousel items={recentlyViewedItems} />

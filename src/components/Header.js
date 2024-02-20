@@ -116,7 +116,12 @@ const Header = () => {
               open={Boolean(anchorEl)}
               onClose={handleClose}
             >
-              <MenuItem onClick={() => navigate("/profile")}>
+              <MenuItem
+                onClick={() => {
+                  handleClose(); // This will close the menu
+                  navigate("/profile"); // Then navigate to the profile page
+                }}
+              >
                 My Profile
               </MenuItem>
               <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
