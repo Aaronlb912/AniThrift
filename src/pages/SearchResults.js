@@ -24,21 +24,25 @@ const SearchResults = () => {
 
   return (
     <div className="search-results-container">
-      {results.map((item) => (
-        <div
-          key={item.id}
-          className="search-result-item"
-          onClick={() => handleItemClick(item.id)}
-        >
-          <img
-            src={item.photos[0] || "placeholder-image-url"}
-            alt={item.title}
-            className="item-image"
-          />
-          <div className="item-title">{item.title}</div>
-          <div className="item-price">${item.price}</div>
-        </div>
-      ))}
+      {results.length > 0 ? (
+        results.map((item) => (
+          <div
+            key={item.id}
+            className="search-result-item"
+            onClick={() => navigate(`/item/${item.id}`)}
+          >
+            <img
+              src={item.photos[0] || "placeholder-image-url"}
+              alt={item.title}
+              className="item-image"
+            />
+            <div className="item-title">{item.title}</div>
+            <div className="item-price">${item.price}</div>
+          </div>
+        ))
+      ) : (
+        <div>No results found.</div>
+      )}
     </div>
   );
 };

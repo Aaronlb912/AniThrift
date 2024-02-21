@@ -25,6 +25,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase-config"; // Adjust the path according to your project structure
+import { useSearch } from "./SearchHandler.js";
 
 const Header = () => {
   const theme = useTheme();
@@ -34,8 +35,16 @@ const Header = () => {
   const [searchInput, setSearchInput] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
+  const { setSearchQuery } = useSearch(); // Use setSearchQuery from your search context
 
   console.log(user);
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && searchInput.trim()) {
+      setSearchQuery(searchInput.trim());
+      navigate(`/search?query=${encodeURIComponent(searchInput.trim())}`);
+    }
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen); // Toggle Drawer open state
@@ -174,28 +183,23 @@ const Header = () => {
 
             {/* Search Bar */}
             <div
-              style={{
-                flexGrow: 1,
-                display: "flex",
-                justifyContent: "center",
-                height: 50,
-              }}
+              style={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
             >
               <InputBase
                 placeholder="Search…"
-                inputProps={{ "aria-label": "search" }}
-                startAdornment={<SearchIcon />}
-                className="searchBar"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && searchInput.trim()) {
-                    e.preventDefault(); // Prevent the default action
-                    navigate(
-                      `/search?query=${encodeURIComponent(searchInput.trim())}`
-                    ); // Navigate to SearchResult page with query
-                  }
-                }}
+                onKeyPress={handleSearch}
+                className="searchBar"
+                endAdornment={
+                  <IconButton
+                    type="submit"
+                    aria-label="search"
+                    onClick={handleSearch}
+                  >
+                    <SearchIcon />
+                  </IconButton>
+                }
               />
             </div>
           </Toolbar>

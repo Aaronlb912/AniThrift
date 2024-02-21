@@ -66,7 +66,7 @@ ReactDOM.render(
           <Route path="/all-categories" element={<AllCategories />} />
         </Routes>
         <Footer />
-      </BrowserRouter>{" "}
+      </BrowserRouter>
     </SearchProvider>
   </React.StrictMode>,
   document.getElementById("root")
