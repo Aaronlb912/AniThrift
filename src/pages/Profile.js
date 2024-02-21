@@ -59,15 +59,22 @@ const Profile = () => {
     const items = querySnapshot.docs.map((doc) => {
       const data = doc.data();
       return {
-        id: doc.id, // Consider adding an ID if you need to reference the item later
+        id: doc.id,
         ...doc.data(),
-        imageUrl: doc.data().photos[0],
+        imageUrl: doc.data().photos[0], // Assuming photos is an array
         name: data.title,
         price: data.price,
       };
     });
     setUserItems(items);
+
+    // Update the activeListings count in the sellingInfo state
+    setSellingInfo((prevInfo) => ({
+      ...prevInfo,
+      activeListings: items.length, // Update the active listings count based on the items fetched
+    }));
   };
+
   const fetchWatchListItems = async (uid) => {
     const watchlistRef = collection(db, "users", uid, "watchlist");
     const querySnapshot = await getDocs(watchlistRef);

@@ -22,6 +22,8 @@ import Listing from "./pages/Listing";
 import Selling from "./pages/Selling.js";
 import ItemListing from "./pages/ItemInfo.js";
 import Cart from "./pages/Cart.js";
+import AllCategories from "./pages/AllCategories.js";
+import SearchProvider from "./components/SearchHandler.js";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -41,28 +43,31 @@ const Root = () => {
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Header />
-      <Routes>
-        <Route path="/" element={<App />}></Route>
-        <Route path="/signin" element={<SignInPage />} />
-        <Route path="/search" element={<SearchResult />} />
-        <Route path="/anime" element={<AnimePage />} />
-        <Route path="/manga" element={<MangaPage />} />
-        <Route path="/merchandise" element={<MerchandisePage />} />
-        <Route path="/figures-trinkets" element={<FigurePage />} />
-        <Route path="/apparel" element={<ApparelPage />} />
-        <Route path="/audio" element={<AudioPage />} />
-        <Route path="/games" element={<GamesPage />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="edit-profile" element={<EditProfile />} />
-        <Route path="/listing" element={<Listing />} />
-        <Route path="/sell" element={<Selling />} />
-        <Route path="/item/:id" element={<ItemListing />} />
-        <Route path="/cart" element={<Cart />} />
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+    <SearchProvider>
+      <BrowserRouter>
+        <Header />
+        <Routes>
+          <Route path="/" element={<App />}></Route>
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/search" element={<SearchResult />} />
+          <Route path="/anime" element={<AnimePage />} />
+          <Route path="/manga" element={<MangaPage />} />
+          <Route path="/merchandise" element={<MerchandisePage />} />
+          <Route path="/figures-trinkets" element={<FigurePage />} />
+          <Route path="/apparel" element={<ApparelPage />} />
+          <Route path="/audio" element={<AudioPage />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="edit-profile" element={<EditProfile />} />
+          <Route path="/listing" element={<Listing />} />
+          <Route path="/sell" element={<Selling />} />
+          <Route path="/item/:id" element={<ItemListing />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/all-categories" element={<AllCategories />} />
+        </Routes>
+        <Footer />
+      </BrowserRouter>{" "}
+    </SearchProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

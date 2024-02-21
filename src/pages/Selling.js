@@ -176,6 +176,7 @@ const Selling = () => {
         price,
         photos: photoUrls,
         creationDate, // Include the creation date
+        itemId: userSellingDocRef.id, // Using the same ID for user-specific and global item entry
       });
 
       console.log(

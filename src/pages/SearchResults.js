@@ -1,49 +1,44 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import axios from "axios";
-
-const useQuery = () => {
-  return new URLSearchParams(useLocation().search);
-};
+import React, { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation to access query params
+import { useSearch } from "../components/SearchHandler"; // Adjust the import path as necessary
+import "../css/search.css"; // CSS file for styling
 
 const SearchResults = () => {
-  const [products, setProducts] = useState([]);
-  const query = useQuery().get("query");
+  const { searchQuery, setSearchQuery, results } = useSearch();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const url = "https://searchebayitems-4f2wbghdla-uc.a.run.app";
-        const body = await JSON.stringify({ query })
-        const response = await axios.post(url, body);
-        setProducts(response.data.itemSummaries); // Make sure this matches the structure of your response
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      }
-    };
+    const queryParams = new URLSearchParams(location.search);
+    const query = queryParams.get("query") || queryParams.get("source"); // 'query' for specific searches, 'source' for general 'ours'
 
-    fetchProducts();
-  }, [query]);
-  
+    if (query && query !== searchQuery) {
+      setSearchQuery(query); // Update search context with the new query
+    }
+  }, [location.search, searchQuery, setSearchQuery]);
+
+  // Handler to navigate to the item's info page
+  const handleItemClick = (itemId) => {
+    navigate(`/item/${itemId}`); // Assuming the path to your item info page looks like this
+  };
+
   return (
-    <div>
-      <h2>Search Results</h2>
-      <h3>{query}</h3>
-      <div>
-        {products.length > 0 ? (
-          products.map((product, index) => (
-            <div key={index}>
-              <img src={product.image? product.image.imageUrl : null} alt={product.title} />
-              <div>{product.title}</div>
-              <div>
-                {product.price.value} {product.price.currency}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div>No results found</div>
-        )}
-      </div>
+    <div className="search-results-container">
+      {results.map((item) => (
+        <div
+          key={item.id}
+          className="search-result-item"
+          onClick={() => handleItemClick(item.id)}
+        >
+          <img
+            src={item.photos[0] || "placeholder-image-url"}
+            alt={item.title}
+            className="item-image"
+          />
+          <div className="item-title">{item.title}</div>
+          <div className="item-price">${item.price}</div>
+        </div>
+      ))}
     </div>
   );
 };
