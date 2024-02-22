@@ -1,25 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase-config";
-import { doc, getDoc, collection, addDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  deleteDoc,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { Snackbar, Alert } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  DialogContentText,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 
 const ItemInfo = () => {
   let { id } = useParams(); // This ID is now expected to be the global item ID
+  const auth = getAuth();
   const [item, setItem] = useState(null);
   const [seller, setSeller] = useState(null);
   const [userId, setUserId] = useState(null); // Initialize userId state
+  const navigate = useNavigate(); // Use this to navigate after delete
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success", // Can be "error", "warning", "info", or "success"
   });
 
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+  };
+
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in, set userId state
@@ -32,7 +60,7 @@ const ItemInfo = () => {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     const fetchItemAndSeller = async () => {
@@ -134,6 +162,27 @@ const ItemInfo = () => {
     }
   };
 
+  const deleteItem = async () => {
+    try {
+      // Delete from the global items collection
+      await deleteDoc(doc(db, "items", id));
+
+      // Delete from the user's selling collection
+      // Assuming you have a way to identify the specific document to delete, for example by storing the global item ID in the user's selling subcollection
+      const sellingRef = collection(db, "users", userId, "selling");
+      const q = query(sellingRef, where("itemId", "==", id));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        deleteDoc(doc.ref);
+      });
+
+      console.log("Item deleted successfully");
+      navigate("/"); // Or to any other page you'd like the user to go to after deletion
+    } catch (error) {
+      console.error("Error deleting item: ", error);
+    }
+  };
+
   if (!item) return <div>Loading...</div>;
 
   return (
@@ -163,8 +212,21 @@ const ItemInfo = () => {
         <p>
           <h3>Price: ${item.price}</h3>
         </p>
-        <button onClick={addToWatchlist}>Add to Watchlist</button>
-        <button onClick={addToCart}>Add to Cart</button>
+        {userId === item.sellerId ? (
+          // If the current user is the seller, show Edit and Delete buttons
+          <div>
+            <button onClick={() => navigate(`/edit-item/${id}`)}>
+              Edit Listing
+            </button>
+            <button onClick={handleOpenDeleteDialog}>Delete Listing</button>
+          </div>
+        ) : (
+          // If the current user is not the seller, show Add to Watchlist and Cart buttons
+          <div>
+            <button onClick={addToWatchlist}>Add to Watchlist</button>
+            <button onClick={addToCart}>Add to Cart</button>
+          </div>
+        )}
       </div>
       {seller && (
         <div className="seller-info">
@@ -189,6 +251,33 @@ const ItemInfo = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this listing?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button
+            onClick={() => {
+              deleteItem();
+              handleCloseDeleteDialog();
+              navigate(`/profile`);
+            }}
+            autoFocus
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+      ;
     </div>
   );
 };

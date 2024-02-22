@@ -24,6 +24,7 @@ import ItemListing from "./pages/ItemInfo.js";
 import Cart from "./pages/Cart.js";
 import AllCategories from "./pages/AllCategories.js";
 import SearchProvider from "./components/SearchHandler.js";
+import EditItem from "./pages/EditItem.js";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -64,6 +65,7 @@ ReactDOM.render(
           <Route path="/item/:id" element={<ItemListing />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/all-categories" element={<AllCategories />} />
+          <Route path="edit-item/:id" element={<EditItem />} />
         </Routes>
         <Footer />
       </BrowserRouter>

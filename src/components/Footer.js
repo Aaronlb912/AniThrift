@@ -23,7 +23,7 @@ const Footer = () => {
   return (
     <>
       {/* Newsletter subscription section */}
-      <div className="newsletter-section">
+      {/* <div className="newsletter-section">
         <h3>Join Our Newsletter</h3>
         <p>Sign up to receive updates and offers directly in your inbox.</p>
         <form onSubmit={handleSubscribe}>
@@ -61,7 +61,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-      </appAd>
+      </appAd> */}
       <footer className="footer-layer info-links">
         {/* Information About the Website */}
         <div className="info-section">

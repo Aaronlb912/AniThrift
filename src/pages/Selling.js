@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import moment from "moment/moment";
 import {
@@ -143,54 +143,42 @@ const Selling = () => {
       return;
     }
 
-    const creationDate = moment().toISOString(); // Get current date in ISO string format
+    // Prepare data for new item
+    const newItemData = {
+      title,
+      description,
+      tags: tags.map((tag) => tag.text),
+      category,
+      condition,
+      color,
+      deliveryOption,
+      price,
+      photos: photos
+        .filter((photo) => photo.downloadURL)
+        .map((photo) => photo.downloadURL),
+      creationDate: moment().toISOString(),
+      sellerId: userId,
+    };
 
     try {
-      // Add to the user's 'selling' collection
-      const userSellingDocRef = await addDoc(
-        collection(db, "users", userId, "selling"),
-        {
-          title,
-          description,
-          tags: tags.map((tag) => tag.text),
-          category,
-          condition,
-          color,
-          deliveryOption,
-          price,
-          photos: photoUrls,
-          creationDate, // Include the creation date
-        }
+      // Step 1: Add to the global 'items' collection
+      const globalItemDocRef = await addDoc(
+        collection(db, "items"),
+        newItemData
       );
 
-      // Add to a global 'items' collection with seller information
-      const globalItemDocRef = await addDoc(collection(db, "items"), {
-        sellerId: userId,
-        title,
-        description,
-        tags: tags.map((tag) => tag.text),
-        category,
-        condition,
-        color,
-        deliveryOption,
-        price,
-        photos: photoUrls,
-        creationDate, // Include the creation date
-        itemId: userSellingDocRef.id, // Using the same ID for user-specific and global item entry
+      // Step 2: Use the same ID to create a document in the user's 'selling' collection
+      await setDoc(doc(db, "users", userId, "selling", globalItemDocRef.id), {
+        ...newItemData,
+        itemId: globalItemDocRef.id, // This ensures the item's ID is explicitly stored if needed
       });
 
-      console.log(
-        "User selling document written with ID: ",
-        userSellingDocRef.id
-      );
-
-      console.log("Document written with ID: ", globalItemDocRef.id);
-      navigate(`/item/${globalItemDocRef.id}`); // Redirect user to the item listing page
+      console.log("Item listed with ID:", globalItemDocRef.id);
+      navigate(`/item/${globalItemDocRef.id}`); // Redirect to the item page using the consistent item ID
     } catch (e) {
       console.error("Error adding document: ", e);
     }
   };
-
   return (
     <div className="selling-form">
       <h1>List an Item</h1>
