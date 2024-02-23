@@ -1,180 +1,155 @@
 /* Footer.css */
-footer {
-    background-color: #333; /* Dark background for the footer */
-    color: #fff; /* Light text color */
-    padding: 20px;
-    font-size: 14px;
-  }
+.footer-layer.info-links,
+.footer-layer.legal-info,
+.newsletter-section,
+.app-promotion-layer {
+  padding: 20px;
+  color: #fff;
+}
 
-  
-  .app-promotion-layer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    background-color: #2f4691; /* Light grey background, adjust as needed */
-  }
-  
-  .app-image {
-    flex-basis: 50%; /* Adjust based on your preference */
-  }
-  
-  .app-info {
-    flex-basis: 50%; /* Adjust based on your preference */
-    display: flex;
+/* Footer.css */
+.footer-layer.info-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjust based on your content and design preference */
+  gap: 20px; /* Space between columns */
+  background-color: #222; /* Darker background for contrast */
+  padding: 20px;
+  color: #fff;
+}
+
+/* Ensures that each section including the title and links behaves like a mini-grid */
+.footer-layer.info-links div {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-layer.info-links h2 {
+  margin-bottom: 10px; /* Space between the title and the first link */
+  color: #007bff;
+}
+
+/* Adjusts the link appearance */
+.footer-layer.info-links a {
+  color: #fff; /* Light color for the links */
+  text-decoration: none; /* No underlines */
+  margin-bottom: 5px; /* Space between links */
+}
+
+.footer-layer.legal-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #1A1A1A; /* Dark background for contrast */
+  color: #ffffff;
+  font-size: 12px; /* Smaller font size for the legal links */
+}
+
+.footer-layer.legal-info .footer-logo {
+  width: 80px; /* Smaller logo size */
+  height: auto; /* Maintain aspect ratio */
+  margin-right: 20px; /* Ensures some space between logo and legal links */
+  align-self: flex-start; /* Aligns logo to the top if there's more vertical space */
+}
+
+.legal-links {
+  display: flex;
+  justify-content: space-evenly; /* Evenly spaces the links within the container */
+  align-items: center;
+  width: 100%; /* Takes up remaining space to justify content evenly */
+  flex-wrap: wrap; /* Allows links to wrap on smaller screens */
+}
+
+.legal-links a {
+  color: #ffffff; /* White color for readability */
+  text-decoration: none; /* Removes underline */
+  margin: 0 10px; /* Evenly spaces the links */
+  transition: color 0.3s; /* Smooth transition for hover effect */
+}
+
+.legal-links a:hover {
+  color: #BBBBBB; /* Changes color on hover for visual feedback */
+}
+
+/* Adjusts the layout for smaller screens */
+@media (max-width: 768px) {
+  .footer-layer.legal-info {
     flex-direction: column;
-    justify-content: space-between;
+    text-align: center;
   }
-  
-  .app-ad-text {
-    /* Styling for the advertisement text */
-    margin-bottom: 20px; /* Adds space between the text and the app store links */
-    
+
+  .footer-layer.legal-info .footer-logo {
+    margin-bottom: 10px; /* Adds some space between logo and links on smaller screens */
   }
-  
-  .app-store-links img {
-    height: 60px; /* Adjust based on your preference */
-    margin-right: 10px; /* Adds space between the app store icons */
+
+  .legal-links {
+    justify-content: center; /* Centers links when stacked vertically */
+    margin-top: 10px; /* Adds some space above links */
   }
-  
-  
+}
+
+.app-promotion-layer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #2f4691; /* Adjust the background color as necessary */
+}
+
+.app-store-icon {
+  width: 150px; /* Adjust the width as necessary */
+  height: auto; /* Maintain aspect ratio */
+  margin: 0 5px; /* Adjust the margin as necessary */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .footer-layer.info-links {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    background-color: #222; /* Darker background for contrast */
-    color: #fff;
-    padding: 20px 0;
-  }
-  
-  .footer-layer.info-links div {
-    margin: 10px;
-  }
-  
-  .footer-layer.info-links h2 {
-    font-weight: bold;
-    margin-bottom: 15px; /* Space between header and links */
-  }
-  
-  .footer-layer.info-links a {
-    display: block; /* Each link on its own line */
-    color: #fff; /* Light color for the links */
-    text-decoration: none; /* No underlines */
-    margin-bottom: 10px; /* Space between links */
-  }
-  
-  .footer-layer.info-links a img {
-    width: 24px; /* Example size, adjust as needed */
-    vertical-align: middle; /* Aligns icon with text if text is added */
-    margin-right: 5px; /* Space between icon and text */
+    grid-template-columns: 1fr; /* Stack columns on smaller screens */
   }
 
-    .app-store-icon {
-        width: 150px; /* Adjust width as needed */
-        height: auto; /* Keeps the aspect ratio intact */
-        margin: 0 5px; /* Adjust spacing around icons as needed */
-    }
+  .app-promotion-layer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
 
-    .footer-layer.legal-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        background-color: #1A1A1A; /* Dark background for contrast */
-        color: #ffffff;
-        font-size: 14px;
-        
-      }
-      
-      .footer-layer.legal-info .footer-logo {
-        width: 30%; /* Adjust based on your logo size */
-        height: auto;
-      }
-      
-      .legal-links {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center; /* Center the legal links */
-        gap: 20px; /* Creates space between links */
-      }
-      
-      .legal-links a {
-        color: #ffffff; /* Ensures text is white for readability */
-        text-decoration: none; /* Removes underline from links */
-      }
-      
-      .newsletter-section {
-        background-color: #f2f2f2; /* Light grey background */
-        padding: 20px;
-        text-align: center;
-      }
-      
-      .newsletter-section h3 {
-        margin-bottom: 10px;
-      }
-      
-      .newsletter-section p {
-        margin-bottom: 20px;
-      }
-      
-      .newsletter-section form {
-        display: inline-block;
-      }
-      
-      .newsletter-section input[type="email"] {
-        padding: 10px;
-        margin-right: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
-      
-      .newsletter-section button {
-        padding: 10px 20px;
-        background-color: #007bff; /* Bootstrap primary blue */
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      
-        
-      
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .app-promotion-layer {
-      flex-direction: column;
-      text-align: center;
-    }
+
+/* Additional styling for the newsletter section if needed */
+.newsletter-section {
+  background-color: #f2f2f2; /* Light grey background */
+  color: #000; /* Text color */
+  text-align: center;
+  padding: 20px;
+}
+
+.newsletter-section input[type="email"],
+.newsletter-section button {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 5px; /* Adds rounded corners */
+}
+
+.newsletter-section button {
+  background-color: #007bff; /* Bootstrap primary blue */
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-promotion-layer,
+  .footer-layer.legal-info {
+    flex-direction: column;
+    text-align: center;
+  }
   
-    .app-store-links img {
-      margin: 0 auto; /* Center the images on smaller screens */
-      display: block;
-      margin-bottom: 10px; /* Adds space between the app store icons */
-    }
-
-    .footer-layer.info-links {
-        flex-direction: column;
-        align-items: center;
-      }
-    
-      .footer-layer.info-links div {
-        width: 100%; /* Full width to stack vertically on smaller screens */
-        text-align: center; /* Center the content for smaller screens */
-      }
-  
-      .app-store-icon {
-          width: 120px; /* Slightly smaller on mobile devices */
-          margin: 10px auto; /* Center the icons with automatic horizontal margins */
-          display: block; /* Ensure images are block-level for the auto margins to work */
-        }
-
-        .footer-layer.legal-info {
-          flex-direction: column;
-          text-align: center;
-        }
-      
-        .legal-links {
-          flex-direction: column;
-          align-items: center;
-        }
+  .app-store-links img,
+  .app-store-icon {
+    margin: 0 auto;
+    display: block;
+    margin-bottom: 10px;
+  }
 }
