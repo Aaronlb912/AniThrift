@@ -183,7 +183,7 @@ const Header = () => {
 
             {/* Search Bar */}
             <div
-              style={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
+              className="searchContainer" 
             >
               <InputBase
                 placeholder="Search…"
