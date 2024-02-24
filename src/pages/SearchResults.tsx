@@ -15,21 +15,26 @@ const SearchResults = () => {
     const index = client.initIndex("items");
 
     index
-      .search(searchQuery)
-      .then(({ hits }) => {
-        if (hits) {
-          setSearchResults(hits);
-        } else {
-          setSearchResults([]);
-        }
-      })
-      .catch((err) => console.log("err", err));
-  }, [searchQuery]);
+    .search(searchQuery)
+    .then(({ hits }: {hits: any}) => {
+      if (hits) {
+        setSearchResults(hits)
+      } else {
+        setSearchResults([])
+      }
+    })
+    .catch((err: Error) => console.log('err', err))
+  }, [searchQuery]) 
+
+  // Handler to navigate to the item's info page
+  const handleItemClick = (itemId: string) => {
+    navigate(`/item/${itemId}`); // Assuming the path to your item info page looks like this
+  };
 
   return (
     <div className="search-results-container">
       {searchResults && searchResults.length > 0 ? (
-        searchResults.map((item) => (
+        searchResults.map((item: any) => (
           <div
             key={item.objectID}
             className="search-result-item"

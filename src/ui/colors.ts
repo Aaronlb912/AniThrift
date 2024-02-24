@@ -1,4 +1,4 @@
-// colors.js
+// colors.ts
 const colors = {
   black: '#0D0D0D',
   white: '#F8F8F8',
