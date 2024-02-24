@@ -14,7 +14,7 @@ const SearchResults = () => {
     const index = client.initIndex('items')
 
     index
-    .search('')
+    .search(searchQuery)
     .then(({ hits }) => {
       if (hits) {
         setSearchResults(hits)
