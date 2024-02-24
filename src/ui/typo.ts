@@ -1,4 +1,4 @@
-// typography.js
+// typography.ts
 import colors from './colors';
 
 const typographyStyles = {

@@ -13,18 +13,18 @@ import AnimePage from "./pages/AnimePage"; // Import your category components
 import MangaPage from "./pages/MangaPage";
 import MerchandisePage from "./pages/MerchandisePage";
 import FigurePage from "./pages/FigurePage";
-import ApparelPage from "./pages/ApparelPage.js";
+import ApparelPage from "./pages/ApparelPage";
 import AudioPage from "./pages/AudioPage";
 import GamesPage from "./pages/GamesPage";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Listing from "./pages/Listing";
-import Selling from "./pages/Selling.js";
-import ItemListing from "./pages/ItemInfo.js";
-import Cart from "./pages/Cart.js";
-import AllCategories from "./pages/AllCategories.js";
-import SearchProvider from "./components/SearchHandler.js";
-import EditItem from "./pages/EditItem.js";
+import Selling from "./pages/Selling";
+import ItemListing from "./pages/ItemInfo";
+import Cart from "./pages/Cart";
+import AllCategories from "./pages/AllCategories";
+import SearchProvider from "./components/SearchHandler";
+import EditItem from "./pages/EditItem";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);

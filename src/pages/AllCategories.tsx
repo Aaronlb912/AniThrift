@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useSearch } from "../components/SearchHandler.js";
+import { useSearch } from "../components/SearchHandler";
 import "../css/infoPages.css"; // Make sure the path matches your file structure
 
 const AllCategoriesPage = () => {
