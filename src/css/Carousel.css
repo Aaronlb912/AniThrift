@@ -15,10 +15,6 @@
     width: 100%;
   }
   
-  .carousel-items {
-    display: flex;
-    transition: transform 0.5s ease;
-  }
   
   .carousel-item {
     flex: 0 0 40%; /* Adjust this value based on your design to control the item width */
@@ -31,7 +27,9 @@
     width: 10em;
     height: 10em; /* Maintain aspect ratio */
     border: 2px black solid;
+    margin:0 auto
   }
+  
   
   .arrow {
     cursor: pointer;

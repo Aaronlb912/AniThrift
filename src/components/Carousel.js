@@ -31,13 +31,11 @@ function PrevArrow(props) {
 
 export const Carousel = ({ items }) => {
   const settings = {
-    dots: true,
-    infinite: false,
+    centerMode: true,
+    infinite: true,
+    centerPadding: "60px",
+    slidesToShow: 3,
     speed: 500,
-    slidesToShow: 5,
-    slidesToScroll: 1,
-    draggable: true,
-    swipeToSlide: true,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     responsive: [

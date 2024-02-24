@@ -277,7 +277,6 @@ const ItemInfo = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      ;
     </div>
   );
 };
