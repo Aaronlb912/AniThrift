@@ -1,21 +1,29 @@
-import React, { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation to access query params
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useLocation to access query params
 import { useSearch } from "../components/SearchHandler"; // Adjust the import path as necessary
 import "../css/search.css"; // CSS file for styling
+const algoliasearch = require('algoliasearch')
+const client = algoliasearch('UDKPDLE9YO', '0eaa91b0f52cf49f20d168216adbad37')
 
 const SearchResults = () => {
   const { searchQuery, setSearchQuery, results } = useSearch();
-  const location = useLocation();
+  const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const query = queryParams.get("query") || queryParams.get("source"); // 'query' for specific searches, 'source' for general 'ours'
+    const index = client.initIndex('items')
 
-    if (query && query !== searchQuery) {
-      setSearchQuery(query); // Update search context with the new query
-    }
-  }, [location.search, searchQuery, setSearchQuery]);
+    index
+    .search('')
+    .then(({ hits }) => {
+      if (hits) {
+        setSearchResults(hits)
+      } else {
+        setSearchResults([])
+      }
+    })
+    .catch((err) => console.log('err', err))
+  }, [searchQuery]) 
 
   // Handler to navigate to the item's info page
   const handleItemClick = (itemId) => {
@@ -24,8 +32,8 @@ const SearchResults = () => {
 
   return (
     <div className="search-results-container">
-      {results.length > 0 ? (
-        results.map((item) => (
+      {searchResults && searchResults.length > 0 ? (
+        searchResults.map((item) => (
           <div
             key={item.id}
             className="search-result-item"
