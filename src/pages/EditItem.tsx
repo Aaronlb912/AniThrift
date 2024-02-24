@@ -7,8 +7,8 @@ import { getAuth } from "firebase/auth"; // Import for authentication
 
 import "../css/EditItem.css"; // Ensure you create or adjust the CSS file accordingly
 
-const EditItem = () => {
-  const { id } = useParams(); // Item ID from URL
+const EditItem: React.FC = () => {
+  const { id } = useParams<{ id: string }>(); // Item ID from URL
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -21,9 +21,11 @@ const EditItem = () => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setTitle(data.title);
-        setDescription(data.description);
-        setPrice(data.price);
+        if (data) {
+          setTitle(data.title || "");
+          setDescription(data.description || "");
+          setPrice(data.price || "");
+        }
       } else {
         console.log("No such document!");
       }
@@ -31,7 +33,7 @@ const EditItem = () => {
     fetchItem();
   }, [id]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Assuming the user is the same as the item's seller
     const userId = auth.currentUser?.uid; // Get current user's ID

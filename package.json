@@ -67,6 +67,7 @@
   "license": "ISC",
   "proxy": "http://localhost:3000",
   "devDependencies": {
+    "@types/firebase": "^3.2.1",
     "@types/react-slick": "^0.23.13"
   }
 }

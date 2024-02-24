@@ -11,7 +11,7 @@ import {
 import "../css/Signin.css"; // Ensure the path is correct
 import { useNavigate } from "react-router-dom";
 
-const SignInPage = () => {
+const SignInPage: React.FC = () => {
   // States and navigate hook
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ const SignInPage = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -46,7 +46,7 @@ const SignInPage = () => {
     }
   };
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setRegisterError("Passwords do not match.");
@@ -95,7 +95,7 @@ const SignInPage = () => {
     <div className="login-register">
       <h1>Log In | Register</h1>
       <div className="container">
-        <returner className="returning-user">
+        <div className="returning-user">
           <h2>Returning Customer</h2>
           <p>Login below to check-in with an existing account</p>
           <p>
@@ -124,8 +124,8 @@ const SignInPage = () => {
           </form>
           {loginError && <p className="error-message">{loginError}</p>}{" "}
           {/* Display login error */}
-        </returner>
-        <newUser className="new-user">
+        </div>
+        <div className="new-user">
           <h2>New Customer</h2>
           <p>Create an account for free</p>
           <p>
@@ -187,7 +187,7 @@ const SignInPage = () => {
           </form>
           {registerError && <p className="error-message">{registerError}</p>}{" "}
           {/* Display registration error */}
-        </newUser>{" "}
+        </div>
       </div>
     </div>
   );

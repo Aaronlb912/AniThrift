@@ -9,14 +9,29 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-// Import icons from MUI or your choice of library
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Button } from "@mui/material";
 import "../css/Cart.css";
 
-const CartPage = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [user, setUser] = useState(null);
+interface CartItem {
+  id: string;
+  imageUrl: string;
+  title: string;
+  price: number;
+  sellerId: string;
+  sellerName: string;
+}
+
+interface GroupedCartItems {
+  [key: string]: {
+    sellerName: string;
+    items: CartItem[];
+  };
+}
+
+const CartPage: React.FC = () => {
+  const [cartItems, setCartItems] = useState<GroupedCartItems>({});
+  const [user, setUser] = useState<firebase.User | null>(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -28,42 +43,38 @@ const CartPage = () => {
     });
   }, []);
 
-  const fetchCartItems = async (userId) => {
+  const fetchCartItems = async (userId: string) => {
     const cartRef = collection(db, "users", userId, "cart");
     const cartSnapshot = await getDocs(cartRef);
 
-    // Directly map through the documents without fetching seller information again
     const items = cartSnapshot.docs.map((docSnapshot) => {
       const itemData = docSnapshot.data();
       return {
         id: docSnapshot.id,
         ...itemData,
-        // Assuming sellerId and sellerName are part of the itemData
         sellerId: itemData.sellerId,
         sellerName: itemData.sellerName,
       };
     });
 
-    // Group items by sellerId while retaining access to sellerName for display
     const groupedItems = items.reduce((acc, item) => {
-      // Use sellerId as the key for grouping
       if (!acc[item.sellerId]) {
         acc[item.sellerId] = {
-          sellerName: item.sellerName, // Store sellerName for easy access
-          items: [], // Initialize items array
+          sellerName: item.sellerName,
+          items: [],
         };
       }
-      acc[item.sellerId].items.push(item);
+      acc[item.sellerId].items.push(item as any);
       return acc;
-    }, {});
+    }, {} as GroupedCartItems);
 
     setCartItems(groupedItems);
   };
 
-  const removeItemFromCart = async (itemId) => {
+  const removeItemFromCart = async (itemId: string) => {
     if (!user) return;
     await deleteDoc(doc(db, "users", user.uid, "cart", itemId));
-    fetchCartItems(user.uid); // Refresh cart items after deletion
+    fetchCartItems(user.uid);
   };
 
   return (

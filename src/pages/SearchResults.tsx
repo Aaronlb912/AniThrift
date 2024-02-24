@@ -3,28 +3,42 @@ import { useNavigate } from "react-router-dom"; // Import useLocation to access 
 import { useSearch } from "../components/SearchHandler"; // Adjust the import path as necessary
 import { Link } from "@mui/icons-material";
 import "../css/search.css"; // CSS file for styling
-const algoliasearch = require("algoliasearch");
+import algoliasearch, { SearchIndex } from "algoliasearch";
+
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
 
-const SearchResults = () => {
-  const { searchQuery, setSearchQuery, results } = useSearch();
-  const [searchResults, setSearchResults] = useState([]);
+interface SearchResult {
+  objectID: string;
+  photos: string[];
+  title: string;
+  price: number;
+}
+
+interface SearchHookResult {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  results: SearchResult[]; // Adjust the type as necessary
+}
+
+const SearchResults: React.FC = () => {
+  const { searchQuery, setSearchQuery, results } = useSearch() as SearchHookResult;
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const index = client.initIndex("items");
+    const index: SearchIndex = client.initIndex("items");
 
     index
-    .search(searchQuery)
-    .then(({ hits }: {hits: any}) => {
-      if (hits) {
-        setSearchResults(hits)
-      } else {
-        setSearchResults([])
-      }
-    })
-    .catch((err: Error) => console.log('err', err))
-  }, [searchQuery]) 
+      .search(searchQuery)
+      .then(({ hits }: { hits: SearchResult[] }) => {
+        if (hits) {
+          setSearchResults(hits);
+        } else {
+          setSearchResults([]);
+        }
+      })
+      .catch((err: Error) => console.log('err', err));
+  }, [searchQuery]);
 
   // Handler to navigate to the item's info page
   const handleItemClick = (itemId: string) => {
@@ -34,11 +48,11 @@ const SearchResults = () => {
   return (
     <div className="search-results-container">
       {searchResults && searchResults.length > 0 ? (
-        searchResults.map((item: any) => (
+        searchResults.map((item: SearchResult) => (
           <div
             key={item.objectID}
             className="search-result-item"
-            onClick={() => navigate(`/item/${item.objectID}`)}
+            onClick={() => handleItemClick(item.objectID)}
           >
             <img
               src={item.photos[0] || "placeholder-image-url"}

@@ -7,7 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 
-function NextArrow(props) {
+function NextArrow(props:any) {
   const { className, style, onClick } = props;
   return (
     <KeyboardArrowRightIcon
@@ -18,7 +18,7 @@ function NextArrow(props) {
   );
 }
 
-function PrevArrow(props) {
+function PrevArrow(props:any) {
   const { className, style, onClick } = props;
   return (
     <KeyboardArrowLeftIcon
@@ -29,7 +29,7 @@ function PrevArrow(props) {
   );
 }
 
-export const Carousel = ({ items }) => {
+export const Carousel = ({ items }:{items:any}) => {
   const settings = {
     centerMode: true,
     infinite: true,
@@ -59,13 +59,13 @@ export const Carousel = ({ items }) => {
   return (
     <div className="carousel-container">
       <Slider {...settings}>
-        {items.map((item, index) => (
+        {items.map((item:any, index:any) => (
           // Key is moved to the outermost element
           <div key={index} className="carousel-item">
-            <Link to={`/item/${item.id}`} className="carousel-item-link">
-              <img src={item.imageUrl} alt={`Item ${index + 1}`} />
-              <p>{item.name}</p>
-              <p>{item.price}</p>
+            <Link to={`/item/${item?.id}`} className="carousel-item-link">
+              <img src={item?.imageUrl} alt={`Item ${index + 1}`} />
+              <p>{item?.name}</p>
+              <p>${item?.price}</p>
             </Link>
           </div>
         ))}

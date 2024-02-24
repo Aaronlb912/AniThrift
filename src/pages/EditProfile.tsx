@@ -12,7 +12,7 @@ const EditProfile = () => {
   const [username, setUsername] = useState(user?.displayName || "");
   const [newPassword, setNewPassword] = useState("");
   const [reEnteredPassword, setReEnteredPassword] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,13 +23,13 @@ const EditProfile = () => {
     }
   }, [user, navigate]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e:any) => {
     if (e.target.files[0]) {
       setSelectedImage(e.target.files[0]);
     }
   };
 
-  const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = async (e:any) => {
     e.preventDefault();
     if (!user) return;
 

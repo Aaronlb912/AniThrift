@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useSearch } from "../components/SearchHandler";
 import "../css/infoPages.css"; // Make sure the path matches your file structure
 
-const AllCategoriesPage = () => {
+const AllCategoriesPage: React.FC = () => {
   const navigate = useNavigate();
-  const categories = [
+  const categories: string[] = [
     "Anime & Videos",
     "Manga & Novels",
     "Merchandise",
@@ -21,7 +21,7 @@ const AllCategoriesPage = () => {
     navigate("/search?source=ours");
   };
 
-  const handleNavigateToCategory = (category) => {
+  const handleNavigateToCategory = (category: string) => {
     navigate(`/search?category=${encodeURIComponent(category)}`);
   };
 

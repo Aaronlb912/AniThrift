@@ -16,18 +16,34 @@ import { Carousel } from "../components/Carousel"; // Adjust the path as necessa
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-const Profile = () => {
+interface UserProfile {
+  name: string;
+  username: string;
+  userId: string;
+  photoURL: string;
+  rating: number;
+  reviews: number;
+  creationDate: string;
+}
+
+interface SellingInfo {
+  activeListings: number;
+  sales: number;
+  accountBalance: number;
+}
+
+const Profile: React.FC = () => {
   const auth = getAuth();
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState(null);
-  const [userItems, setUserItems] = useState([]); // State to store the user's selling items
-  const [watchListItems, setWatchListItems] = useState([]);
-  const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userItems, setUserItems] = useState<any[]>([]); // State to store the user's selling items
+  const [watchListItems, setWatchListItems] = useState<any[]>([]);
+  const [recentlyViewedItems, setRecentlyViewedItems] = useState<any[]>([]);
 
-  const [sellingInfo, setSellingInfo] = useState({
-    activeListings: 0, // Default value, adjust as necessary
-    sales: 0, // Default value, adjust as necessary
-    accountBalance: 0, // Default value, adjust as necessary
+  const [sellingInfo, setSellingInfo] = useState<SellingInfo>({
+    activeListings: 0,
+    sales: 0,
+    accountBalance: 0,
   });
 
   useEffect(() => {
@@ -43,17 +59,17 @@ const Profile = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  const fetchUserProfile = async (uid) => {
+  const fetchUserProfile = async (uid: string) => {
     const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      setUserProfile(docSnap.data());
+      setUserProfile(docSnap.data() as UserProfile);
     } else {
       console.error("No such document!");
     }
   };
 
-  const fetchUserItems = async (uid) => {
+  const fetchUserItems = async (uid: string) => {
     const q = query(collection(db, "items"), where("sellerId", "==", uid));
     const querySnapshot = await getDocs(q);
     const items = querySnapshot.docs.map((doc) => {
@@ -63,7 +79,6 @@ const Profile = () => {
         ...doc.data(),
         imageUrl: doc.data().photos[0], // Assuming photos is an array
         name: data.title,
-        price: data.price,
       };
     });
     setUserItems(items);
@@ -71,11 +86,11 @@ const Profile = () => {
     // Update the activeListings count in the sellingInfo state
     setSellingInfo((prevInfo) => ({
       ...prevInfo,
-      activeListings: items.length, // Update the active listings count based on the items fetched
+      activeListings: items.length,
     }));
   };
 
-  const fetchWatchListItems = async (uid) => {
+  const fetchWatchListItems = async (uid: string) => {
     const watchlistRef = collection(db, "users", uid, "watchlist");
     const querySnapshot = await getDocs(watchlistRef);
     const watchlist = [];
@@ -86,7 +101,7 @@ const Profile = () => {
         watchlist.push({
           id: itemSnapshot.id,
           ...itemSnapshot.data(),
-          imageUrl: itemSnapshot.data().photos[0], // Assuming the first photo is what you want to display
+          imageUrl: itemSnapshot.data().photos[0],
           name: itemSnapshot.data().title,
           price: itemSnapshot.data().price,
         });
@@ -95,7 +110,7 @@ const Profile = () => {
     setWatchListItems(watchlist);
   };
 
-  if (!userProfile) return <div>Loading...</div>; // Loading state
+  if (!userProfile) return <div>Loading...</div>;
 
   return (
     <div className="profile-container">
