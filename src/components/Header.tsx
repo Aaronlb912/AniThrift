@@ -37,8 +37,6 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
   const { setSearchQuery } = useSearch(); // Use setSearchQuery from your search context
 
-  console.log(user);
-
   const handleSearch = (e) => {
     if (e.key === "Enter" && searchInput.trim()) {
       setSearchQuery(searchInput.trim());
@@ -182,9 +180,7 @@ const Header = () => {
             </IconButton>
 
             {/* Search Bar */}
-            <div
-              className="searchContainer" 
-            >
+            <div className="searchContainer">
               <InputBase
                 placeholder="Search…"
                 value={searchInput}

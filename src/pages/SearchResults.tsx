@@ -4,6 +4,7 @@ import { useSearch } from "../components/SearchHandler"; // Adjust the import pa
 import { Link } from "@mui/icons-material";
 import "../css/search.css"; // CSS file for styling
 import algoliasearch, { SearchIndex } from "algoliasearch";
+import FilterBar from "../components/SearchFilter";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
 
@@ -21,9 +22,25 @@ interface SearchHookResult {
 }
 
 const SearchResults: React.FC = () => {
-  const { searchQuery, setSearchQuery, results } = useSearch() as SearchHookResult;
+  const { searchQuery, setSearchQuery, results } =
+    useSearch() as SearchHookResult;
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   const navigate = useNavigate();
+
+  const handleCategoryChange = (category: string) => {
+    if (category === "All Categories") {
+      setSelectedCategories(["All Categories"]);
+    } else {
+      const index = selectedCategories.indexOf(category);
+      if (index === -1) {
+        setSelectedCategories([...selectedCategories, category]);
+      } else {
+        setSelectedCategories(selectedCategories.filter((_, i) => i !== index));
+      }
+    }
+  };
 
   useEffect(() => {
     const index: SearchIndex = client.initIndex("items");
@@ -37,7 +54,7 @@ const SearchResults: React.FC = () => {
           setSearchResults([]);
         }
       })
-      .catch((err: Error) => console.log('err', err));
+      .catch((err: Error) => console.log("err", err));
   }, [searchQuery]);
 
   // Handler to navigate to the item's info page
@@ -46,26 +63,32 @@ const SearchResults: React.FC = () => {
   };
 
   return (
-    <div className="search-results-container">
-      {searchResults && searchResults.length > 0 ? (
-        searchResults.map((item: SearchResult) => (
-          <div
-            key={item.objectID}
-            className="search-result-item"
-            onClick={() => handleItemClick(item.objectID)}
-          >
-            <img
-              src={item.photos[0] || "placeholder-image-url"}
-              alt={item.title}
-              className="item-image"
-            />
-            <div className="item-title">{item.title}</div>
-            <div className="item-price">${item.price}</div>
-          </div>
-        ))
-      ) : (
-        <div>No results found.</div>
-      )}
+    <div className="search-page-container">
+      <FilterBar
+        selectedCategories={selectedCategories}
+        handleCategoryChange={handleCategoryChange}
+      />
+      <div className="search-results-container">
+        {searchResults && searchResults.length > 0 ? (
+          searchResults.map((item: SearchResult) => (
+            <div
+              key={item.objectID}
+              className="search-result-item"
+              onClick={() => handleItemClick(item.objectID)}
+            >
+              <img
+                src={item.photos[0] || "placeholder-image-url"}
+                alt={item.title}
+                className="item-image"
+              />
+              <div className="item-title">{item.title}</div>
+              <div className="item-price">${item.price}</div>
+            </div>
+          ))
+        ) : (
+          <div>No results found.</div>
+        )}
+      </div>
     </div>
   );
 };
