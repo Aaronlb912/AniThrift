@@ -1,0 +1,22 @@
+.filter-bar {
+  padding: 20px;
+  border: 1px solid #ddd; /* Entire filter bar in its own border box */
+  margin-bottom: 20px; /* Space below the filter bar */
+}
+
+.category-dropdown {
+  border: 1px solid #ddd; /* Dropdown border */
+  margin-top: 10px; /* Space below the category title */
+}
+
+.category-option {
+  display: flex;
+  align-items: center; /* Align checkbox and label */
+  border: 1px solid #ddd; /* Border around each category */
+  margin: 5px 0; /* Space between category options */
+  padding: 5px; /* Padding inside each category option */
+}
+
+.category-option input[type="checkbox"] {
+  margin-right: 10px; /* Space between checkbox and label */
+}
