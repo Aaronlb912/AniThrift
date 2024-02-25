@@ -25,23 +25,18 @@ import {
   RadioGroup,
 } from "@mui/material";
 
-interface Tag {
-  id: number;
-  text: string;
-}
-
-const Selling: React.FC = () => {
+const Selling = () => {
   // State for form inputs
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [category, setCategory] = useState<string>("");
-  const [condition, setCondition] = useState<string>("");
-  const [color, setColor] = useState<string>("");
-  const [deliveryOption, setDeliveryOption] = useState<string>("");
-  const [price, setPrice] = useState<string>("");
-  const [photos, setPhotos] = useState<{ preview: string; downloadURL: string | null }[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState([]);
+  const [category, setCategory] = useState("");
+  const [condition, setCondition] = useState("");
+  const [color, setColor] = useState("");
+  const [deliveryOption, setDeliveryOption] = useState("");
+  const [price, setPrice] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate(); // Add this line
 
   useEffect(() => {
@@ -61,7 +56,7 @@ const Selling: React.FC = () => {
   }, []);
 
   // Handle change for file input
-  const onDrop = useCallback((acceptedFiles: File[] ) => {
+  const onDrop = useCallback((acceptedFiles) => {
     const storage = getStorage();
 
     // Map through the files, upload them to Firebase Storage, and create preview URLs
@@ -112,32 +107,32 @@ const Selling: React.FC = () => {
     maxFiles: 15,
   });
 
-  const removePhoto = (photoUrl: string) => {
+  const removePhoto = (photoUrl) => {
     setPhotos(photos.filter((photo) => photo.preview !== photoUrl));
   };
 
   // Remember to revoke data uris to avoid memory leaks
-  useEffect(() => {
+  React.useEffect(() => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
 
   // Handle adding new tag
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && e.currentTarget.value) {
-      const newTag = { id: Date.now(), text: e.currentTarget.value };
+  const handleAddTag = (e) => {
+    if (e.key === "Enter" && e.target.value) {
+      const newTag = { id: Date.now(), text: e.target.value };
       setTags([...tags, newTag]);
-      e.currentTarget.value = ""; // Clear input
+      e.target.value = ""; // Clear input
       e.preventDefault(); // Prevent form submission
     }
   };
 
   // Handle removing a tag
-  const handleRemoveTag = (tagId: number) => {
+  const handleRemoveTag = (tagId) => {
     setTags(tags.filter((tag) => tag.id !== tagId));
   };
 
   // Handle form submit
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const uploadedPhotos = photos.filter((photo) => photo.downloadURL);
@@ -267,7 +262,7 @@ const Selling: React.FC = () => {
             <InputLabel>Category</InputLabel>
             <Select
               value={category}
-              onChange={(e) => setCategory(e.target.value as string)}
+              onChange={(e) => setCategory(e.target.value)}
               label="Category"
             >
               <MenuItem value="anime">Anime & Videos</MenuItem>
