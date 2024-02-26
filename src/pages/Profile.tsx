@@ -19,7 +19,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 interface UserProfile {
   name: string;
   username: string;
-  userId: string;
+  uid: string;
   photoURL: string;
   rating: number;
   reviews: number;
@@ -131,7 +131,7 @@ const Profile: React.FC = () => {
         <div>
           <h2>{userProfile.name}</h2>
           <p>Username: {userProfile.username}</p>
-          <p>User ID: {userProfile.userId}</p>
+          <p>User ID: {userProfile.uid}</p>
           <p>
             Rating: <StarRating rating={userProfile.rating} />
             Reviews: {userProfile.reviews}

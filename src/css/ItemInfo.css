@@ -12,7 +12,7 @@
   flex-direction: column;
   align-items: center; /* Centers children horizontally */
   justify-content: center; /* Centers children vertically, if needed */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   margin: 20px 0;
   padding: 20px;
@@ -38,8 +38,9 @@
   border-radius: 5px; /* Optional: rounds corners of images */
 }
 
-.item-details, .seller-info {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds shadow for separation */
+.item-details,
+.seller-info {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds shadow for separation */
   border-radius: 5px; /* Rounds the corners of the boxes */
   margin: 20px 0; /* Adds space between sections */
   padding: 20px;
@@ -47,7 +48,10 @@
   box-sizing: border-box; /* Includes padding and border in the element's total width and height */
 }
 
-.item-details p, .item-details h2, .seller-info h3, .seller-info p {
+.item-details p,
+.item-details h2,
+.seller-info h3,
+.seller-info p {
   text-align: center; /* Centers the text */
 }
 
@@ -60,8 +64,24 @@ button {
   border: none;
   border-radius: 5px;
   display: inline-block; /* This makes `text-align: center;` effective */
+  align-items: center;
 }
 
 button:hover {
   background-color: #0056b3; /* Darker shade on hover */
+}
+
+.seller-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.seller-info h3,
+.seller-info p {
+  margin: 0; /* Removes default margin */
+  padding-bottom: 5px; /* Optional: adds a small space below the text */
+}
+
+.seller-info button {
+  align-self: center; /* Aligns the button to the start of the flex container */
 }

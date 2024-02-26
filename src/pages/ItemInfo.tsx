@@ -232,6 +232,10 @@ const ItemInfo = () => {
         <div className="seller-info">
           <h3>Seller: {seller.name}</h3>
           <p>Rating: {seller.rating}</p>
+          {/* Link to the seller's public profile */}
+          <button onClick={() => navigate(`/user/${item.sellerId}`)}>
+            View Profile
+          </button>
         </div>
       )}
       <Snackbar

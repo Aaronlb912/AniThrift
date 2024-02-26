@@ -1,5 +1,4 @@
-// FilterBar.tsx
-import React from "react";
+import React, { useState } from "react";
 import "../css/SearchFilter.css";
 
 interface FilterBarProps {
@@ -11,31 +10,41 @@ const FilterBar: React.FC<FilterBarProps> = ({
   selectedCategories,
   handleCategoryChange,
 }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
   return (
     <div className="filter-bar">
-      <h2>Filter by Category</h2>
-      <div className="category-dropdown">
-        {[
-          "Anime & Videos",
-          "Manga & Novels",
-          "Merchandise",
-          "Figures & Trinkets",
-          "Apparel",
-          "Audio",
-          "Games",
-          "All Categories",
-        ].map((category) => (
-          <div key={category} className="category-option">
-            <input
-              type="checkbox"
-              id={category}
-              checked={selectedCategories.includes(category)}
-              onChange={() => handleCategoryChange(category)}
-            />
-            <label htmlFor={category}>{category}</label>
-          </div>
-        ))}
+      <div className="filter-by-category-title" onClick={toggleDropdown}>
+        Filter by Category{" "}
       </div>
+      {isDropdownOpen && (
+        <div className="category-dropdown">
+          {[
+            "anime",
+            "Videos",
+            "Manga",
+            "Novels",
+            "Merchandise",
+            "Figures",
+            "Trinkets",
+            "Apparel",
+            "Audio",
+            "Games",
+          ].map((category) => (
+            <div key={category} className="category-option">
+              <input
+                type="checkbox"
+                id={category}
+                checked={selectedCategories.includes(category)}
+                onChange={() => handleCategoryChange(category)}
+              />
+              <label htmlFor={category}>{category}</label>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

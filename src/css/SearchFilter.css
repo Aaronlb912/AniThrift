@@ -1,22 +1,39 @@
 .filter-bar {
   padding: 20px;
-  border: 1px solid #ddd; /* Entire filter bar in its own border box */
-  margin-bottom: 20px; /* Space below the filter bar */
+  border: 1px solid #ddd;
+}
+
+.filter-by-category-title {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  transition: background-color 0.3s ease;
+}
+
+.filter-by-category-title:hover {
+  background-color: #f0f0f0; /* Darken on hover */
 }
 
 .category-dropdown {
-  border: 1px solid #ddd; /* Dropdown border */
-  margin-top: 10px; /* Space below the category title */
+  display: block;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-top: 5px; /* Space between title and dropdown */
 }
 
 .category-option {
   display: flex;
-  align-items: center; /* Align checkbox and label */
-  border: 1px solid #ddd; /* Border around each category */
-  margin: 5px 0; /* Space between category options */
-  padding: 5px; /* Padding inside each category option */
+  align-items: center; /* Aligns items vertically in the center */
+  margin: 5px 0;
 }
 
 .category-option input[type="checkbox"] {
-  margin-right: 10px; /* Space between checkbox and label */
+  margin-right: 10px; /* Creates space between the checkbox and the label text */
+}
+
+.category-option label {
+  margin-left: 5px;
 }
