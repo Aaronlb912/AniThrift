@@ -265,10 +265,13 @@ const Selling = () => {
               onChange={(e) => setCategory(e.target.value)}
               label="Category"
             >
-              <MenuItem value="anime">Anime & Videos</MenuItem>
-              <MenuItem value="manga">Manga & Novels</MenuItem>
+              <MenuItem value="anime">Anime</MenuItem>
+              <MenuItem value="videos">Videos</MenuItem>
+              <MenuItem value="manga">Manga</MenuItem>
+              <MenuItem value="novels">Novels</MenuItem>
               <MenuItem value="merchandise">Merchandise</MenuItem>
-              <MenuItem value="figures-trinkets">Figures & Trinkets</MenuItem>
+              <MenuItem value="figures">Figures</MenuItem>
+              <MenuItem value="trinkets">Trinkets</MenuItem>
               <MenuItem value="apparel">Apparel</MenuItem>
               <MenuItem value="audio">Audio</MenuItem>
               <MenuItem value="games">Games</MenuItem>
