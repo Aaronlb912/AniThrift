@@ -1,0 +1,23 @@
+.messages-page {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .conversation-tabs {
+    width: 30%;
+    overflow-y: auto;
+    border-right: 1px solid #ccc;
+    padding: 10px;
+  }
+  
+  .conversation-tab {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .conversation-display {
+    flex-grow: 1;
+    padding: 20px;
+  }
+  

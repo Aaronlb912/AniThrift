@@ -21,6 +21,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import MenuIcon from "@mui/icons-material/Menu";
+import MessageIcon from "@mui/icons-material/Message";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -147,6 +148,9 @@ const Header = () => {
 
         {/* Right Side - Sell and Cart */}
         <div className="right-side">
+          <Button color="inherit" component={Link} to="/messages">
+            <MessageIcon />
+          </Button>
           <Button color="inherit" component={Link} to="/listing">
             Sell
           </Button>

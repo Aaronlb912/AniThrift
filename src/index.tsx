@@ -26,6 +26,7 @@ import AllCategories from "./pages/AllCategories";
 import SearchProvider from "./components/SearchHandler";
 import EditItem from "./pages/EditItem";
 import PublicProfile from "./pages/PublicProfile";
+import Messages from "./pages/Messages";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -68,6 +69,7 @@ ReactDOM.render(
           <Route path="/all-categories" element={<AllCategories />} />
           <Route path="edit-item/:id" element={<EditItem />} />
           <Route path="/user/:userId" element={<PublicProfile />} />
+          <Route path="/messages" element={<Messages />} />
         </Routes>
         <Footer />
       </BrowserRouter>
