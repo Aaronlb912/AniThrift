@@ -265,16 +265,15 @@ const Selling = () => {
               onChange={(e) => setCategory(e.target.value)}
               label="Category"
             >
-              <MenuItem value="anime">Anime</MenuItem>
-              <MenuItem value="videos">Videos</MenuItem>
-              <MenuItem value="manga">Manga</MenuItem>
-              <MenuItem value="novels">Novels</MenuItem>
-              <MenuItem value="merchandise">Merchandise</MenuItem>
-              <MenuItem value="figures">Figures</MenuItem>
-              <MenuItem value="trinkets">Trinkets</MenuItem>
-              <MenuItem value="apparel">Apparel</MenuItem>
-              <MenuItem value="audio">Audio</MenuItem>
-              <MenuItem value="games">Games</MenuItem>
+              <MenuItem value="Digital Media"> Digital Media</MenuItem>
+              <MenuItem value="Manga">Manga</MenuItem>
+              <MenuItem value="Novels">Novels</MenuItem>
+              <MenuItem value="Merchandise">Merchandise</MenuItem>
+              <MenuItem value="Figures">Figures</MenuItem>
+              <MenuItem value="Trinkets">Trinkets</MenuItem>
+              <MenuItem value="Apparel">Apparel</MenuItem>
+              <MenuItem value="Audio">Audio</MenuItem>
+              <MenuItem value="Games">Games</MenuItem>
               {/* Add more MenuItem here */}
             </Select>
           </FormControl>

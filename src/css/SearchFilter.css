@@ -3,37 +3,38 @@
   border: 1px solid #ddd;
 }
 
-.filter-by-category-title {
+.filter-by-title {
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 1px solid #ccc;
   padding: 5px 10px;
+  margin-top: 10px; /* Added to separate filter titles */
   transition: background-color 0.3s ease;
 }
 
-.filter-by-category-title:hover {
-  background-color: #f0f0f0; /* Darken on hover */
+.filter-by-title:hover {
+  background-color: #f0f0f0;
 }
 
-.category-dropdown {
+.dropdown {
   display: block;
   border: 1px solid #ddd;
   padding: 10px;
-  margin-top: 5px; /* Space between title and dropdown */
+  margin-top: 5px;
 }
 
-.category-option {
+.option {
   display: flex;
-  align-items: center; /* Aligns items vertically in the center */
+  align-items: center;
   margin: 5px 0;
 }
 
-.category-option input[type="checkbox"] {
-  margin-right: 10px; /* Creates space between the checkbox and the label text */
+.option input[type="checkbox"] {
+  margin-right: 10px;
 }
 
-.category-option label {
+.option label {
   margin-left: 5px;
 }

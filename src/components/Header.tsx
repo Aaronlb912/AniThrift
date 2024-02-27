@@ -52,7 +52,7 @@ const Header = () => {
   const drawer = (
     <List>
       {[
-        "Anime & Videos",
+        "Digital Media",
         "Manga & Novels",
         "Merchandise",
         "Figures & Trinkets",
@@ -228,28 +228,28 @@ const Header = () => {
         </>
       ) : (
         <nav className="navbar">
-          <Link to="/anime" className="nav-link">
-            Anime & Videos
+          <Link to="/search?query=anime" className="nav-link">
+            Digital Media
           </Link>
-          <Link to="/manga" className="nav-link">
+          <Link to="/search?=query=manga" className="nav-link">
             Manga & Novels
           </Link>
-          <Link to="/merchandise" className="nav-link">
+          <Link to="/search?=query=merch" className="nav-link">
             Merchandise
           </Link>
-          <Link to="/figures-trinkets" className="nav-link">
+          <Link to="/search?=query=figures" className="nav-link">
             Figures & Trinkets
           </Link>
-          <Link to="/apparel" className="nav-link">
+          <Link to="/search?=query=apparel" className="nav-link">
             Apparel
           </Link>
-          <Link to="/audio" className="nav-link">
+          <Link to="/search?=query=audio" className="nav-link">
             Audio
           </Link>
-          <Link to="/games" className="nav-link">
+          <Link to="/search?=query=games" className="nav-link">
             Games
           </Link>
-          <Link to="/all-categories" className="nav-link">
+          <Link to="/search?=query=all" className="nav-link">
             All Categories
           </Link>
         </nav>
