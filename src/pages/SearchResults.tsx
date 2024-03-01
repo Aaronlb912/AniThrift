@@ -6,6 +6,7 @@ import "../css/search.css";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
 
+// Assuming SearchResult type is defined somewhere
 interface SearchResult {
   objectID: string;
   photos: string[];
@@ -16,53 +17,25 @@ interface SearchResult {
 const SearchResults: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [selectedFacets, setSelectedFacets] = useState<{
+    [key: string]: string[];
+  }>({});
   const navigate = useNavigate();
 
-  const handleCategoryChange = (category: string) => {
-    const newCategories = selectedCategories.includes(category)
-      ? selectedCategories.filter((c) => c !== category)
-      : [...selectedCategories, category];
-    setSelectedCategories(newCategories);
-  };
-
-  const handleColorChange = (color: string) => {
-    const newColors = selectedColors.includes(color)
-      ? selectedColors.filter((c) => c !== color)
-      : [...selectedColors, color];
-    setSelectedColors(newColors);
-  };
-
-  const handleConditionChange = (condition: string) => {
-    const newConditions = selectedConditions.includes(condition)
-      ? selectedConditions.filter((c) => c !== condition)
-      : [...selectedConditions, condition];
-    setSelectedConditions(newConditions);
+  // Adjust handleFacetChange to match the expected signature from FilterBar
+  const handleFacetChange = (updatedFacets: { [key: string]: string[] }) => {
+    setSelectedFacets(updatedFacets);
   };
 
   useEffect(() => {
     const index = client.initIndex("items");
 
-    let filters = "";
-    if (selectedCategories.length > 0) {
-      filters += selectedCategories
-        .map((category) => `category:${category}`)
-        .join(" OR ");
-    }
-    if (selectedColors.length > 0) {
-      filters +=
-        (filters ? " AND " : "") +
-        selectedColors.map((color) => `color:${color}`).join(" OR ");
-    }
-    if (selectedConditions.length > 0) {
-      filters +=
-        (filters ? " AND " : "") +
-        selectedConditions
-          .map((condition) => `condition:${condition}`)
-          .join(" OR ");
-    }
+    // Construct the Algolia filter string correctly
+    const filters = Object.entries(selectedFacets)
+      .flatMap(
+        ([facet, values]) => values.map((value) => `${facet}:"${value}"`) // Ensure values are quoted
+      )
+      .join(" OR ");
 
     index
       .search(searchQuery, { filters })
@@ -70,7 +43,7 @@ const SearchResults: React.FC = () => {
         setSearchResults(hits as SearchResult[]);
       })
       .catch((err) => console.error(err));
-  }, [searchQuery, selectedCategories, selectedColors, selectedConditions]);
+  }, [searchQuery, selectedFacets]);
 
   const handleItemClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
@@ -79,12 +52,8 @@ const SearchResults: React.FC = () => {
   return (
     <div className="search-page-container">
       <FilterBar
-        selectedCategories={selectedCategories}
-        handleCategoryChange={handleCategoryChange}
-        selectedColors={selectedColors}
-        handleColorChange={handleColorChange}
-        selectedConditions={selectedConditions}
-        handleConditionChange={handleConditionChange}
+        selectedFacets={selectedFacets}
+        handleFacetChange={handleFacetChange}
       />
       <div className="search-results-container">
         {searchResults.length > 0 ? (

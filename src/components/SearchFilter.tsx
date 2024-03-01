@@ -2,138 +2,128 @@ import React, { useEffect, useState } from "react";
 import algoliasearch from "algoliasearch/lite";
 import "../css/SearchFilter.css";
 
-// Define props interface
-interface FilterBarProps {
-  selectedCategories: string[];
-  handleCategoryChange: (category: string) => void;
-  selectedColor: string[];
-  handleColorChange: (color: string) => void;
-  selectedCondition: string[];
-  handleConditionChange: (condition: string) => void;
-}
-
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
 const index = client.initIndex("items");
 
+interface FilterBarProps {
+  selectedFacets: { [key: string]: string[] };
+  handleFacetChange: (updatedFacets: { [key: string]: string[] }) => void;
+}
+
 const FilterBar: React.FC<FilterBarProps> = ({
-  selectedCategories = [], // Ensure default values if props are undefined
-  handleCategoryChange,
-  selectedColor = [],
-  handleColorChange,
-  selectedCondition = [],
-  handleConditionChange,
+  selectedFacets,
+  handleFacetChange,
 }) => {
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-  const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
-  const [isConditionDropdownOpen, setIsConditionDropdownOpen] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [colors, setColors] = useState<string[]>([]);
-  const [conditions, setConditions] = useState<string[]>([]);
+  const [facets, setFacets] = useState<{ [key: string]: string[] }>({});
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [tagSearchQuery, setTagSearchQuery] = useState("");
 
   useEffect(() => {
-    // Fetch facet values for categories, colors, and conditions
-    const fetchFacetValues = async () => {
+    const fetchFacets = async () => {
       try {
-        const categoryResponse = await index.searchForFacetValues(
-          "category",
-          ""
-        );
-        setCategories(categoryResponse.facetHits.map((facet) => facet.value));
-
-        const colorResponse = await index.searchForFacetValues("color", "");
-        setColors(colorResponse.facetHits.map((facet) => facet.value));
-
-        const conditionResponse = await index.searchForFacetValues(
-          "condition",
-          ""
-        );
-        setConditions(conditionResponse.facetHits.map((facet) => facet.value));
+        const response = await index.search("", {
+          facets: ["*"],
+          hitsPerPage: 0,
+        });
+        const facetNames = Object.keys(response.facets || {}).sort();
+        const facetPromises = facetNames.map(async (facet) => {
+          const res = await index.searchForFacetValues(facet, "");
+          return { [facet]: res.facetHits.map((hit) => hit.value) };
+        });
+        const facetValues = await Promise.all(facetPromises);
+        setFacets(facetValues.reduce((acc, curr) => ({ ...acc, ...curr }), {}));
       } catch (err) {
         console.error(err);
       }
     };
 
-    fetchFacetValues();
+    fetchFacets();
   }, []);
 
-  // Safeguard checks for includes
-  const isCategorySelected = (category) =>
-    Array.isArray(selectedCategories) && selectedCategories.includes(category);
-  const isColorSelected = (color) =>
-    Array.isArray(selectedColor) && selectedColor.includes(color);
-  const isConditionSelected = (condition) =>
-    Array.isArray(selectedCondition) && selectedCondition.includes(condition);
+  const updateFacetSelection = (facet: string, value: string) => {
+    const currentSelections = selectedFacets[facet] || [];
+    const isSelected = currentSelections.includes(value);
+    const newSelections = isSelected
+      ? currentSelections.filter((v) => v !== value)
+      : [...currentSelections, value];
+
+    handleFacetChange({
+      ...selectedFacets,
+      [facet]: newSelections,
+    });
+  };
+
+  const isFacetSelected = (facet: string, value: string) =>
+    selectedFacets[facet]?.includes(value);
+
+  const toggleDropdown = (facetName: string) => {
+    setOpenDropdown((currentOpen) =>
+      currentOpen === facetName ? null : facetName
+    );
+  };
 
   return (
     <div className="filter-bar">
-      {/* Category Filter */}
-      <div
-        className="filter-by-title"
-        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-      >
-        Filter by Category
-      </div>
-      {isCategoryDropdownOpen && (
-        <div className="dropdown">
-          {categories.map((category) => (
-            <div key={category} className="option">
-              <input
-                type="checkbox"
-                id={`cat-${category}`}
-                checked={isCategorySelected(category)}
-                onChange={() => handleCategoryChange(category)}
-              />
-              <label htmlFor={`cat-${category}`}>{category}</label>
+      {Object.keys(facets).map((facet) => (
+        <div key={facet}>
+          <div
+            className="filter-by-title"
+            onClick={() => toggleDropdown(facet)}
+          >
+            Filter by {facet.charAt(0).toUpperCase() + facet.slice(1)}
+          </div>
+          {openDropdown === facet && (
+            <div className="dropdown">
+              {facet === "tags" ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search tags..."
+                    value={tagSearchQuery}
+                    onChange={(e) => setTagSearchQuery(e.target.value)}
+                  />
+                  {/* Only display the list if the user has started typing */}
+                  {tagSearchQuery && (
+                    <div className="tag-options">
+                      {facets[facet]
+                        .filter((value) =>
+                          value
+                            .toLowerCase()
+                            .includes(tagSearchQuery.toLowerCase())
+                        )
+                        .map((value) => (
+                          <div key={value} className="option">
+                            <input
+                              type="checkbox"
+                              id={`tag-${value}`}
+                              checked={isFacetSelected("tags", value)}
+                              onChange={() =>
+                                updateFacetSelection("tags", value)
+                              }
+                            />
+                            <label htmlFor={`tag-${value}`}>{value}</label>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                facets[facet].map((value) => (
+                  <div key={value} className="option">
+                    <input
+                      type="checkbox"
+                      id={`${facet}-${value}`}
+                      checked={isFacetSelected(facet, value)}
+                      onChange={() => updateFacetSelection(facet, value)}
+                    />
+                    <label htmlFor={`${facet}-${value}`}>{value}</label>
+                  </div>
+                ))
+              )}
             </div>
-          ))}
+          )}
         </div>
-      )}
-
-      {/* Color Filter */}
-      <div
-        className="filter-by-title"
-        onClick={() => setIsColorDropdownOpen(!isColorDropdownOpen)}
-      >
-        Filter by Color
-      </div>
-      {isColorDropdownOpen && (
-        <div className="dropdown">
-          {colors.map((color) => (
-            <div key={color} className="option">
-              <input
-                type="checkbox"
-                id={`col-${color}`}
-                checked={isColorSelected(color)}
-                onChange={() => handleColorChange(color)}
-              />
-              <label htmlFor={`col-${color}`}>{color}</label>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Condition Filter */}
-      <div
-        className="filter-by-title"
-        onClick={() => setIsConditionDropdownOpen(!isConditionDropdownOpen)}
-      >
-        Filter by Condition
-      </div>
-      {isConditionDropdownOpen && (
-        <div className="dropdown">
-          {conditions.map((condition) => (
-            <div key={condition} className="option">
-              <input
-                type="checkbox"
-                id={`cond-${condition}`}
-                checked={isConditionSelected(condition)}
-                onChange={() => handleConditionChange(condition)}
-              />
-              <label htmlFor={`cond-${condition}`}>{condition}</label>
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   );
 };
