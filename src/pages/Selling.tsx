@@ -297,15 +297,15 @@ const Selling = () => {
             onChange={(e) => setCondition(e.target.value)}
             className="condition-selector"
           >
-            <FormControlLabel value="new" control={<Radio />} label="New" />
+            <FormControlLabel value="New" control={<Radio />} label="New" />
             <FormControlLabel
-              value="like new"
+              value="Like New"
               control={<Radio />}
               label="Like New"
             />
-            <FormControlLabel value="good" control={<Radio />} label="Good" />
-            <FormControlLabel value="fair" control={<Radio />} label="Fair" />
-            <FormControlLabel value="poor" control={<Radio />} label="Poor" />
+            <FormControlLabel value="Good" control={<Radio />} label="Good" />
+            <FormControlLabel value="Fair" control={<Radio />} label="Fair" />
+            <FormControlLabel value="Poor" control={<Radio />} label="Poor" />
           </RadioGroup>
         </div>
         <div className="section delivery-section">

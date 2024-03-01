@@ -18,6 +18,14 @@
   background-color: #f0f0f0;
 }
 
+.tag-search-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+
 .dropdown {
   display: block;
   border: 1px solid #ddd;
