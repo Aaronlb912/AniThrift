@@ -1,0 +1,73 @@
+/* ProfileSettings.css */
+.profile-settings-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-settings-container h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.profile-settings-container h3 {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #007bff;
+  font-size: 18px;
+  padding-left: 16px; /* Adjust based on actual layout */
+  text-align: left;
+}
+
+.ListItem {
+  padding: 10px 16px;
+}
+
+.ListItemText {
+  font-size: 16px;
+}
+
+nav {
+  padding: 0;
+  width: 100%; /* Ensures the nav list spans the full width of the container */
+}
+
+nav .MuiListItem-button {
+  border-radius: 4px;
+  margin-bottom: 5px;
+  transition: background-color 0.3s ease;
+}
+
+nav .MuiListItem-button:hover {
+  background-color: #f0f0f0;
+}
+
+nav .MuiListItemText-primary {
+  color: #333;
+  font-weight: 500;
+}
+
+.Divider {
+  margin-top: 20px;
+  background-color: #eee;
+  width: 100%; /* Ensures the divider spans the full width of the container */
+}
+
+/* Button adjustments */
+.MuiButton-root {
+  display: block;
+  width: 100%; /* Makes button full width */
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.MuiButton-label {
+  justify-content: flex-start;
+}

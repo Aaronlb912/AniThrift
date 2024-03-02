@@ -1,0 +1,30 @@
+.main-layout {
+  display: flex;
+  min-height: 100vh; /* Full height of the viewport */
+}
+
+.content {
+  flex-grow: 1; /* Allows the content area to take up the remaining space */
+  padding: 20px; /* Adds some padding around the content */
+  background-color: #f0f0f0; /* Light grey background for the content area */
+}
+
+/* MainLayout.css */
+.main-layout-container {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh; /* Ensure full height */
+}
+
+.sidebar-navigation {
+  flex: 0 0 15%; /* Assign 20% width to the sidebar, flex-basis of 20% */
+  background-color: #f0f0f0; /* Example background color for the sidebar */
+  padding: 20px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.main-content {
+  flex: 1; /* Takes up the remaining space */
+  padding: 20px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}

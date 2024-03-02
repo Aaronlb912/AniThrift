@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase-config";
 import {
   collection,
@@ -32,6 +32,7 @@ interface GroupedCartItems {
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<GroupedCartItems>({});
   const [user, setUser] = useState<firebase.User | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
@@ -77,6 +78,11 @@ const CartPage: React.FC = () => {
     fetchCartItems(user.uid);
   };
 
+  const handleCheckout = () => {
+    const allItems = Object.values(cartItems).flatMap((group) => group.items);
+    navigate("/checkout", { state: { cartItems: allItems } });
+  };
+
   return (
     <div className="cart-container">
       {Object.keys(cartItems).length ? (
@@ -108,7 +114,11 @@ const CartPage: React.FC = () => {
                 .reduce((total, item) => total + Number(item.price), 0)
                 .toFixed(2)}
             </p>
-            <Button variant="contained" className="checkout-btn">
+            <Button
+              variant="contained"
+              className="checkout-btn"
+              onClick={handleCheckout} // Updated to use the new handleCheckout function
+            >
               Checkout ({items.length} items)
             </Button>
           </div>

@@ -41,19 +41,16 @@ const Selling = () => {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in, set userId state
         setUserId(user.uid);
       } else {
-        // User is signed out, handle as needed
-        setUserId(null);
+        // User is signed out, redirect to login page
+        navigate("/signin"); // Update this path to your login route
       }
     });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   // Handle change for file input
   const onDrop = useCallback((acceptedFiles) => {

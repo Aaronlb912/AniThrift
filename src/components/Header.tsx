@@ -127,10 +127,19 @@ const Header = () => {
               <MenuItem
                 onClick={() => {
                   handleClose(); // This will close the menu
-                  navigate("/profile"); // Then navigate to the profile page
+                  navigate("/profile"); // Navigate to the profile page
                 }}
               >
                 My Profile
+              </MenuItem>
+              {/* Add a menu item for Profile Settings */}
+              <MenuItem
+                onClick={() => {
+                  handleClose(); // Close the menu
+                  navigate("/profsettings"); // Navigate to the profile settings page
+                }}
+              >
+                Profile Settings
               </MenuItem>
               <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
             </Menu>
