@@ -1,0 +1,71 @@
+.addresses-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.address-title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.address-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.address-label {
+  font-weight: 500;
+  color: #666;
+  flex-grow: 1;
+}
+
+.edit-button,
+.save-button,
+.cancel-button {
+  background-color: #0056b3;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+.edit-button:hover,
+.save-button:hover,
+.cancel-button:hover {
+  background-color: #004494;
+}
+
+.address-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: calc(100% - 20px); /* Adjust width according to padding */
+  margin-right: 10px;
+}
+
+/* Adjustments for MUI TextField if used */
+.MuiTextField-root {
+  margin-right: 10px;
+  width: auto; /* Allows text field to resize according to the flex container */
+}
+
+/* Button adjustments for MUI Buttons if used */
+.MuiButton-root {
+  margin-left: 10px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px; /* Adjusts space between buttons */
+}

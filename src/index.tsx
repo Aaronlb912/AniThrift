@@ -20,6 +20,10 @@ import SearchProvider from "./components/SearchHandler";
 import EditItem from "./pages/EditItem";
 import PublicProfile from "./pages/PublicProfile";
 import Messages from "./pages/Messages";
+import Checkout from "./pages/CheckOut";
+import ProfileSettings from "./pages/ProfileSettings";
+import PersonalInfoPage from "./components/PersonalInfo";
+import AddressesPage from "./components/Addresses";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -56,6 +60,13 @@ ReactDOM.render(
           <Route path="edit-item/:id" element={<EditItem />} />
           <Route path="/user/:userId" element={<PublicProfile />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/profsettings" element={<ProfileSettings />} />
+          <Route
+            path="/settings/personal-information"
+            element={<PersonalInfoPage />}
+          />
+          <Route path="/settings/addresses" element={<AddressesPage />} />
         </Routes>
         <Footer />
       </BrowserRouter>
