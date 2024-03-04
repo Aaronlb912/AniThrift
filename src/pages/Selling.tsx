@@ -10,6 +10,7 @@ import {
   ref as storageRef,
   uploadBytesResumable,
   getDownloadURL,
+  ref,
 } from "firebase/storage";
 
 import "../css/Selling.css";
@@ -25,6 +26,37 @@ import {
   RadioGroup,
 } from "@mui/material";
 
+interface MarketplaceItemType {
+  title: string;
+  description: string;
+  tags: any[];
+  category: string;
+  condition: string;
+  color: string;
+  deliveryOption: string;
+  price: string;
+  photos: any[];
+  creationDate: string;
+  sellerId: string;
+  listingStatus: MarketplaceItemStatus;
+}
+
+/**
+ * selling = the item is available on the marketplace for purchase
+ * sold = the item has been purchased and is no longer available on the marketpalce, can still be seen in the sold section of the user profile
+ * draft = the user is creating an item but it will not be available for purchase yet, they can go back and edit it
+ * listing pending = the item has been submited to be sold, it is going through a review process
+ * cancelled = someone chose to cancel an order, the originial item can be set to selling and a duplicate of the item information will be created on the person who cancelled's account so that they can see their cancelled orders
+ * purchased = items users have purchased, will be a copy of a sold item shown on the purchaser user's account
+ */
+type MarketplaceItemStatus =
+  | "selling"
+  | "sold"
+  | "draft"
+  | "listing pending"
+  | "cancelled"
+  | "purchased";
+
 const Selling = () => {
   // State for form inputs
   const [title, setTitle] = useState("");
@@ -38,6 +70,7 @@ const Selling = () => {
   const [photos, setPhotos] = useState([]);
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate(); // Add this line
+  const [listingStatus, setListingStatus] = useState(`MarketplaceItemStatus`);
 
   useEffect(() => {
     const auth = getAuth();
@@ -141,7 +174,7 @@ const Selling = () => {
     }
 
     // Prepare data for new item
-    const newItemData = {
+    const newItemData: MarketplaceItemType = {
       title,
       description,
       tags: tags.map((tag) => tag.text),
@@ -155,6 +188,7 @@ const Selling = () => {
         .map((photo) => photo.downloadURL),
       creationDate: moment().toISOString(),
       sellerId: userId,
+      listingStatus,
     };
 
     try {
@@ -166,8 +200,7 @@ const Selling = () => {
 
       // Step 2: Use the same ID to create a document in the user's 'selling' collection
       await setDoc(doc(db, "users", userId, "selling", globalItemDocRef.id), {
-        ...newItemData,
-        itemId: globalItemDocRef.id, // This ensures the item's ID is explicitly stored if needed
+        ref: globalItemDocRef,
       });
 
       console.log("Item listed with ID:", globalItemDocRef.id);
