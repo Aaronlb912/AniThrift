@@ -24,6 +24,7 @@ import Checkout from "./pages/CheckOut";
 import ProfileSettings from "./pages/ProfileSettings";
 import PersonalInfoPage from "./components/PersonalInfo";
 import AddressesPage from "./components/Addresses";
+import PurchaseSuccess from "./components/PurchaseSuccess";
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -67,6 +68,7 @@ ReactDOM.render(
             element={<PersonalInfoPage />}
           />
           <Route path="/settings/addresses" element={<AddressesPage />} />
+          <Route path="/success" element={<PurchaseSuccess />} />
         </Routes>
         <Footer />
       </BrowserRouter>

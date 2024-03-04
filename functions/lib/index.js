@@ -6,6 +6,9 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
+const admin = require('firebase-admin');
+admin.initializeApp();
+const db = admin.firestore();
 const axios_1 = require("axios");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -139,6 +142,8 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
     console.log(req.body);
     try {
       const { cartItems } = req.body;
+      const sellerId = cartItems[0].sellerId;
+      const sellerName = cartItems[0].sellerName;
 
       const lineItems = cartItems.map((item) => ({
         price_data: {
@@ -153,6 +158,7 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
       }));
 
       const session = await stripe.checkout.sessions.create({
+        metadata: {sellerName, sellerId},
         payment_method_types: ["card"],
         line_items: lineItems,
         mode: "payment",
@@ -166,4 +172,63 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
       res.status(500).send({ error: "Internal Server Error" });
     }
   });
+});
+
+// exports.stripeWebHook = functions.https.onRequest((req, res) => {
+
+// })
+
+// const changeListingStatus = () => {
+
+// }
+
+exports.handlePurchaseCompletion = functions.https.onRequest(async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.rawBody, 
+      sig, 
+      functions.config().stripe.webhooksecret
+    );
+  } catch (err) {
+    console.error(`Webhook signature verification failed.`, err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+
+    // Retrieve metadata from session
+    const { userId, itemId, quantity } = session.metadata;
+
+    try {
+      // Update item listing status to sold
+      await db.collection('items').doc(itemId).update({ status: 'sold' });
+      await db.collection('users').doc(itemData.sellerId).collection("selling").
+      // Create a copy of the item data with listing status purchased under the buyer's account
+      const itemData = (await db.collection('items').doc(itemId).get()).data();
+      await db.collection('users').doc(userId).collection('purchased').add({
+        ...itemData,
+        status: 'purchased',
+        purchaseDate: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // If more than one quantity, handle accordingly (this step depends on your data model)
+      // For example, decrement the available quantity or mark individual items as sold
+
+      // Send verification email to seller and buyer
+      // This requires integrating with an email service and is not shown here
+
+      console.log(`Purchase processed for user ${userId} for item ${itemId}`);
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error processing purchase:", error);
+      return res.status(500).send({ error: "Internal Server Error" });
+    }
+  } else {
+    console.log(`Unhandled event type ${event.type}`);
+    res.json({ received: true });
+  }
 });

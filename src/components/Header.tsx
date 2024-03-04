@@ -36,7 +36,7 @@ const Header = () => {
   const [searchInput, setSearchInput] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
-  const { setSearchQuery } = useSearch(); // Use setSearchQuery from your search context
+  const { setSearchQuery }: any = useSearch(); // Use setSearchQuery from your search context
 
   const handleSearch = (e) => {
     if (e.key === "Enter" && searchInput.trim()) {
@@ -240,25 +240,25 @@ const Header = () => {
           <Link to="/search?query=anime" className="nav-link">
             Digital Media
           </Link>
-          <Link to="/search?=query=manga" className="nav-link">
+          <Link to="/search?query=manga" className="nav-link">
             Manga & Novels
           </Link>
-          <Link to="/search?=query=merch" className="nav-link">
+          <Link to="/search?query=merch" className="nav-link">
             Merchandise
           </Link>
-          <Link to="/search?=query=figures" className="nav-link">
+          <Link to="/search?query=figures" className="nav-link">
             Figures & Trinkets
           </Link>
-          <Link to="/search?=query=apparel" className="nav-link">
+          <Link to="/search?query=apparel" className="nav-link">
             Apparel
           </Link>
-          <Link to="/search?=query=audio" className="nav-link">
+          <Link to="/search?query=audio" className="nav-link">
             Audio
           </Link>
-          <Link to="/search?=query=games" className="nav-link">
+          <Link to="/search?query=games" className="nav-link">
             Games
           </Link>
-          <Link to="/search?=query=all" className="nav-link">
+          <Link to="/search" className="nav-link">
             All Categories
           </Link>
         </nav>

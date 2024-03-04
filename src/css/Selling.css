@@ -1,128 +1,124 @@
 .selling-form h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  /* Ensure the text boxes (and all form inputs) hit the edges of the form box */
-  .selling-form input[type="text"],
-  .selling-form textarea,
-  .selling-form select {
-    width: calc(100% - 20px); /* Subtracting padding */
-    margin: 5px 0;
-    padding: 10px;
-  }
-  
-  /* Additional styles to ensure consistency and aesthetic appeal */
-  .selling-form {
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 800px; /* Adjust based on your layout */
-    background: #fff;
-  }
-  
-  /* Centering the title and giving some spacing */
-  .selling-form h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .section {
-    margin-bottom: 20px;
-    
-  }
-  
-  /* Adjust the height and width of the description box */
-  .description-section textarea {
-    width: 100%;
-    height: 150px; /* Adjust as needed */
-    padding: 10px;
-  }
-  
-  /* Styling for category and price boxes */
-  .category-section select,
-  .pricing-section input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-  }
-  
-  /* Centering and styling the buttons at the bottom */
-  .form-actions {
-    text-align: center;
-  }
-  
-  .form-actions button {
-    padding: 10px 20px;
-    margin: 0 10px; /* Space between buttons */
-    background-color: #007bff; /* Button color */
-    color: #fff;
-    border: none;
-    border-radius: 20px; /* Rounded borders */
-    cursor: pointer;
-    font-size: 16px; /* Larger font size */
-  }
-  
-  .form-actions button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
-  }
-  
-  /* For the larger box requirement around specific inputs */
-  .large-box {
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 5px;
-  }
-  
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-  .dropzone {
-    padding: 5%;
-    height: auto !important;
-    border-radius: 8px;
-    text-align: center;
-  }
+/* Ensure the text boxes (and all form inputs) hit the edges of the form box */
+.selling-form input[type="text"],
+.selling-form textarea,
+.selling-form select {
+  width: calc(100% - 20px); /* Subtracting padding */
+  margin: 5px 0;
+  padding: 10px;
+}
 
+/* Additional styles to ensure consistency and aesthetic appeal */
+.selling-form {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 800px; /* Adjust based on your layout */
+  background: #fff;
+}
 
-  .condition-selector {
-    display: flex; /* Enables Flexbox */
-    justify-content: space-around; /* Evenly spaces the children, including space at the edges */
-    flex-wrap: wrap; /* Allows items to wrap onto the next line if needed */
-    gap: 10px; /* Optional: Adds some space between items */
-  }
-  
-  .condition-selector .MuiFormControlLabel-root {
-    flex-direction: column;
-    align-items: center;
-    margin: 5px;
-    width: 100px; /* Adjust based on your design */
-    height: 100px; /* Adjust to make it square */
-    border: 2px solid #ddd; /* Example border */
-    border-radius: 8px; /* Rounded corners */
-    justify-content: center;
-    text-align: center;
-    cursor: pointer; /* Makes it clear the whole box is selectable */
-  }
-  
-  /* Adjust the radio button margin if needed */
-  .condition-selector .MuiRadio-root {
-    margin-bottom: 8px;
-  }
+/* Centering the title and giving some spacing */
+.selling-form h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-  
-  .product-info-section textarea {
-    resize: vertical;
-  }
-  
-  button {
-    background-color: rgb(34, 34, 39);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: auto;
-    height: auto;
-  }
-  
-  button:hover{
-    background-color: aqua;
-  }
+.section {
+  margin-bottom: 20px;
+}
+
+/* Adjust the height and width of the description box */
+.description-section textarea {
+  width: 100%;
+  height: 150px; /* Adjust as needed */
+  padding: 10px;
+}
+
+/* Styling for category and price boxes */
+.category-section select,
+.pricing-section input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+}
+
+/* Centering and styling the buttons at the bottom */
+.form-actions {
+  text-align: center;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  margin: 0 10px; /* Space between buttons */
+  background-color: #007bff; /* Button color */
+  color: #fff;
+  border: none;
+  border-radius: 20px; /* Rounded borders */
+  cursor: pointer;
+  font-size: 16px; /* Larger font size */
+}
+
+.form-actions button:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* For the larger box requirement around specific inputs */
+.large-box {
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.dropzone {
+  padding: 5%;
+  height: auto !important;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.condition-selector {
+  display: flex; /* Enables Flexbox */
+  justify-content: space-around; /* Evenly spaces the children, including space at the edges */
+  flex-wrap: wrap; /* Allows items to wrap onto the next line if needed */
+  gap: 10px; /* Optional: Adds some space between items */
+}
+
+.condition-selector .MuiFormControlLabel-root {
+  flex-direction: column;
+  align-items: center;
+  margin: 5px;
+  width: 100px; /* Adjust based on your design */
+  height: 100px; /* Adjust to make it square */
+  border: 2px solid #ddd; /* Example border */
+  border-radius: 8px; /* Rounded corners */
+  justify-content: center;
+  text-align: center;
+  cursor: pointer; /* Makes it clear the whole box is selectable */
+}
+
+/* Adjust the radio button margin if needed */
+.condition-selector .MuiRadio-root {
+  margin-bottom: 8px;
+}
+
+.product-info-section textarea {
+  resize: vertical;
+}
+
+button {
+  background-color: rgb(34, 34, 39);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: auto;
+  height: auto;
+}
+
+button:hover {
+  background-color: aqua;
+}
