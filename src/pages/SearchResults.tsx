@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import algoliasearch from "algoliasearch/lite";
 import FilterBar from "../components/SearchFilter";
 import "../css/search.css";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
+const index = client.initIndex("items");
 
 // Assuming SearchResult type is defined somewhere
 interface SearchResult {
@@ -15,12 +16,15 @@ interface SearchResult {
 }
 
 const SearchResults: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const searchQuery = queryParams.get("query") || ""; // Extract 'query' parameter from URL
+
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedFacets, setSelectedFacets] = useState<{
     [key: string]: string[];
   }>({});
-  const navigate = useNavigate();
 
   // Adjust handleFacetChange to match the expected signature from FilterBar
   const handleFacetChange = (updatedFacets: { [key: string]: string[] }) => {
@@ -28,12 +32,9 @@ const SearchResults: React.FC = () => {
   };
 
   useEffect(() => {
-    const index = client.initIndex("items");
-
-    // Construct the Algolia filter string correctly
     const filters = Object.entries(selectedFacets)
-      .flatMap(
-        ([facet, values]) => values.map((value) => `${facet}:"${value}"`) // Ensure values are quoted
+      .flatMap(([facet, values]) =>
+        values.map((value) => `${facet}:"${value}"`)
       )
       .join(" OR ");
 

@@ -72,6 +72,7 @@ const Selling = () => {
   const navigate = useNavigate(); // Add this line
   const [listingStatus, setListingStatus] =
     useState<MarketplaceItemStatus>("listing pending");
+
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
