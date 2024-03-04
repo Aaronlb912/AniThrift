@@ -13,9 +13,12 @@ const CheckoutPage = () => {
 
     try {
       // Call your backend to create a checkout session
-      const response = await axios.post("/api/create-checkout-session", {
-        cartItems,
-      });
+      const response = await axios.post(
+        "https://us-central1-anithrift-e77a9.cloudfunctions.net/createCheckoutSession",
+        {
+          cartItems,
+        }
+      );
       // Redirect to Stripe's hosted checkout page
       window.location.href = response.data.url;
     } catch (error) {
@@ -24,7 +27,7 @@ const CheckoutPage = () => {
   };
 
   const totalPrice = cartItems
-    .reduce((total, item) => total + Number(item.price), 0)
+    .reduce((total: number, item: { price: any; }) => total + Number(item.price), 0)
     .toFixed(2);
 
   return (
