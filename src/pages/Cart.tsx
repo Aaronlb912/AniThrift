@@ -20,6 +20,7 @@ interface CartItem {
   price: number;
   sellerId: string;
   sellerName: string;
+  quantity: number;
 }
 
 interface GroupedCartItems {
@@ -99,6 +100,7 @@ const CartPage: React.FC = () => {
                 <div className="item-info">
                   <p className="item-title">{item.title}</p>
                   <p className="item-price">${item.price}</p>
+                  <p className="quantity">{item.quantity}</p>
                 </div>
                 <Button
                   onClick={() => removeItemFromCart(item.id)}
@@ -111,7 +113,10 @@ const CartPage: React.FC = () => {
             <p className="total-price">
               Total: $
               {items
-                .reduce((total, item) => total + Number(item.price), 0)
+                .reduce(
+                  (total, item) => total + Number(item.price * item.quantity),
+                  0
+                )
                 .toFixed(2)}
             </p>
             <Button

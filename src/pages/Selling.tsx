@@ -33,6 +33,7 @@ import {
   RadioGroup,
   Chip,
 } from "@mui/material";
+import axios from "axios";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
 const index = client.initIndex("items");
@@ -40,19 +41,24 @@ const index = client.initIndex("items");
 interface MarketplaceItemType {
   title: string;
   description: string;
-  tags: any[];
+  tags?: string[];
   category: string;
   condition: string;
-  color: string;
+  packageCondition: string;
+  color?: string;
   deliveryOption: string;
   price: string;
   quantity: number;
-  photos: any[];
+  photos?: PhotoType;
   creationDate: string;
-  sellerId: string;
+  sellerId?: string;
   listingStatus: MarketplaceItemStatus;
 }
 
+type PhotoType = {
+  downloadURL: string | null;
+  preview: string;
+};
 /**
  * selling = the item is available on the marketplace for purchase
  * sold = the item has been purchased and is no longer available on the marketpalce, can still be seen in the sold section of the user profile
@@ -71,22 +77,33 @@ type MarketplaceItemStatus =
 
 const Selling = () => {
   // State for form inputs
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [item, setItem] = useState<MarketplaceItemType>({
+    title: "",
+    description: "",
+    category: "",
+    condition: "",
+    packageCondition: "",
+    deliveryOption: "",
+    price: "",
+    quantity: 0,
+    creationDate: "",
+    listingStatus: "draft",
+  });
+  // const [title, setTitle] = useState("");
+  // const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
-  const [category, setCategory] = useState("");
-  const [condition, setCondition] = useState("");
-  const [packageCondition, setPackageCondition] = useState(""); // For package condition
-  const [color, setColor] = useState("");
-  const [deliveryOption, setDeliveryOption] = useState("");
-  const [price, setPrice] = useState("");
-  const [photos, setPhotos] = useState([]);
-  const [userId, setUserId] = useState(null);
-  const [quantity, setQuantity] = useState(1); // Default to 1
+  // const [category, setCategory] = useState("");
+  // const [condition, setCondition] = useState("");
+  // const [packageCondition, setPackageCondition] = useState(""); // For package condition
+  // const [color, setColor] = useState("");
+  // const [deliveryOption, setDeliveryOption] = useState("");
+  // const [price, setPrice] = useState("");
+  const [photos, setPhotos] = useState<PhotoType[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  // const [quantity, setQuantity] = useState(1); // Default to 1
   const navigate = useNavigate(); // Add this line
-  const [listingStatus, setListingStatus] =
-    useState<MarketplaceItemStatus>("listing pending");
-  const [inputValue, setInputValue] = useState(""); // For managing autocomplete input
+  // const [listingStatus, setListingStatus] =
+  // useState<MarketplaceItemStatus>("listing pending");
   const autocompleteContainerRef = useRef(null); // Ref for the autocomplete container
 
   useEffect(() => {
@@ -104,20 +121,20 @@ const Selling = () => {
 
   // Handle change for file input
   const onDrop = useCallback(
-    (acceptedFiles) => {
+    (acceptedFiles: any) => {
       const storage = getStorage();
 
       // Check if adding new photos exceeds the limit
       const potentialNewTotal = photos.length + acceptedFiles.length;
       if (potentialNewTotal > 10) {
         alert(
-          `You can only upload up to 15 images. Currently selected: ${photos.length}.`
+          `You can only upload up to 10 images. Currently selected: ${photos.length}.`
         );
         return; // Prevent further execution
       }
 
       // Proceed with the file processing
-      const newPhotosWithPreview = acceptedFiles.map((file) => {
+      const newPhotosWithPreview = acceptedFiles.map((file: any) => {
         const previewUrl = URL.createObjectURL(file);
         const fileRef = storageRef(
           storage,
@@ -157,10 +174,10 @@ const Selling = () => {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: "image/*",
-    maxFiles: 15,
+    maxFiles: 10,
   });
 
-  const removePhoto = (event, photoUrl) => {
+  const removePhoto = (event: any, photoUrl: any) => {
     event.stopPropagation();
     event.preventDefault();
 
@@ -176,6 +193,8 @@ const Selling = () => {
   React.useEffect(() => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
+
+  console.log("photos", photos);
 
   useEffect(() => {
     if (!autocompleteContainerRef.current) return;
@@ -258,22 +277,14 @@ const Selling = () => {
 
       // Prepare data for new item
       const newItemData = {
-        title,
-        description,
-        tags: tags.map((tag) => tag.label), // Assuming tags are objects with a label property
-        category,
-        condition,
-        packageCondition, // Package condition
-        color,
-        deliveryOption,
-        price,
-        quantity,
+        ...item,
+        tags: tags.map((tag) => tag?.label), // Assuming tags are objects with a label property
         photos: photoUrls,
         creationDate: moment().toISOString(),
         sellerId: userId,
-        listingStatus,
       };
 
+      console.log(newItemData);
       // Step 1: Add to the global 'items' collection
       const globalItemDocRef = await addDoc(
         collection(db, "items"),
@@ -281,9 +292,14 @@ const Selling = () => {
       );
 
       // Step 2: Use the same ID to create a document in the user's 'selling' collection
-      await setDoc(doc(db, "users", userId, "selling", globalItemDocRef.id), {
+      await setDoc(doc(db, "users", userId, "items", globalItemDocRef.id), {
         ref: globalItemDocRef,
       });
+
+      const response = await axios.post(
+        "https://us-central1-anithrift-e77a9.cloudfunctions.net/createStripeAccountOnFirstItem",
+        { item: newItemData }
+      );
 
       console.log("Item listed with ID:", globalItemDocRef.id);
       navigate(`/item/${globalItemDocRef.id}`); // Redirect to the item page using the consistent item ID
@@ -310,27 +326,32 @@ const Selling = () => {
         <h2>Photos</h2>
         <div {...getRootProps({ className: "dropzone", style: dropzoneStyle })}>
           <input {...getInputProps()} />
-          {photos.length === 0 && (
+          {!photos.length ? (
             <p>
-              Drag 'n' drop some files here, or click to select files (Up to 15
+              Drag 'n' drop some files here, or click to select files (Up to 10
               photos)
             </p>
-          )}
-          {photos.map((photo) => (
-            <div key={photo.preview} className="photo-preview">
-              <img
-                src={photo.preview}
-                alt="Preview"
-                className="preview-image"
-              />
-              <button
-                onClick={(event) => removePhoto(event, photo.preview)}
-                className="remove-photo"
-              >
-                x
-              </button>
-            </div>
-          ))}
+          ) : null}
+          {photos.length && photos[photos.length - 1]
+            ? photos.map((photo) => {
+                if (!photo) return null;
+                return (
+                  <div key={photo.preview} className="photo-preview">
+                    <img
+                      src={photo.preview}
+                      alt="Preview"
+                      className="preview-image"
+                    />
+                    <button
+                      onClick={(event) => removePhoto(event, photo.preview)}
+                      className="remove-photo"
+                    >
+                      x
+                    </button>
+                  </div>
+                );
+              })
+            : null}
         </div>
         <div className="section product-info-section">
           <h2>Product Info</h2>
@@ -339,8 +360,10 @@ const Selling = () => {
             fullWidth
             label="Title"
             variant="outlined"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={item?.title}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, title: e.target.value }))
+            }
             className="form-field"
           />
           <h3>Description</h3>
@@ -350,8 +373,10 @@ const Selling = () => {
             variant="outlined"
             multiline
             rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={item?.description}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, description: e.target.value }))
+            }
             className="form-field"
           />
           <div className="tags-section">
@@ -374,8 +399,10 @@ const Selling = () => {
           <FormControl fullWidth className="form-field">
             <InputLabel>Category</InputLabel>
             <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={item?.category}
+              onChange={(e) =>
+                setItem((prev) => ({ ...prev, category: e.target.value }))
+              }
               label="Category"
             >
               <MenuItem value="Digital Media"> Digital Media</MenuItem>
@@ -395,8 +422,10 @@ const Selling = () => {
             fullWidth
             label="Color (optional)"
             variant="outlined"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
+            value={item?.color}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, color: e.target.value }))
+            }
             className="form-field"
           />
         </div>
@@ -406,8 +435,10 @@ const Selling = () => {
             row
             aria-label="condition"
             name="condition"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value)}
+            value={item?.condition}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, condition: e.target.value }))
+            }
             className="condition-selector"
           >
             <FormControlLabel
@@ -484,8 +515,10 @@ const Selling = () => {
             row
             aria-label="packagingCondition"
             name="packagingCondition"
-            value={packageCondition}
-            onChange={(e) => setPackageCondition(e.target.value)}
+            value={item?.packageCondition}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, packageCondition: e.target.value }))
+            }
             className="condition-selector"
           >
             <FormControlLabel
@@ -515,8 +548,10 @@ const Selling = () => {
           <h2>Delivery</h2>
           <RadioGroup
             aria-label="shipping"
-            value={deliveryOption}
-            onChange={(e) => setDeliveryOption(e.target.value)}
+            value={item?.deliveryOption}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, deliveryOption: e.target.value }))
+            }
             className="form-field"
           >
             <FormControlLabel
@@ -537,8 +572,13 @@ const Selling = () => {
           label="Quantity"
           type="number"
           InputProps={{ inputProps: { min: 1 } }} // Minimum quantity is 1
-          value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+          value={item?.quantity}
+          onChange={(e) =>
+            setItem((prev) => ({
+              ...prev,
+              quantity: parseInt(e.target.value, 10),
+            }))
+          }
         />
         <h3>Price</h3>
 
@@ -547,8 +587,10 @@ const Selling = () => {
             label="Price"
             type="number"
             InputProps={{ inputProps: { min: 0 } }} // Prevent negative numbers
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            value={item?.price}
+            onChange={(e) =>
+              setItem((prev) => ({ ...prev, price: e.target.value }))
+            }
           />
         </div>
 

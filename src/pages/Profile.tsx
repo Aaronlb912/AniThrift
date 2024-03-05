@@ -38,7 +38,7 @@ const columns = [
     field: "imageUrl",
     headerName: "Image",
     width: 160,
-    renderCell: (params) => (
+    renderCell: (params: { value: any }) => (
       <img
         src={params.value || "defaultImageURLHere"} // Use a default image if imageUrl is missing
         alt=""
@@ -89,13 +89,14 @@ const Profile: React.FC = () => {
     }
   };
 
-  const extractDocIdFromRefPath = (refPath) => {
+  const extractDocIdFromRefPath = (refPath: string) => {
     const parts = refPath.split("/");
     return parts[parts.length - 1];
   };
 
-  const fetchUserItems = async (uid) => {
-    const q = query(collection(db, "users", uid, "selling"));
+  const fetchUserItems = async (uid: string) => {
+    const q = query(collection(db, "users", uid, "items"));
+
     const querySnapshot = await getDocs(q);
     const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
       // Assuming itemRef is directly a Firestore DocumentReference
@@ -105,7 +106,10 @@ const Profile: React.FC = () => {
       // Directly use the DocumentReference to fetch the document
       const itemSnapshot = await getDoc(itemRef);
 
-      if (itemSnapshot.exists()) {
+      if (
+        itemSnapshot.exists() &&
+        itemSnapshot.data().listingStatus === "selling"
+      ) {
         const data = itemSnapshot.data();
         return {
           id: itemSnapshot.id,
@@ -132,27 +136,53 @@ const Profile: React.FC = () => {
     }));
   };
 
-  const fetchWatchListItems = async (uid: string) => {
+  const fetchWatchListItems = async (uid) => {
     const watchlistRef = collection(db, "users", uid, "watchlist");
     const querySnapshot = await getDocs(watchlistRef);
-    const watchlist = [];
-    for (const docSnapshot of querySnapshot.docs) {
-      const itemRef = doc(db, "items", docSnapshot.data().itemId);
-      const itemSnapshot = await getDoc(itemRef);
-      if (itemSnapshot.exists()) {
-        watchlist.push({
-          id: itemSnapshot.id,
-          ...itemSnapshot.data(),
-          imageUrl: itemSnapshot.data().photos[0],
-          name: itemSnapshot.data().title,
-          price: itemSnapshot.data().price,
-        });
+
+    // Map over each document in the watchlist collection
+    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
+      // Retrieve the reference to the item from the watchlist document
+      const itemRef = docSnapshot.data().ref;
+
+      // Guard against missing or incorrect refs
+      if (!itemRef) {
+        console.error(
+          "Missing or incorrect reference in watchlist:",
+          docSnapshot.id
+        );
+        return null;
       }
-    }
-    setWatchListItems(watchlist);
+
+      // Use the item reference to fetch the item document
+      const itemSnapshot = await getDoc(itemRef);
+
+      if (itemSnapshot.exists()) {
+        const data = itemSnapshot.data();
+        return {
+          id: itemSnapshot.id,
+          ...data,
+          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Use the first photo as the image URL
+          name: data.title,
+          // Include any additional fields you need
+        };
+      } else {
+        console.error("No such item for ref:", itemRef.path);
+        return null;
+      }
+    });
+
+    // Await all promises and filter out any null values
+    const resolvedItems = (await Promise.all(itemsPromises)).filter(
+      (item) => item !== null
+    );
+
+    // Now resolvedItems contains all items from the user's watchlist
+    // Here you would update your state or context with these items
+    setWatchListItems(resolvedItems);
   };
 
-  const handleRowClick = (param) => {
+  const handleRowClick = (param: { id: any }) => {
     navigate(`/item/${param.id}`); // Navigate to the item's page using its ID
   };
 

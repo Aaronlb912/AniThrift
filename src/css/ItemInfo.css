@@ -116,3 +116,20 @@ button:hover {
 .seller-info button {
   align-self: center; /* Aligns the button to the start of the flex container */
 }
+
+.item-quantity-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; /* Adjust the gap between the title and the box as needed */
+}
+
+.quantity-box {
+  width: 100%; /* Or a fixed width, depending on your design */
+  display: flex;
+  justify-content: center; /* This will center the TextField */
+}
+
+.item-tags {
+  text-align: center;
+}
