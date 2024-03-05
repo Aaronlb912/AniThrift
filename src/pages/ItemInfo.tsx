@@ -10,6 +10,7 @@ import {
   query,
   where,
   getDocs,
+  setDoc,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -21,6 +22,7 @@ import {
   DialogContentText,
   Snackbar,
   Alert,
+  TextField,
 } from "@mui/material";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
@@ -34,6 +36,7 @@ const ItemInfo = () => {
   const [userId, setUserId] = useState(null); // Initialize userId state
   const navigate = useNavigate(); // Use this to navigate after delete
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1); // State for tracking selected quantity
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -104,42 +107,43 @@ const ItemInfo = () => {
   }, [id]);
 
   const addToWatchlist = async () => {
-    if (!item || !userId || !seller) {
-      console.error(
-        "No item data available, user not logged in, or seller info missing"
-      );
+    if (!item || !userId) {
+      console.error("No item data available or user not logged in");
       return;
     }
 
-    const watchlistRef = collection(db, "users", userId, "watchlist");
+    // Reference to the watchlist in the user's document
+    const watchlistRef = doc(db, "users", userId, "watchlist", id); // Use item.id to create a unique document for each item
 
     try {
-      await addDoc(watchlistRef, {
-        itemId: id,
-        title: item.title,
-        imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
-        price: item.price,
-        sellerId: item.sellerId, // Push sellerId
-        sellerName: seller.name, // Include seller's name
-        addedOn: new Date(), // Optional: track when item was added
+      // Create a reference to the item in the global items collection
+      const itemRef = doc(db, "items", id);
+
+      // Set the document in the watchlist collection with the item reference
+      await setDoc(watchlistRef, {
+        ref: itemRef,
       });
 
-      console.log("Item added to watchlist");
+      console.log("Item added to watchlist with reference");
       setSnackbar({
         open: true,
         message: "Added to watchlist",
         severity: "success",
       });
     } catch (error) {
-      console.error("Error adding item to watchlist: ", error);
+      console.error("Error adding item reference to watchlist: ", error);
     }
   };
 
   const addToCart = async () => {
-    if (!item || !userId || !seller) {
-      console.error(
-        "No item data available, user not logged in, or seller info missing"
-      );
+    if (
+      !item ||
+      !userId ||
+      !seller ||
+      selectedQuantity < 1 ||
+      selectedQuantity > item.quantity
+    ) {
+      console.error("Invalid item data or quantity");
       return;
     }
 
@@ -149,17 +153,18 @@ const ItemInfo = () => {
       await addDoc(cartRef, {
         itemId: id,
         title: item.title,
-        imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
+        imageUrl: item.photos ? item.photos[0] : null,
         price: item.price,
-        sellerId: item.sellerId, // Push sellerId
-        sellerName: seller.name, // Include seller's name
-        addedOn: new Date(), // Optional: track when item was added
+        quantity: selectedQuantity, // Include selected quantity
+        sellerId: item.sellerId,
+        sellerName: seller.name,
+        addedOn: new Date(),
       });
 
       console.log("Item added to cart");
       setSnackbar({
         open: true,
-        message: "Added to cart",
+        message: `Added ${selectedQuantity} to cart`,
         severity: "success",
       });
     } catch (error) {
@@ -182,7 +187,7 @@ const ItemInfo = () => {
       });
 
       console.log("Item deleted successfully");
-      navigate("/"); // Or to any other page you'd like the user to go to after deletion
+      navigate("/profile"); // Or to any other page you'd like the user to go to after deletion
     } catch (error) {
       console.error("Error deleting item: ", error);
     }
@@ -201,6 +206,9 @@ const ItemInfo = () => {
 
   return (
     <div className="item-info-container">
+      <div className="item-details">
+        <h2>{item.title}</h2>
+      </div>
       <div className="main-image-container">
         <img src={mainImage} alt="Main Item" className="main-image" />
       </div>
@@ -216,7 +224,6 @@ const ItemInfo = () => {
         ))}
       </div>
       <div className="item-details">
-        <h2>{item.title}</h2>
         <p>
           <h3>Description:</h3> {item.description}
         </p>
@@ -240,6 +247,19 @@ const ItemInfo = () => {
               </Button>
             ))}
         </div>
+        <div className="item-quantity-container">
+          <h3>Available Quantity: {item.quantity}</h3>
+          <TextField
+            label="Quantity"
+            type="number"
+            InputProps={{ inputProps: { min: 1, max: item.quantity } }}
+            value={selectedQuantity}
+            onChange={(e) => setSelectedQuantity(Number(e.target.value))}
+            variant="outlined"
+            size="small"
+          />
+        </div>
+
         <p>
           <h3>Price: ${item.price}</h3>
         </p>

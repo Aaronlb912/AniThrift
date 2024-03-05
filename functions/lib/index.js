@@ -6,7 +6,7 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 const axios_1 = require("axios");
@@ -158,7 +158,7 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
       }));
 
       const session = await stripe.checkout.sessions.create({
-        metadata: {sellerName, sellerId},
+        metadata: { sellerName, sellerId },
         payment_method_types: ["card"],
         line_items: lineItems,
         mode: "payment",
@@ -182,53 +182,102 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
 
 // }
 
-exports.handlePurchaseCompletion = functions.https.onRequest(async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+// exports.handlePurchaseCompletion = functions.https.onRequest(async (req, res) => {
+//   const sig = req.headers['stripe-signature'];
 
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.rawBody, 
-      sig, 
-      functions.config().stripe.webhooksecret
-    );
-  } catch (err) {
-    console.error(`Webhook signature verification failed.`, err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+//   let event;
+//   try {
+//     event = stripe.webhooks.constructEvent(
+//       req.rawBody,
+//       sig,
+//       functions.config().stripe.webhooksecret
+//     );
+//   } catch (err) {
+//     console.error(`Webhook signature verification failed.`, err.message);
+//     return res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+
+//   if (event.type === 'checkout.session.completed') {
+//     const session = event.data.object;
+
+//     // Retrieve metadata from session
+//     const { userId, itemId, quantity } = session.metadata;
+
+//     try {
+//       // Update item listing status to sold
+//       await db.collection('items').doc(itemId).update({ status: 'sold' });
+//       await db.collection('users').doc(itemData.sellerId).collection("selling").
+//       // Create a copy of the item data with listing status purchased under the buyer's account
+//       const itemData = (await db.collection('items').doc(itemId).get()).data();
+//       await db.collection('users').doc(userId).collection('purchased').add({
+//         ...itemData,
+//         status: 'purchased',
+//         purchaseDate: admin.firestore.FieldValue.serverTimestamp(),
+//       });
+
+//       // If more than one quantity, handle accordingly (this step depends on your data model)
+//       // For example, decrement the available quantity or mark individual items as sold
+
+//       // Send verification email to seller and buyer
+//       // This requires integrating with an email service and is not shown here
+
+//       console.log(`Purchase processed for user ${userId} for item ${itemId}`);
+//       res.json({ received: true });
+//     } catch (error) {
+//       console.error("Error processing purchase:", error);
+//       return res.status(500).send({ error: "Internal Server Error" });
+//     }
+//   } else {
+//     console.log(`Unhandled event type ${event.type}`);
+//     res.json({ received: true });
+//   }
+// });
+
+exports.createStripeAccountOnFirstItem = functions.https.onRequest(
+  async (req, res) => {
+    cors(req, res, async () => {
+      const { item } = req.body;
+      const userId = item.sellerId; // Assuming item data includes a sellerId
+
+      // Retrieve user data
+      const userRef = admin.firestore().doc(`users/${userId}`);
+      const userSnap = await userRef.get();
+      if (!userSnap.exists) return null;
+
+      const user = userSnap.data();
+
+      // Check if the user already has a Stripe account
+      if (!user.stripeAccountId) {
+        // Create a new Stripe Connect account
+        try {
+          const account = await stripe.accounts.create({
+            type: "express",
+            country: "US",
+            email: user.email,
+            capabilities: {
+              card_payments: { requested: true },
+              transfers: { requested: true },
+            },
+          });
+
+          // Update user document with Stripe account ID
+          await userRef.update({ stripeAccountId: account.id });
+          console.log(
+            `Stripe account created with ID: ${account.id} for user: ${userId}`
+          );
+          return res
+            .status(200)
+            .send({ status: "account successfully created" });
+        } catch (error) {
+          return res.status(500).send({
+            error: `Error creating Stripe account for user ${userId}:`,
+          });
+        }
+      } else {
+        return res
+          .status(200)
+          .send(`User ${userId} already has a Stripe account.`);
+      }
+    });
   }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-
-    // Retrieve metadata from session
-    const { userId, itemId, quantity } = session.metadata;
-
-    try {
-      // Update item listing status to sold
-      await db.collection('items').doc(itemId).update({ status: 'sold' });
-      await db.collection('users').doc(itemData.sellerId).collection("selling").
-      // Create a copy of the item data with listing status purchased under the buyer's account
-      const itemData = (await db.collection('items').doc(itemId).get()).data();
-      await db.collection('users').doc(userId).collection('purchased').add({
-        ...itemData,
-        status: 'purchased',
-        purchaseDate: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // If more than one quantity, handle accordingly (this step depends on your data model)
-      // For example, decrement the available quantity or mark individual items as sold
-
-      // Send verification email to seller and buyer
-      // This requires integrating with an email service and is not shown here
-
-      console.log(`Purchase processed for user ${userId} for item ${itemId}`);
-      res.json({ received: true });
-    } catch (error) {
-      console.error("Error processing purchase:", error);
-      return res.status(500).send({ error: "Internal Server Error" });
-    }
-  } else {
-    console.log(`Unhandled event type ${event.type}`);
-    res.json({ received: true });
-  }
-});
+);

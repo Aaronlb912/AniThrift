@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase-config";
 import {
   doc,
@@ -13,12 +13,33 @@ import "../css/Profile.css"; // You might want to reuse or create a new styleshe
 import StarRating from "../components/StarRating";
 import { Carousel } from "../components/Carousel";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { DataGrid } from "@mui/x-data-grid";
+
+const columns = [
+  {
+    field: "imageUrl",
+    headerName: "Image",
+    width: 160,
+    renderCell: (params) => (
+      <img
+        src={params.value || "defaultImageURLHere"} // Use a default image if imageUrl is missing
+        alt=""
+        style={{ width: "100%", height: "auto" }}
+      />
+    ),
+  },
+  { field: "name", headerName: "Name", width: 130 },
+  { field: "price", headerName: "Price", type: "number", width: 90 },
+  { field: "id", headerName: "ID", width: 150 },
+  // Add more columns as needed based on your item data structure
+];
 
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>(); // Assume routing setup to capture userId
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userItems, setUserItems] = useState<any[]>([]);
   const [soldItems, setSoldItems] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
@@ -53,6 +74,10 @@ const PublicProfile: React.FC = () => {
     setUserItems(items);
 
     // Update the activeListings count in the sellingInfo state
+  };
+
+  const handleRowClick = (param) => {
+    navigate(`/item/${param.id}`); // Navigate to the item's page using its ID
   };
 
   const fetchSoldItems = async (uid: string) => {
@@ -95,9 +120,18 @@ const PublicProfile: React.FC = () => {
       {/* Items User is Selling */}
       <h2>Items for Sale</h2>
       {userItems.length > 0 ? (
-        <Carousel items={userItems} />
+        <div style={{ height: 400, width: "100%" }}>
+          <DataGrid
+            rows={userItems}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            onRowClick={handleRowClick} // Add the onRowClick prop
+            getRowId={(row) => row.id}
+          />
+        </div>
       ) : (
-        <p>No items for sale.</p>
+        <p>You do not have any items listed for sale.</p>
       )}
 
       {/* Items User has Sold */}
