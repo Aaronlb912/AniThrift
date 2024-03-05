@@ -28,6 +28,7 @@ import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 const ItemInfo = () => {
   let { id } = useParams(); // This ID is now expected to be the global item ID
   const auth = getAuth();
+  const [mainImage, setMainImage] = useState("");
   const [item, setItem] = useState(null);
   const [seller, setSeller] = useState(null);
   const [userId, setUserId] = useState(null); // Initialize userId state
@@ -71,6 +72,10 @@ const ItemInfo = () => {
       if (itemSnap.exists()) {
         const itemData = itemSnap.data();
         setItem(itemData);
+
+        if (itemData.photos && itemData.photos.length > 0) {
+          setMainImage(itemData.photos[0]);
+        }
 
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
@@ -183,20 +188,32 @@ const ItemInfo = () => {
     }
   };
 
+  const handleTagClick = (tag) => {
+    // Navigate to a search results page. Adjust the path as needed.
+    navigate(`/search?tag=${tag}`);
+  };
+
+  const handleThumbnailClick = (image) => {
+    setMainImage(image);
+  };
+
   if (!item) return <div>Loading...</div>;
 
   return (
     <div className="item-info-container">
-      <div className="item-images">
-        {item.photos &&
-          item.photos.map((photo, index) => (
-            <img
-              key={index}
-              src={photo}
-              alt={`Item ${index}`}
-              className="item-image"
-            />
-          ))}
+      <div className="main-image-container">
+        <img src={mainImage} alt="Main Item" className="main-image" />
+      </div>
+      <div className="thumbnail-container">
+        {item.photos?.map((photo, index) => (
+          <img
+            key={index}
+            src={photo}
+            alt={`Item Thumbnail ${index}`}
+            className="thumbnail"
+            onClick={() => handleThumbnailClick(photo)}
+          />
+        ))}
       </div>
       <div className="item-details">
         <h2>{item.title}</h2>
@@ -209,6 +226,20 @@ const ItemInfo = () => {
         <p>
           <h3>Condition:</h3> {item.condition}
         </p>
+        <div className="item-tags">
+          <h3>Tags:</h3>
+          {item.tags &&
+            item.tags.map((tag, index) => (
+              <Button
+                key={index}
+                onClick={() => handleTagClick(tag)}
+                variant="contained"
+                style={{ marginRight: "8px", marginBottom: "8px" }}
+              >
+                {tag}
+              </Button>
+            ))}
+        </div>
         <p>
           <h3>Price: ${item.price}</h3>
         </p>

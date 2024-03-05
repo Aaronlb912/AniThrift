@@ -7,6 +7,37 @@
   align-items: center; /* Center align the content */
 }
 
+.main-image-container {
+  margin-bottom: 20px;
+}
+
+.main-image {
+  width: 100%; /* Adjust as needed */
+  max-width: 350px; /* Adjust as needed */
+  height: auto;
+  border-radius: 8px;
+}
+
+.thumbnail-container {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(100px, 1fr)
+  ); /* Adjust the min size */
+  gap: 10px; /* Adjust the space between thumbnails */
+  justify-content: center; /* Center the thumbnails within the container */
+  padding: 10px; /* Add some padding around the container */
+}
+
+.thumbnail {
+  width: 100%; /* Ensure the thumbnail fills the cell */
+  height: auto; /* Maintain aspect ratio */
+  cursor: pointer; /* Indicates clickable items */
+  border: 1px solid #ccc; /* Optional: adds a light border around thumbnails */
+  border-radius: 4px; /* Optional: rounds the corners of thumbnails */
+  object-fit: cover; /* Ensures the image covers the area without losing its aspect ratio */
+}
+
 .item-details {
   display: flex;
   flex-direction: column;
