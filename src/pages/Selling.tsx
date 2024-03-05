@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  Fragment,
+  useRef,
+} from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -10,9 +16,10 @@ import {
   ref as storageRef,
   uploadBytesResumable,
   getDownloadURL,
-  ref,
 } from "firebase/storage";
-
+import algoliasearch from "algoliasearch/lite";
+import "@algolia/autocomplete-theme-classic";
+import { autocomplete } from "@algolia/autocomplete-js";
 import "../css/Selling.css";
 import {
   TextField,
@@ -24,7 +31,11 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
+  Chip,
 } from "@mui/material";
+
+const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
+const index = client.initIndex("items");
 
 interface MarketplaceItemType {
   title: string;
@@ -35,6 +46,7 @@ interface MarketplaceItemType {
   color: string;
   deliveryOption: string;
   price: string;
+  quantity: number;
   photos: any[];
   creationDate: string;
   sellerId: string;
@@ -64,14 +76,18 @@ const Selling = () => {
   const [tags, setTags] = useState([]);
   const [category, setCategory] = useState("");
   const [condition, setCondition] = useState("");
+  const [packageCondition, setPackageCondition] = useState(""); // For package condition
   const [color, setColor] = useState("");
   const [deliveryOption, setDeliveryOption] = useState("");
   const [price, setPrice] = useState("");
   const [photos, setPhotos] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [quantity, setQuantity] = useState(1); // Default to 1
   const navigate = useNavigate(); // Add this line
   const [listingStatus, setListingStatus] =
     useState<MarketplaceItemStatus>("listing pending");
+  const [inputValue, setInputValue] = useState(""); // For managing autocomplete input
+  const autocompleteContainerRef = useRef(null); // Ref for the autocomplete container
 
   useEffect(() => {
     const auth = getAuth();
@@ -87,50 +103,56 @@ const Selling = () => {
   }, [navigate]);
 
   // Handle change for file input
-  const onDrop = useCallback((acceptedFiles) => {
-    const storage = getStorage();
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      const storage = getStorage();
 
-    // Map through the files, upload them to Firebase Storage, and create preview URLs
-    const newPhotosWithPreview = acceptedFiles.map((file) => {
-      // Generate a local preview URL
-      const previewUrl = URL.createObjectURL(file);
+      // Check if adding new photos exceeds the limit
+      const potentialNewTotal = photos.length + acceptedFiles.length;
+      if (potentialNewTotal > 10) {
+        alert(
+          `You can only upload up to 15 images. Currently selected: ${photos.length}.`
+        );
+        return; // Prevent further execution
+      }
 
-      // Define the storage reference path
-      const fileRef = storageRef(storage, `images/${Date.now()}_${file.name}`);
+      // Proceed with the file processing
+      const newPhotosWithPreview = acceptedFiles.map((file) => {
+        const previewUrl = URL.createObjectURL(file);
+        const fileRef = storageRef(
+          storage,
+          `images/${Date.now()}_${file.name}`
+        );
+        const uploadTask = uploadBytesResumable(fileRef, file);
 
-      // Start the file upload
-      const uploadTask = uploadBytesResumable(fileRef, file);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Optional: handle upload progress
+          },
+          (error) => {
+            console.error("Upload error:", error);
+          },
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              setPhotos((prevPhotos) =>
+                prevPhotos.map((photo) => {
+                  return photo.preview === previewUrl
+                    ? { ...photo, downloadURL }
+                    : photo;
+                })
+              );
+            });
+          }
+        );
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          // Optional: handle upload progress
-        },
-        (error) => {
-          console.error("Upload error:", error);
-        },
-        () => {
-          // Handle successful upload
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            // Update the state to include the download URL for this file
-            setPhotos((prevPhotos) =>
-              prevPhotos.map((photo) => {
-                return photo.preview === previewUrl
-                  ? { ...photo, downloadURL }
-                  : photo;
-              })
-            );
-          });
-        }
-      );
+        return { preview: previewUrl, downloadURL: null };
+      });
 
-      // Return the file object with the local preview URL immediately
-      return { preview: previewUrl, downloadURL: null };
-    });
-
-    // Update the photos state to include the new photos with their previews
-    setPhotos((prevPhotos) => [...prevPhotos, ...newPhotosWithPreview]);
-  }, []);
+      setPhotos((prevPhotos) => [...prevPhotos, ...newPhotosWithPreview]);
+    },
+    [photos]
+  );
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -138,8 +160,16 @@ const Selling = () => {
     maxFiles: 15,
   });
 
-  const removePhoto = (photoUrl) => {
-    setPhotos(photos.filter((photo) => photo.preview !== photoUrl));
+  const removePhoto = (event, photoUrl) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    // Filter out the photo to be removed
+    const filteredPhotos = photos.filter((photo) => photo.preview !== photoUrl);
+    setPhotos(filteredPhotos);
+
+    // Revoke the object URL of the removed photo
+    URL.revokeObjectURL(photoUrl);
   };
 
   // Remember to revoke data uris to avoid memory leaks
@@ -147,52 +177,103 @@ const Selling = () => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
 
-  // Handle adding new tag
-  const handleAddTag = (e) => {
-    if (e.key === "Enter" && e.target.value) {
-      const newTag = { id: Date.now(), text: e.target.value };
-      setTags([...tags, newTag]);
-      e.target.value = ""; // Clear input
-      e.preventDefault(); // Prevent form submission
+  useEffect(() => {
+    if (!autocompleteContainerRef.current) return;
+
+    const autocompleteInstance = autocomplete({
+      container: autocompleteContainerRef.current,
+      placeholder: "Type and select tags",
+      getSources({ query }) {
+        return [
+          {
+            sourceId: "tags-facet",
+            getItems() {
+              return client
+                .initIndex("items")
+                .searchForFacetValues("tags", query, { maxFacetHits: 10 })
+                .then(({ facetHits }) => {
+                  return facetHits.map((facetHit) => ({
+                    label: facetHit.value,
+                  }));
+                });
+            },
+            templates: {
+              item({ item }) {
+                return `${item.label}`;
+              },
+            },
+            onSelect({ item }) {
+              const tagToAdd = item.label.trim();
+              if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
+                setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
+              }
+              // Note: Directly clearing the query with setQuery isn't done here; focus on onSelect logic
+            },
+          },
+        ];
+      },
+      // The onSubmit callback is adjusted to avoid using state.setQuery
+      onSubmit({ state }) {
+        const tagToAdd = state.query.trim();
+        if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
+          setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
+          // Here, rather than trying to clear the input directly, you'd reset the external state managing the input value if applicable
+        }
+      },
+    });
+
+    return () => {
+      if (autocompleteInstance) {
+        autocompleteInstance.destroy();
+      }
+    };
+  }, [tags]);
+
+  // New method for adding tags, ensuring we don't trigger the useEffect unnecessarily
+  const addTag = (newTag) => {
+    if (newTag && !tags.includes(newTag)) {
+      setTags((currentTags) => [...currentTags, newTag]);
     }
   };
 
-  // Handle removing a tag
-  const handleRemoveTag = (tagId) => {
-    setTags(tags.filter((tag) => tag.id !== tagId));
+  const handleRemoveTag = (labelToRemove) => {
+    setTags(tags.filter((tag) => tag.label !== labelToRemove));
   };
 
   // Handle form submit
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const uploadedPhotos = photos.filter((photo) => photo.downloadURL);
-    const photoUrls = uploadedPhotos.map((photo) => photo.downloadURL);
+    console.log("Submitting form...");
 
     if (!userId) {
       console.error("User not authenticated");
+      alert("You must be logged in to list an item.");
       return;
     }
 
-    // Prepare data for new item
-    const newItemData: MarketplaceItemType = {
-      title,
-      description,
-      tags: tags.map((tag) => tag.text),
-      category,
-      condition,
-      color,
-      deliveryOption,
-      price,
-      photos: photos
-        .filter((photo) => photo.downloadURL)
-        .map((photo) => photo.downloadURL),
-      creationDate: moment().toISOString(),
-      sellerId: userId,
-      listingStatus,
-    };
-
     try {
+      const uploadedPhotos = photos.filter((photo) => photo.downloadURL);
+      const photoUrls = uploadedPhotos.map((photo) => photo.downloadURL);
+
+      // Prepare data for new item
+      const newItemData = {
+        title,
+        description,
+        tags: tags.map((tag) => tag.label), // Assuming tags are objects with a label property
+        category,
+        condition,
+        packageCondition, // Package condition
+        color,
+        deliveryOption,
+        price,
+        quantity,
+        photos: photoUrls,
+        creationDate: moment().toISOString(),
+        sellerId: userId,
+        listingStatus,
+      };
+
       // Step 1: Add to the global 'items' collection
       const globalItemDocRef = await addDoc(
         collection(db, "items"),
@@ -207,50 +288,50 @@ const Selling = () => {
       console.log("Item listed with ID:", globalItemDocRef.id);
       navigate(`/item/${globalItemDocRef.id}`); // Redirect to the item page using the consistent item ID
     } catch (e) {
-      console.error("Error adding document: ", e);
+      console.error("Error listing item:", e);
+      alert("An error occurred while listing the item. Please try again.");
     }
   };
+
+  const dropzoneStyle =
+    photos.length > 0
+      ? {
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "10px",
+        }
+      : {};
+
   return (
     <div className="selling-form">
       <h1>List an Item</h1>
       <form onSubmit={handleSubmit}>
         <h2>Photos</h2>
-        <div {...getRootProps({ className: "dropzone" })}>
+        <div {...getRootProps({ className: "dropzone", style: dropzoneStyle })}>
           <input {...getInputProps()} />
-          <p>
-            Drag 'n' drop some files here, or click to select files (Up to 15
-            photos)
-          </p>
-        </div>
-        <aside style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          {photos.map((photo, index) => (
-            <div
-              key={index}
-              style={{
-                position: "relative",
-                width: "100px",
-                height: "100px",
-              }}
-            >
+          {photos.length === 0 && (
+            <p>
+              Drag 'n' drop some files here, or click to select files (Up to 15
+              photos)
+            </p>
+          )}
+          {photos.map((photo) => (
+            <div key={photo.preview} className="photo-preview">
               <img
                 src={photo.preview}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
                 alt="Preview"
+                className="preview-image"
               />
               <button
-                type="button"
-                onClick={() => removePhoto(photo.preview)}
-                style={{ position: "absolute", top: "0", right: "0" }}
+                onClick={(event) => removePhoto(event, photo.preview)}
+                className="remove-photo"
               >
                 x
               </button>
             </div>
           ))}
-        </aside>
+        </div>
         <div className="section product-info-section">
           <h2>Product Info</h2>
           <h3>Title</h3>
@@ -273,19 +354,20 @@ const Selling = () => {
             onChange={(e) => setDescription(e.target.value)}
             className="form-field"
           />
-          <h3>Tags</h3>
-          <TextField
-            label="Tags"
-            variant="outlined"
-            onKeyPress={handleAddTag}
-            fullWidth
-          />
-          <div>
-            {tags.map((tag) => (
-              <div key={tag.id}>
-                {tag.text}
-                <button onClick={() => handleRemoveTag(tag.id)}>X</button>
-              </div>
+          <div className="tags-section">
+            <h3>Tags</h3>
+            <div
+              id="autocomplete"
+              ref={autocompleteContainerRef}
+              style={{ position: "relative" }}
+            ></div>
+            {tags.map((tag, index) => (
+              <Chip
+                key={index}
+                label={tag.label} // Make sure to access the label property
+                onDelete={() => handleRemoveTag(tag.label)} // Assuming you want to remove by label
+                style={{ margin: "5px" }}
+              />
             ))}
           </div>
           <h3>Category</h3>
@@ -319,7 +401,7 @@ const Selling = () => {
           />
         </div>
         <div className="section condition-section">
-          <h2>Condition</h2>
+          <h2>Item Condition</h2>
           <RadioGroup
             row
             aria-label="condition"
@@ -328,15 +410,105 @@ const Selling = () => {
             onChange={(e) => setCondition(e.target.value)}
             className="condition-selector"
           >
-            <FormControlLabel value="New" control={<Radio />} label="New" />
+            <FormControlLabel
+              value="New"
+              control={<Radio />}
+              label={
+                <div>
+                  New
+                  <br />
+                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                    Item is brand new, with no signs of use.
+                  </span>
+                </div>
+              }
+            />
             <FormControlLabel
               value="Like New"
               control={<Radio />}
-              label="Like New"
+              label={
+                <div>
+                  Like New
+                  <br />
+                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                    Item is brand new, with no signs of use.
+                  </span>
+                </div>
+              }
             />
-            <FormControlLabel value="Good" control={<Radio />} label="Good" />
-            <FormControlLabel value="Fair" control={<Radio />} label="Fair" />
-            <FormControlLabel value="Poor" control={<Radio />} label="Poor" />
+            <FormControlLabel
+              value="Good"
+              control={<Radio />}
+              label={
+                <div>
+                  Good
+                  <br />
+                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                    Item has minor wear, but still fully functional.
+                  </span>
+                </div>
+              }
+            />
+            <FormControlLabel
+              value="Fair"
+              control={<Radio />}
+              label={
+                <div>
+                  Fair
+                  <br />
+                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                    Item shows wear from consistent use, but remains in good
+                    condition.
+                  </span>
+                </div>
+              }
+            />
+            <FormControlLabel
+              value="Poor"
+              control={<Radio />}
+              label={
+                <div>
+                  Poor
+                  <br />
+                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                    Item has significant wear and tear but is still functional.
+                  </span>
+                </div>
+              }
+            />
+          </RadioGroup>
+        </div>
+        <div className="section condition-section">
+          <h2>Packaging Condition</h2>
+          <RadioGroup
+            row
+            aria-label="packagingCondition"
+            name="packagingCondition"
+            value={packageCondition}
+            onChange={(e) => setPackageCondition(e.target.value)}
+            className="condition-selector"
+          >
+            <FormControlLabel
+              value="Original"
+              control={<Radio />}
+              label="Original (Unopened)"
+            />
+            <FormControlLabel
+              value="Repackaged"
+              control={<Radio />}
+              label="Repackaged (Opened but repackaged)"
+            />
+            <FormControlLabel
+              value="Damaged"
+              control={<Radio />}
+              label="Damaged (Packaging is damaged but item is intact)"
+            />
+            <FormControlLabel
+              value="None"
+              control={<Radio />}
+              label="None (There is not any packaging for this item)"
+            />
+            {/* Add more conditions as necessary */}
           </RadioGroup>
         </div>
         <div className="section delivery-section">
@@ -359,17 +531,24 @@ const Selling = () => {
             />
           </RadioGroup>
         </div>
+        {/* Quantity input field */}
+        <h3>Quantity</h3>
+        <TextField
+          label="Quantity"
+          type="number"
+          InputProps={{ inputProps: { min: 1 } }} // Minimum quantity is 1
+          value={quantity}
+          onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+        />
         <h3>Price</h3>
 
         <div className="section pricing-section">
           <TextField
-            fullWidth
             label="Price"
-            variant="outlined"
             type="number"
+            InputProps={{ inputProps: { min: 0 } }} // Prevent negative numbers
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="form-field"
           />
         </div>
 

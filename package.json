@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@algolia/autocomplete-js": "^1.17.0",
+    "@algolia/autocomplete-theme-classic": "^1.17.0",
+    "@algolia/client-search": "^4.22.1",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.8",
@@ -32,6 +35,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-firebase-hooks": "^5.1.1",
+    "react-instantsearch-hooks-web": "^6.47.3",
     "react-range": "^1.8.14",
     "react-router-dom": "^6.22.0",
     "react-scripts": "5.0.1",
