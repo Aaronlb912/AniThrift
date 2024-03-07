@@ -11,6 +11,9 @@ import {
   where,
   getDocs,
   setDoc,
+  updateDoc,
+  limit,
+  orderBy,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -80,6 +83,8 @@ const ItemInfo = () => {
           setMainImage(itemData.photos[0]);
         }
 
+        updateRecentlyViewedItems(userId, id);
+
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
           const sellerRef = doc(db, "users", itemData.sellerId);
@@ -104,7 +109,57 @@ const ItemInfo = () => {
     };
 
     fetchItemAndSeller();
-  }, [id]);
+  }, [id, userId]);
+
+  const updateRecentlyViewedItems = async (
+    userId: string | null,
+    itemId: string | undefined,
+    sellerId: string | undefined
+  ) => {
+    // Check if userId or itemId is null or undefined
+    if (!userId || !itemId) {
+      console.error("User ID or Item ID is missing");
+      return;
+    }
+
+    // Additional check to ensure not adding the item if the viewer is the seller
+    if (userId === sellerId) {
+      console.log("User is the seller, not adding to recently viewed");
+      return;
+    }
+
+    const itemRef = doc(db, "items", itemId);
+    const itemSnapshot = await getDoc(itemRef);
+
+    if (!itemSnapshot.exists()) {
+      console.error("Item does not exist");
+      return;
+    }
+
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      console.error("User does not exist");
+      return;
+    }
+
+    // Proceed with checking and adding to recently viewed as before
+    const recentlyViewedRef = collection(db, "users", userId, "recentlyViewed");
+    const recentlyViewedSnapshot = await getDocs(recentlyViewedRef);
+
+    let exists = false;
+    recentlyViewedSnapshot.forEach((doc) => {
+      if (doc.id === itemId) exists = true;
+    });
+
+    if (!exists) {
+      await setDoc(doc(recentlyViewedRef, itemId), { ref: itemRef });
+      console.log("Added item to recently viewed");
+    } else {
+      console.log("Item already exists in recently viewed");
+    }
+  };
 
   const addToWatchlist = async () => {
     if (!item || !userId) {
@@ -193,12 +248,12 @@ const ItemInfo = () => {
     }
   };
 
-  const handleTagClick = (tag) => {
+  const handleTagClick = (tag: any) => {
     // Navigate to a search results page. Adjust the path as needed.
     navigate(`/search?tag=${tag}`);
   };
 
-  const handleThumbnailClick = (image) => {
+  const handleThumbnailClick = (image: React.SetStateAction<string>) => {
     setMainImage(image);
   };
 
@@ -213,15 +268,17 @@ const ItemInfo = () => {
         <img src={mainImage} alt="Main Item" className="main-image" />
       </div>
       <div className="thumbnail-container">
-        {item.photos?.map((photo, index) => (
-          <img
-            key={index}
-            src={photo}
-            alt={`Item Thumbnail ${index}`}
-            className="thumbnail"
-            onClick={() => handleThumbnailClick(photo)}
-          />
-        ))}
+        {item.photos?.map(
+          (photo: string | undefined, index: React.Key | null | undefined) => (
+            <img
+              key={index}
+              src={photo}
+              alt={`Item Thumbnail ${index}`}
+              className="thumbnail"
+              onClick={() => handleThumbnailClick(photo)}
+            />
+          )
+        )}
       </div>
       <div className="item-details">
         <p>
@@ -236,16 +293,32 @@ const ItemInfo = () => {
         <div className="item-tags">
           <h3>Tags:</h3>
           {item.tags &&
-            item.tags.map((tag, index) => (
-              <Button
-                key={index}
-                onClick={() => handleTagClick(tag)}
-                variant="contained"
-                style={{ marginRight: "8px", marginBottom: "8px" }}
-              >
-                {tag}
-              </Button>
-            ))}
+            item.tags.map(
+              (
+                tag:
+                  | string
+                  | number
+                  | boolean
+                  | React.ReactElement<
+                      any,
+                      string | React.JSXElementConstructor<any>
+                    >
+                  | Iterable<React.ReactNode>
+                  | React.ReactPortal
+                  | null
+                  | undefined,
+                index: React.Key | null | undefined
+              ) => (
+                <Button
+                  key={index}
+                  onClick={() => handleTagClick(tag)}
+                  variant="contained"
+                  style={{ marginRight: "8px", marginBottom: "8px" }}
+                >
+                  {tag}
+                </Button>
+              )
+            )}
         </div>
         <div className="item-quantity-container">
           <h3>Available Quantity: {item.quantity}</h3>
