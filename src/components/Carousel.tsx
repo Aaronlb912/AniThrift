@@ -30,9 +30,12 @@ function PrevArrow(props: any) {
 }
 
 export const Carousel = ({ items }: { items: any }) => {
+  const isMultipleItems = items.length > 1; // Check if there's more than one item
+
   const settings = {
+    dots: true,
     centerMode: true,
-    infinite: true,
+    infinite: isMultipleItems, // Set based on item count
     centerPadding: "60px",
     slidesToShow: 3,
     speed: 500,
@@ -60,7 +63,6 @@ export const Carousel = ({ items }: { items: any }) => {
     <div className="carousel-container">
       <Slider {...settings}>
         {items.map((item: any, index: any) => (
-          // Key is moved to the outermost element
           <div key={index} className="carousel-item">
             <Link to={`/item/${item?.id}`} className="carousel-item-link">
               <img src={item?.imageUrl} alt={`Item ${index + 1}`} />

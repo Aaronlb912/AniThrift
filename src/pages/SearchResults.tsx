@@ -32,14 +32,19 @@ const SearchResults: React.FC = () => {
   };
 
   useEffect(() => {
-    const filters = Object.entries(selectedFacets)
+    const defaultFilter = 'listingStatus:"selling"';
+    const dynamicFilters = Object.entries(selectedFacets)
       .flatMap(([facet, values]) =>
         values.map((value) => `${facet}:"${value}"`)
       )
       .join(" OR ");
 
+    const combinedFilters = `${defaultFilter} ${
+      dynamicFilters ? "AND (" + dynamicFilters + ")" : ""
+    }`;
+
     index
-      .search(searchQuery, { filters })
+      .search(searchQuery, { filters: combinedFilters })
       .then(({ hits }) => {
         setSearchResults(hits as SearchResult[]);
       })

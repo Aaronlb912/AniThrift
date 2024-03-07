@@ -1,38 +1,60 @@
 import React, { useState, useEffect } from "react";
-import "./App.css"; // Assuming you have a CSS file for styling
-import { useAuthState } from "react-firebase-hooks/auth"; // If you're using Firebase
-import { auth } from "./firebase-config"; // Adjust the path according to your project structure
-import { Carousel } from "./components/Carousel"; // Adjust the path as necessary
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import "./App.css";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "./firebase-config";
+import { Carousel } from "./components/Carousel";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import ban1 from "./assets/banner 1.jpeg";
-import ban2 from "./assets/banner 2.jpg";
-import ban3 from "./assets/banner-3.jpg";
+import ban1 from "./assets/ban1.jpeg";
+import ban2 from "./assets/ban2.jpg";
+import ban3 from "./assets/ban3.jpg";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 
-const fetchSavedItems = async (userId) => {
-  // Placeholder function - replace with actual database fetching logic
-  // This could fetch from Firestore, Realtime Database, or your server
-  const savedItems = [
-    { imageUrl: "path/to/savedItem1.jpg", name: "Saved Item 1", price: "$100" },
-    { imageUrl: "path/to/savedItem2.jpg", name: "Saved Item 2", price: "$150" },
-    // Add more saved items...
-  ];
-  return savedItems;
-};
+interface Item {
+  id: string;
+  imageUrl: string;
+  name: string;
+  price: string;
+}
 
 const App = () => {
   const [user, loading, error] = useAuthState(auth); // This hook comes from react-firebase-hooks
-  const [savedItems, setSavedItems] = useState([]);
+  const [watchListItems, setWatchListItems] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Placeholder for any side effects, including fetching user-specific data if logged in
     if (user) {
-      fetchSavedItems(user.uid).then(setSavedItems);
+      fetchWatchListItems(user.uid);
     }
-  }, [user]);
+  }, [user, navigate]);
+  const fetchWatchListItems = async (uid: string) => {
+    const watchlistRef = collection(db, "users", uid, "watchlist");
+    const querySnapshot = await getDocs(watchlistRef);
+    const items = (
+      await Promise.all(
+        querySnapshot.docs.map(async (docSnapshot) => {
+          const itemRef = docSnapshot.data().ref;
+          if (!itemRef) return null;
+
+          const itemSnapshot = await getDoc(itemRef);
+          if (itemSnapshot.exists()) {
+            const { id: _, ...rest } = itemSnapshot.data() as Item; // Use _ to ignore the id from data, if it exists
+            return {
+              id: itemSnapshot.id, // Keep this id
+              ...rest, // Spread the rest of the properties excluding the original id
+              imageUrl: itemSnapshot.data().photos[0],
+            };
+          } else {
+            return null;
+          }
+        })
+      )
+    ).filter((item): item is Item => item !== null);
+    setWatchListItems(items);
+  };
 
   const carouselItems = user
     ? [
@@ -106,18 +128,18 @@ const App = () => {
         <Carousel items={carouselItems} />
       </div>
       <div className="Liked items">
-        {user && savedItems.length > 0 && (
+        {user && watchListItems.length > 0 && (
           <>
             <h2>Saved Items</h2>
-            <Carousel items={savedItems} />
+            <Carousel items={watchListItems} />
           </>
         )}
       </div>
       <div className="Liked items">
-        {user && savedItems.length > 0 && (
+        {user && watchListItems.length > 0 && (
           <>
             <h2>another category????</h2>
-            <Carousel items={savedItems} />
+            <Carousel items={carouselItems} />
           </>
         )}
       </div>
