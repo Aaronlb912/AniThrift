@@ -137,13 +137,37 @@ const cors = require("cors")({ origin: true });
 const stripe = require("stripe")(
   "sk_test_51OmlACB42524Tsr4u5DxNgH2OJluMx2gZa888g0TX5kAqLDlKs2LScFM3zmrK3MvjmuzPmxOl4pHPPQPWluPz2VK00cGhyFCZm"
 );
-exports.createCheckoutSession = functions.https.onRequest((req, res) => {
+
+exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
-    console.log(req.body);
+    // Ensure that you're receiving a POST request
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
     try {
       const { cartItems } = req.body;
-      const sellerId = cartItems[0].sellerId;
-      const sellerName = cartItems[0].sellerName;
+
+      console.log("cartItems: " + cartItems);
+
+      // Check for cartItems in the request
+      if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+        throw new Error("cartItems is required and must be a non-empty array.");
+      }
+
+      console.log("we are here");
+
+      // Assuming the first cart item to determine the seller for simplification. Adjust as necessary.
+      const sellerStripeAccountId = await fetchSellerStripeAccountId(
+        cartItems[0].sellerId
+      );
+
+      console.log("Stripe Id", sellerStripeAccountId);
+
+      if (!sellerStripeAccountId) {
+        throw new Error("Seller Stripe account ID not found");
+      }
 
       const lineItems = cartItems.map((item) => ({
         price_data: {
@@ -154,25 +178,47 @@ exports.createCheckoutSession = functions.https.onRequest((req, res) => {
           },
           unit_amount: Math.round(item.price * 100),
         },
-        quantity: 1,
+        quantity: item.quantity,
       }));
 
-      const session = await stripe.checkout.sessions.create({
-        metadata: { sellerName, sellerId },
-        payment_method_types: ["card"],
-        line_items: lineItems,
-        mode: "payment",
-        success_url: `${req.headers.origin}/success`,
-        cancel_url: `${req.headers.origin}/cancel`,
-      });
+      const session = await stripe.checkout.sessions.create(
+        {
+          payment_method_types: ["card"],
+          line_items: lineItems,
+          mode: "payment",
+          success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.headers.origin}/cancel`,
+          payment_intent_data: {
+            application_fee_amount: 123, // Adjust your application fee
+            transfer_data: {
+              destination: sellerStripeAccountId,
+            },
+          },
+        },
+        {
+          stripeAccount: sellerStripeAccountId,
+        }
+      );
 
       res.json({ url: session.url });
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      res.status(500).send({ error: "Internal Server Error" });
+      res.status(500).send({ error: error.message });
     }
   });
 });
+
+async function fetchSellerStripeAccountId(sellerId) {
+  const sellerRef = admin.firestore().doc(`users/${sellerId}`);
+  const sellerSnap = await sellerRef.get();
+
+  if (!sellerSnap.exists) {
+    throw new Error("Seller not found");
+  }
+
+  const sellerData = sellerSnap.data();
+  return sellerData.stripeAccountId; // Ensure this is correctly pointing to where the Stripe account ID is stored
+}
 
 // exports.stripeWebHook = functions.https.onRequest((req, res) => {
 

@@ -203,27 +203,46 @@ const ItemInfo = () => {
     }
 
     const cartRef = collection(db, "users", userId, "cart");
+    const cartQuery = query(cartRef, where("itemId", "==", id));
 
     try {
-      await addDoc(cartRef, {
-        itemId: id,
-        title: item.title,
-        imageUrl: item.photos ? item.photos[0] : null,
-        price: item.price,
-        quantity: selectedQuantity, // Include selected quantity
-        sellerId: item.sellerId,
-        sellerName: seller.name,
-        addedOn: new Date(),
-      });
+      const querySnapshot = await getDocs(cartQuery);
+      if (querySnapshot.empty) {
+        // Item not in cart, add as new
+        await addDoc(cartRef, {
+          itemId: id,
+          title: item.title,
+          imageUrl: item.photos ? item.photos[0] : null,
+          price: item.price,
+          quantity: selectedQuantity,
+          sellerId: item.sellerId,
+          sellerName: seller.name,
+          addedOn: new Date(),
+        });
+      } else {
+        // Item already in cart, update quantity
+        querySnapshot.forEach(async (docSnapshot) => {
+          const existingItem = docSnapshot.data();
+          const newQuantity = existingItem.quantity + selectedQuantity;
+          if (newQuantity <= item.quantity) {
+            await updateDoc(doc(db, "users", userId, "cart", docSnapshot.id), {
+              quantity: newQuantity,
+            });
+          } else {
+            console.error("Not enough stock available");
+            // Handle error for exceeding stock
+          }
+        });
+      }
 
-      console.log("Item added to cart");
+      console.log("Cart updated");
       setSnackbar({
         open: true,
-        message: `Added ${selectedQuantity} to cart`,
+        message: `Cart updated successfully`,
         severity: "success",
       });
     } catch (error) {
-      console.error("Error adding item to cart: ", error);
+      console.error("Error updating cart: ", error);
     }
   };
 

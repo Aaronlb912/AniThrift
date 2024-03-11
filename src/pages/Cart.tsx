@@ -91,25 +91,35 @@ const CartPage: React.FC = () => {
           <div key={sellerId} className="seller-box">
             <h2>Seller: {sellerName}</h2>
             {items.map((item) => (
-              <div key={item.id} className="item-row">
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="item-image"
-                />
-                <div className="item-info">
-                  <p className="item-title">{item.title}</p>
-                  <p className="item-price">${item.price}</p>
-                  <p className="quantity">{item.quantity}</p>
+              <Link
+                to={`/item/${item.itemId}`}
+                key={item.id}
+                className="item-row-link"
+              >
+                <div className="item-row">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="item-image"
+                  />
+                  <div className="item-info">
+                    <p className="item-title">{item.title}</p>
+                    <p className="item-price">${item.price}</p>
+                    <p className="quantity">Quantity: {item.quantity}</p>
+                  </div>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent navigation when deleting
+                      removeItemFromCart(item.id);
+                    }}
+                    className="remove-item-btn"
+                  >
+                    <DeleteIcon />
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => removeItemFromCart(item.id)}
-                  className="remove-item-btn"
-                >
-                  <DeleteIcon />
-                </Button>
-              </div>
+              </Link>
             ))}
+
             <p className="total-price">
               Total: $
               {items

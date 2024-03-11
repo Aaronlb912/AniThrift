@@ -27,7 +27,10 @@ const CheckoutPage = () => {
   };
 
   const totalPrice = cartItems
-    .reduce((total: number, item: { price: any; }) => total + Number(item.price), 0)
+    .reduce(
+      (total: number, item: { price: any }) => total + Number(item.price),
+      0
+    )
     .toFixed(2);
 
   return (
