@@ -149,21 +149,18 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     try {
       const { cartItems } = req.body;
 
-      console.log("cartItems: " + cartItems);
-
       // Check for cartItems in the request
       if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
         throw new Error("cartItems is required and must be a non-empty array.");
       }
 
       console.log("we are here");
+      console.log("cart", cartItems);
 
       // Assuming the first cart item to determine the seller for simplification. Adjust as necessary.
       const sellerStripeAccountId = await fetchSellerStripeAccountId(
         cartItems[0].sellerId
       );
-
-      console.log("Stripe Id", sellerStripeAccountId);
 
       if (!sellerStripeAccountId) {
         throw new Error("Seller Stripe account ID not found");
@@ -181,28 +178,25 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
         quantity: item.quantity,
       }));
 
-      const session = await stripe.checkout.sessions.create(
-        {
-          payment_method_types: ["card"],
-          line_items: lineItems,
-          mode: "payment",
-          success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${req.headers.origin}/cancel`,
-          payment_intent_data: {
-            application_fee_amount: 123, // Adjust your application fee
-            transfer_data: {
-              destination: sellerStripeAccountId,
-            },
+      console.log("now we are here");
+      console.log("StripeID", sellerStripeAccountId);
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: lineItems,
+        mode: "payment",
+        success_url: `http://localhost:3000/success`,
+        cancel_url: `http://localhost:3000/cart`,
+        payment_intent_data: {
+          application_fee_amount: 123, // Adjust your application fee
+          transfer_data: {
+            destination: sellerStripeAccountId,
           },
         },
-        {
-          stripeAccount: sellerStripeAccountId,
-        }
-      );
+      });
 
       res.json({ url: session.url });
     } catch (error) {
-      console.error("Error creating checkout session:", error);
       res.status(500).send({ error: error.message });
     }
   });
@@ -219,65 +213,6 @@ async function fetchSellerStripeAccountId(sellerId) {
   const sellerData = sellerSnap.data();
   return sellerData.stripeAccountId; // Ensure this is correctly pointing to where the Stripe account ID is stored
 }
-
-// exports.stripeWebHook = functions.https.onRequest((req, res) => {
-
-// })
-
-// const changeListingStatus = () => {
-
-// }
-
-// exports.handlePurchaseCompletion = functions.https.onRequest(async (req, res) => {
-//   const sig = req.headers['stripe-signature'];
-
-//   let event;
-//   try {
-//     event = stripe.webhooks.constructEvent(
-//       req.rawBody,
-//       sig,
-//       functions.config().stripe.webhooksecret
-//     );
-//   } catch (err) {
-//     console.error(`Webhook signature verification failed.`, err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   if (event.type === 'checkout.session.completed') {
-//     const session = event.data.object;
-
-//     // Retrieve metadata from session
-//     const { userId, itemId, quantity } = session.metadata;
-
-//     try {
-//       // Update item listing status to sold
-//       await db.collection('items').doc(itemId).update({ status: 'sold' });
-//       await db.collection('users').doc(itemData.sellerId).collection("selling").
-//       // Create a copy of the item data with listing status purchased under the buyer's account
-//       const itemData = (await db.collection('items').doc(itemId).get()).data();
-//       await db.collection('users').doc(userId).collection('purchased').add({
-//         ...itemData,
-//         status: 'purchased',
-//         purchaseDate: admin.firestore.FieldValue.serverTimestamp(),
-//       });
-
-//       // If more than one quantity, handle accordingly (this step depends on your data model)
-//       // For example, decrement the available quantity or mark individual items as sold
-
-//       // Send verification email to seller and buyer
-//       // This requires integrating with an email service and is not shown here
-
-//       console.log(`Purchase processed for user ${userId} for item ${itemId}`);
-//       res.json({ received: true });
-//     } catch (error) {
-//       console.error("Error processing purchase:", error);
-//       return res.status(500).send({ error: "Internal Server Error" });
-//     }
-//   } else {
-//     console.log(`Unhandled event type ${event.type}`);
-//     res.json({ received: true });
-//   }
-// });
 
 exports.createStripeAccountOnFirstItem = functions.https.onRequest(
   async (req, res) => {
@@ -304,6 +239,10 @@ exports.createStripeAccountOnFirstItem = functions.https.onRequest(
               card_payments: { requested: true },
               transfers: { requested: true },
             },
+            business_type: "individual",
+            business_profile: {
+              url: `https://www.anithrift.com/${userId}`,
+            },
           });
 
           // Update user document with Stripe account ID
@@ -324,6 +263,53 @@ exports.createStripeAccountOnFirstItem = functions.https.onRequest(
           .status(200)
           .send(`User ${userId} already has a Stripe account.`);
       }
+    });
+  }
+);
+
+exports.completeStripeOnboarding = functions.https.onRequest(
+  async (req, res) => {
+    cors(req, res, async () => {
+      const { userId } = req.body;
+      admin
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .get()
+        .then(async (userSnapshot) => {
+          if (!userSnapshot.exists) {
+            return res.status(404).send("User not found");
+          }
+
+          const userData = userSnapshot.data();
+          // Assume userData contains a field named 'stripeAccountId'
+          let stripeAccountId = userData.stripeAccountId;
+
+          if (!stripeAccountId) {
+            // Create a new Stripe account if it doesn't exist
+            const account = await stripe.accounts.create({
+              /* Account creation params */
+            });
+            // Save the Stripe account ID to Firestore
+            await admin.firestore().collection("users").doc(userId).update({
+              stripeAccountId: account.id,
+            });
+            stripeAccountId = account.id;
+          }
+
+          // Generate an account link for onboarding
+          const accountLink = await stripe.accountLinks.create({
+            account: stripeAccountId,
+            refresh_url: "http://localhost:3000/reauth",
+            return_url: "http://localhost:3000/",
+            type: "account_onboarding",
+          });
+
+          res.json({ url: accountLink.url });
+        })
+        .catch((error) => {
+          res.status(500).send("Internal server error");
+        });
     });
   }
 );
