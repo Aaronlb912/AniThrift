@@ -25,6 +25,10 @@ import ProfileSettings from "./pages/ProfileSettings";
 import PersonalInfoPage from "./components/PersonalInfo";
 import AddressesPage from "./components/Addresses";
 import PurchaseSuccess from "./components/PurchaseSuccess";
+import StripeOnboardingForm from "./components/StripeOnboardingForm";
+
+
+
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -46,31 +50,35 @@ ReactDOM.render(
   <React.StrictMode>
     <SearchProvider>
       <BrowserRouter>
-        <Header />
-        <Routes>
-          <Route path="/" element={<App />}></Route>
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="/search" element={<SearchResult />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-          <Route path="/listing" element={<Listing />} />
-          <Route path="/sell" element={<Selling />} />
-          <Route path="/item/:id" element={<ItemListing />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/all-categories" element={<AllCategories />} />
-          <Route path="edit-item/:id" element={<EditItem />} />
-          <Route path="/user/:userId" element={<PublicProfile />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/profsettings" element={<ProfileSettings />} />
-          <Route
-            path="/settings/personal-information"
-            element={<PersonalInfoPage />}
-          />
-          <Route path="/settings/addresses" element={<AddressesPage />} />
-          <Route path="/success" element={<PurchaseSuccess />} />
-        </Routes>
-        <Footer />
+          <Header />
+          <Routes>
+            <Route path="/" element={<App />}></Route>
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/search" element={<SearchResult />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="edit-profile" element={<EditProfile />} />
+            <Route path="/listing" element={<Listing />} />
+            <Route path="/sell" element={<Selling />} />
+            <Route path="/item/:id" element={<ItemListing />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/all-categories" element={<AllCategories />} />
+            <Route path="edit-item/:id" element={<EditItem />} />
+            <Route path="/user/:userId" element={<PublicProfile />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/profsettings" element={<ProfileSettings />} />
+            <Route
+              path="/settings/personal-information"
+              element={<PersonalInfoPage />}
+            />
+            <Route path="/settings/addresses" element={<AddressesPage />} />
+            <Route path="/success" element={<PurchaseSuccess />} />
+            <Route
+              path="/StripeOnboardingForm"
+              element={<StripeOnboardingForm />}
+            />
+          </Routes>
+          <Footer />
       </BrowserRouter>
     </SearchProvider>
   </React.StrictMode>,

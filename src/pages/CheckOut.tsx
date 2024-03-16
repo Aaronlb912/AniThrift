@@ -9,8 +9,6 @@ const CheckoutPage = () => {
   const { cartItems } = location.state || { cartItems: [] };
 
   const handlePayment = async () => {
-    console.log(cartItems);
-
     try {
       // Call your backend to create a checkout session
       const response = await axios.post(
@@ -20,6 +18,7 @@ const CheckoutPage = () => {
         }
       );
       // Redirect to Stripe's hosted checkout page
+
       window.location.href = response.data.url;
     } catch (error) {
       console.error("Failed to start the payment process:", error);
@@ -27,10 +26,7 @@ const CheckoutPage = () => {
   };
 
   const totalPrice = cartItems
-    .reduce(
-      (total: number, item: { price: any }) => total + Number(item.price),
-      0
-    )
+    .reduce((total, item) => total + Number(item.price) * item.quantity, 0)
     .toFixed(2);
 
   return (
@@ -41,7 +37,12 @@ const CheckoutPage = () => {
           <img src={item.imageUrl} alt={item.title} className="item-image" />
           <div className="item-info">
             <p className="item-title">{item.title}</p>
-            <p className="item-price">${item.price}</p>
+            <p className="item-quantity">Quantity: {item.quantity}</p>{" "}
+            {/* Added quantity */}
+            <p className="item-price">
+              ${(item.price * item.quantity).toFixed(2)}
+            </p>{" "}
+            {/* Updated price based on quantity */}
           </div>
         </div>
       ))}

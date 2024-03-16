@@ -1,0 +1,69 @@
+/* StripeOnboardingForm.css */
+
+.form-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-container label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-container input,
+.form-container select,
+.StripeElement {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.StripeElement {
+    padding: 12px;
+    background-color: white;
+}
+
+.form-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.form-container .error-message {
+    color: #ff0000;
+    font-size: 14px;
+    margin-top: -15px;
+    margin-bottom: 15px;
+}
+
+.form-container button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-container button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Custom styling for the CardElement if needed */
+.card-element-custom {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
