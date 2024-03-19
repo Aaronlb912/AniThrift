@@ -23,11 +23,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
       try {
         const response = await index.search("", {
           facets: ["*"],
+          facetFilters: [["listingStatus:Selling"]], // Filter for items with a "Selling" status, adjust based on your data structure
           hitsPerPage: 0,
         });
         const facetNames = Object.keys(response.facets || {}).sort();
         const facetPromises = facetNames.map(async (facet) => {
-          const res = await index.searchForFacetValues(facet, "");
+          // Ensure that the search for facet values also respects the "Selling" status filter if needed
+          const res = await index.searchForFacetValues(facet, "", {
+            filters: "listingStatus:Selling", // Adjust based on your indexing service and data structure
+          });
           return { [facet]: res.facetHits.map((hit) => hit.value) };
         });
         const facetValues = await Promise.all(facetPromises);

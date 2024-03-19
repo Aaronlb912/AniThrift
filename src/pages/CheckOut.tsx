@@ -3,10 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@mui/material";
 import axios from "axios";
 import "../css/Checkout.css";
+import { getAuth } from "firebase/auth";
 
 const CheckoutPage = () => {
   const location = useLocation();
   const { cartItems } = location.state || { cartItems: [] };
+  const auth = getAuth(); // Initialize Firebase Auth
+  const user = auth.currentUser; // Get the currently logged-in user
 
   const handlePayment = async () => {
     try {
@@ -15,6 +18,7 @@ const CheckoutPage = () => {
         "https://us-central1-anithrift-e77a9.cloudfunctions.net/createCheckoutSession",
         {
           cartItems,
+          buyerId: user.uid, // Include the buyer's Firebase user ID
         }
       );
       // Redirect to Stripe's hosted checkout page

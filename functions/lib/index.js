@@ -8,6 +8,7 @@
  */
 const admin = require("firebase-admin");
 admin.initializeApp();
+
 const db = admin.firestore();
 const axios_1 = require("axios");
 const https_1 = require("firebase-functions/v2/https");
@@ -147,12 +148,21 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     }
 
     try {
-      const { cartItems } = req.body;
+      const { cartItems, buyerId } = req.body;
 
       // Check for cartItems in the request
       if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
         throw new Error("cartItems is required and must be a non-empty array.");
       }
+
+      // Validate buyerId
+      if (!buyerId) {
+        return res.status(400).send("buyerId is required.");
+      }
+
+      // Optionally verify the buyer's Firebase user ID if needed
+      // This step is optional and should be used according to your security requirements
+      const buyerExists = await checkIfUserExists(buyerId);
 
       console.log("we are here");
       console.log("cart", cartItems);
@@ -193,6 +203,15 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             destination: sellerStripeAccountId,
           },
         },
+        metadata: {
+          buyerId,
+          cartItems: JSON.stringify(
+            cartItems.map((item) => ({
+              itemId: item.id, // Ensure each item has a unique identifier
+              quantity: item.quantity,
+            }))
+          ),
+        },
       });
 
       res.json({ url: session.url });
@@ -213,6 +232,117 @@ async function fetchSellerStripeAccountId(sellerId) {
   const sellerData = sellerSnap.data();
   return sellerData.stripeAccountId; // Ensure this is correctly pointing to where the Stripe account ID is stored
 }
+
+async function checkIfUserExists(userId) {
+  try {
+    await admin.auth().getUser(userId);
+    return true;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    return false;
+  }
+}
+
+exports.onSuccessfulPurchase = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.rawBody,
+        sig,
+        functions.config().stripe.webhook_secret
+      );
+    } catch (err) {
+      console.error(`Webhook signature verification failed.`, err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Proceed only for checkout.session.completed events
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const { buyerId, cartItems } = JSON.parse(session.metadata); // Make sure metadata is stored correctly during checkout session creation
+
+      try {
+        await updateInventoryAndOrderStatus(cartItems);
+        await emptyBuyersCart(buyerId);
+        await createOrderReferenceForBuyer(buyerId, cartItems, session.id);
+        await sendEmailConfirmation(buyerId, cartItems);
+        res.status(200).send({ received: true });
+      } catch (error) {
+        console.error("Failed to process purchase:", error);
+        res.status(500).send({ error: "Failed to process purchase" });
+      }
+    } else {
+      return res.status(200).send({ received: false });
+    }
+  });
+});
+
+async function updateInventoryAndOrderStatus(cartItems) {
+  // Assuming cartItems is an array of { itemId, quantity }
+  const itemsToUpdate = cartItems.map((item) => {
+    return admin
+      .firestore()
+      .doc(`items/${item.itemId}`)
+      .get()
+      .then((doc) => {
+        if (!doc.exists) {
+          console.log(`Item ${item.itemId} not found`);
+          return null;
+        }
+        const newData = {
+          ...doc.data(),
+          quantity: doc.data().quantity - item.quantity,
+        };
+        if (newData.quantity <= 0) {
+          newData.status = "sold";
+        }
+        return admin.firestore().doc(`items/${item.itemId}`).update(newData);
+      });
+  });
+
+  await Promise.all(itemsToUpdate);
+}
+
+async function emptyBuyersCart(buyerId, purchasedItemIds) {
+  const cartRef = admin
+    .firestore()
+    .collection("users")
+    .doc(buyerId)
+    .collection("cart");
+
+  // This process assumes you have the specific IDs of the cart items that were purchased.
+  // 'purchasedItemIds' is an array of IDs of the items that need to be removed from the cart.
+
+  const deletes = purchasedItemIds.map((itemId) => {
+    return cartRef.doc(itemId).delete();
+  });
+
+  // Execute all delete operations
+  await Promise.all(deletes);
+}
+
+async function createOrderReferenceForBuyer(buyerId, cartItems, orderId) {
+  const orderRef = admin
+    .firestore()
+    .collection("users")
+    .doc(buyerId)
+    .collection("orders")
+    .doc(orderId);
+  await orderRef.set({
+    cartItems,
+    orderId,
+    date: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function sendEmailConfirmation(buyerId, cartItems) {
+  // Implement your email sending logic here
+  // You can use Firebase Extensions or third-party services like SendGrid
+}
+
 
 exports.createStripeAccountOnFirstItem = functions.https.onRequest(
   async (req, res) => {
