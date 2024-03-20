@@ -207,7 +207,7 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
           buyerId,
           cartItems: JSON.stringify(
             cartItems.map((item) => ({
-              itemId: item.id, // Ensure each item has a unique identifier
+              itemId: item.itemId, // Ensure each item has a unique identifier
               quantity: item.quantity,
             }))
           ),
@@ -243,7 +243,7 @@ async function checkIfUserExists(userId) {
   }
 }
 
-exports.onSuccessfulPurchase = functions.https.onRequest((req, res) => {
+exports.stripeWebhook = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
     const sig = req.headers["stripe-signature"];
     let event;
@@ -342,7 +342,6 @@ async function sendEmailConfirmation(buyerId, cartItems) {
   // Implement your email sending logic here
   // You can use Firebase Extensions or third-party services like SendGrid
 }
-
 
 exports.createStripeAccountOnFirstItem = functions.https.onRequest(
   async (req, res) => {
