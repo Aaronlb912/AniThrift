@@ -57,31 +57,38 @@ const SearchResults: React.FC = () => {
 
   return (
     <div className="search-page-container">
-      <FilterBar
-        selectedFacets={selectedFacets}
-        handleFacetChange={handleFacetChange}
-      />
-      <div className="search-results-container">
-        {searchResults.length > 0 ? (
-          searchResults.map((item) => (
-            <div
-              key={item.objectID}
-              className="search-result-item"
-              onClick={() => handleItemClick(item.objectID)}
-            >
-              <img
-                src={item.photos[0] || "placeholder-image-url"}
-                alt={item.title}
-                className="item-image"
-              />
-              <div className="item-title">{item.title}</div>
-              <div className="item-price">${item.price}</div>
-            </div>
-          ))
-        ) : (
-          <div>No results found.</div>
-        )}
+      <h1>AniThrift Results</h1>
+      <div className="Results">
+        <FilterBar
+          selectedFacets={selectedFacets}
+          handleFacetChange={handleFacetChange}
+        />
+        <div className="search-results-container">
+          {searchResults.length > 0 ? (
+            searchResults.map((item) => (
+              <div
+                key={item.objectID}
+                className="search-result-item"
+                onClick={() => handleItemClick(item.objectID)}
+              >
+                <img
+                  src={item.photos[0] || "placeholder-image-url"}
+                  alt={item.title}
+                  className="item-image"
+                />
+                <div className="item-title">{item.title}</div>
+                <div className="item-price">${item.price}</div>
+              </div>
+            ))
+          ) : (
+            <div>No results found.</div>
+          )}
+        </div>
       </div>
+      <h1>Ebay Results</h1>
+      <div className="Results"></div>
+      <h1>FaceBook MarketPlace Results</h1>
+      <div className="Results"></div>
     </div>
   );
 };
