@@ -61,89 +61,87 @@ const App = () => {
         {
           imageUrl: "path/to/your/image1.jpg",
           name: "Product 1",
-          price: "20",
+          price: "$20",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "Product 2",
-          price: "30",
+          price: "$30",
         },
       ] // Picks for the user
     : [
         {
           imageUrl: "path/to/your/image1.jpg",
           name: "New Product 1",
-          price: "15",
+          price: "$15",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "New Product 2",
-          price: "25",
+          price: "$25",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "New Product 2",
-          price: "25",
+          price: "$25",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "New Product 2",
-          price: "25",
+          price: "$25",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "New Product 2",
-          price: "25",
+          price: "$25",
         },
         {
           imageUrl: "path/to/your/image2.jpg",
           name: "New Product 2",
-          price: "25",
+          price: "$25",
         },
       ]; // New items for non-logged-in users
 
   return (
-    <div className="background">
-      <div className="homepage">
-        <div className="slideshow">
-          <Slider autoplay autoplaySpeed={3000}>
-            <div>
-              <img src={ban1} alt="News 1" />
-            </div>
-            <div>
-              <img src={ban2} alt="Event 1" />
-            </div>
-            <div>
-              <img src={ban3} alt="Discount 1" />
-            </div>
-            {/* Add more slides as needed */}
-          </Slider>
-        </div>{" "}
-        {/* Image carousel */}
-        <div className="first-carousel">
-          <h2>{user ? "Picks for You" : "Recent Uploads"}</h2>
-          <Carousel items={carouselItems} />
-        </div>
-        <div className="Second-carousel">
-          <h2>{user ? "Your Recent Categories" : "Popular Items"}</h2>
-          <Carousel items={carouselItems} />
-        </div>
-        <div className="Liked items">
-          {user && watchListItems.length > 0 && (
-            <>
-              <h2>Saved Items</h2>
-              <Carousel items={watchListItems} />
-            </>
-          )}
-        </div>
-        <div className="Liked items">
-          {user && watchListItems.length > 0 && (
-            <>
-              <h2>another category????</h2>
-              <Carousel items={carouselItems} />
-            </>
-          )}
-        </div>
+    <div className="homepage">
+      <div className="slideshow">
+        <Slider autoplay autoplaySpeed={3000}>
+          <div>
+            <img src={ban1} alt="News 1" />
+          </div>
+          <div>
+            <img src={ban2} alt="Event 1" />
+          </div>
+          <div>
+            <img src={ban3} alt="Discount 1" />
+          </div>
+          {/* Add more slides as needed */}
+        </Slider>
+      </div>{" "}
+      {/* Image carousel */}
+      <div className="first-carousel">
+        <h2>{user ? "Picks for You" : "Recent Uploads"}</h2>
+        <Carousel items={carouselItems} />
+      </div>
+      <div className="Second-carousel">
+        <h2>{user ? "Your Recent Categories" : "Popular Items"}</h2>
+        <Carousel items={carouselItems} />
+      </div>
+      <div className="Liked items">
+        {user && watchListItems.length > 0 && (
+          <>
+            <h2>Saved Items</h2>
+            <Carousel items={watchListItems} />
+          </>
+        )}
+      </div>
+      <div className="Liked items">
+        {user && watchListItems.length > 0 && (
+          <>
+            <h2>another category????</h2>
+            <Carousel items={carouselItems} />
+          </>
+        )}
       </div>
     </div>
   );

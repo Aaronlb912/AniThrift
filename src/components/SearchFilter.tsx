@@ -15,7 +15,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   handleFacetChange,
 }) => {
   const [facets, setFacets] = useState<{ [key: string]: string[] }>({});
-  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [tagSearchQuery, setTagSearchQuery] = useState("");
 
   useEffect(() => {
@@ -61,15 +61,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
     selectedFacets[facet]?.includes(value);
 
   const toggleDropdown = (facetName: string) => {
-    setOpenDropdowns((currentOpenDropdowns) => {
-      const newOpenDropdowns = new Set(currentOpenDropdowns);
-      if (newOpenDropdowns.has(facetName)) {
-        newOpenDropdowns.delete(facetName);
-      } else {
-        newOpenDropdowns.add(facetName);
-      }
-      return newOpenDropdowns;
-    });
+    setOpenDropdown((currentOpen) =>
+      currentOpen === facetName ? null : facetName
+    );
   };
 
   return (
@@ -82,7 +76,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           >
             Filter by {facet.charAt(0).toUpperCase() + facet.slice(1)}
           </div>
-          {openDropdowns.has(facet) && (
+          {openDropdown === facet && (
             <div className="dropdown">
               {facet === "tags" ? (
                 <>
