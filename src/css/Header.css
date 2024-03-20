@@ -1,25 +1,30 @@
+@import "../ui/colors.css"; /* header.css */
 
 /* header.css */
-.appBar {
-  background-color: #8b1818; /* Customize as needed */
-}
 
 .header {
   width: 100%;
   top: 0;
   left: 0;
   z-index: 1000; /* Ensures the header stays on top of other content */
-  background-color: #333333; /* Example background color */
+}
+
+topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: var(--primary-color); /* Customize the background color */
+  color: var(--font-color);
+  height: 1em;
 }
 
 .searchContainer {
-
-  flex-grow: 1; 
-  display: flex; 
-  justify-content: center; 
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
   margin: 1em 0;
 }
-
 
 .searchBar {
   color: inherit;
@@ -27,9 +32,9 @@
   padding: 0 10px;
   border-radius: 5px;
   width: 90%; /* Adjust the width as needed */
-  }
+}
 
-.searchBar ::placeholder{
+.searchBar ::placeholder {
   color: black;
 }
 
@@ -38,95 +43,81 @@
   justify-content: space-around;
   align-items: center; /* Adjusted to center */
   height: 60px; /* Example height */
-  background-color: #222; /* Background color */
+  background-color: var(--primary-color); /* Background color */
 }
 
 .nav-link {
   text-decoration: none;
-  color: white;
+  color: var(--font-color);
   padding: 10px; /* Adjusted padding */
   white-space: nowrap; /* Prevents the text from wrapping */
+  transition: color 0.3s; /* Smooth transition for hover effect */
 }
 
 .nav-link:hover {
-  background-color: #555; /* Darker shade on hover */
+  color: var(--light-color); /* Darker shade on hover */
 }
-
-
 
 /* Responsive design adjustments */
 @media (max-width: 768px) {
   .navbar {
-      display: none; /* Hide navbar links on smaller screens */
+    display: none; /* Hide navbar links on smaller screens */
   }
 
   .menu-icon {
-      display: block; /* Show menu icon on smaller screens */
-      cursor: pointer;
-
+    display: block; /* Show menu icon on smaller screens */
+    cursor: pointer;
   }
-  
+
   /* Ensure the drawer (hamburger menu) style matches your theme */
   .drawer-list {
-      width: 250px;
+    width: 250px;
   }
-  
+
   .drawer-item {
-      padding: 8px 16px;
-      color: #fff; /* Adjust based on your color scheme */
+    padding: 8px 16px;
+    color: #fff; /* Adjust based on your color scheme */
   }
 }
 
 /* Adjustments for larger screens */
 @media (min-width: 769px) {
   .menu-icon {
-      display: none; /* Hide menu icon on larger screens */
+    display: none; /* Hide menu icon on larger screens */
   }
 }
 
 /* Typography and Button on the left side */
-.topbar Button, .topbar Typography {
-color: #fff; /* White color for better visibility */
-margin-right: 15px; /* Space between welcome message and sign-in button */
+.topbar Button,
+.topbar Typography {
+  color: #fff; /* White color for better visibility */
+  margin-right: 15px; /* Space between welcome message and sign-in button */
 }
 
 /* Container for right side items */
 .right-side {
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 /* Style for the Sell button and Cart icon on the right side */
-.right-side Button, .right-side IconButton {
-margin-left: 15px; /* Space between sell button and cart icon */
+.right-side Button,
+.right-side IconButton {
+  margin-left: 15px; /* Space between sell button and cart icon */
 }
 
 /* Additional styling */
 .Menu {
-background-color: #444; /* Slightly darker than topbar for contrast */
-color: #fff; /* White color text for menu items */
+  background-color: #444; /* Slightly darker than topbar for contrast */
+  color: #fff; /* White color text for menu items */
 }
 
 .MenuItem {
-color: #fff; /* Ensuring menu items text is white for visibility */
+  color: #fff; /* Ensuring menu items text is white for visibility */
 }
 
-.MenuItem:hover, .topbar Button:hover, .topbar IconButton:hover {
-background-color: #555; /* Slightly lighter on hover for feedback */
-}
-
-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #333; /* Customize the background color */
-  color: white;
-  height: 1em;
-}
-
-/* Typography and Button on the left side */
-.topbar Button, .topbar Typography {
-  color: #fff; /* White color for better visibility */
-  margin-right: 15px; /* Space between welcome message and sign-in button */
+.MenuItem:hover,
+.topbar Button:hover,
+.topbar IconButton:hover {
+  background-color: #555; /* Slightly lighter on hover for feedback */
 }
