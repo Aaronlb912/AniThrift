@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, setDoc } from "firebase/firestore";
 import moment from "moment/moment";
@@ -12,31 +12,20 @@ import "../css/Signin.css"; // Ensure the path is correct
 import { useNavigate } from "react-router-dom";
 
 const SignInPage: React.FC = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        // User is signed in, navigate them to the home screen
-        navigate("/");
-      }
-      // Otherwise, stay on the sign-in page
-    });
-
-    // Clean up the listener when the component unmounts
-    return unsubscribe;
-  }, [navigate]);
-
   // States and navigate hook
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState(""); // New state for username
   const [signUpPromo, setSignUpPromo] = useState(false);
   const [registerError, setRegisterError] = useState(""); // State for registration error
   const [loginError, setLoginError] = useState(""); // State for login error
+
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +60,10 @@ const SignInPage: React.FC = () => {
       );
       console.log("User registered", userCredential.user);
 
+      // Optionally, set the displayName for the new user
+      await updateProfile(userCredential.user, {
+        displayName: firstName,
+      });
 
       // const creationDate = new Date().toISOString();
 
@@ -78,6 +71,8 @@ const SignInPage: React.FC = () => {
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid, // Unique identifier for the user
         email: newEmail,
+        firstName: firstName,
+        lastName: lastName,
         username: username, // Include username
         signUpPromo: signUpPromo,
         creationDate: moment().format("MMM Do YY"), // Log the account creation date
@@ -137,6 +132,20 @@ const SignInPage: React.FC = () => {
             Required <span className="required">*</span>
           </p>
           <form onSubmit={handleRegister}>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First Name"
+              required
+            />
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last Name"
+              required
+            />
             <input
               type="text"
               value={username}

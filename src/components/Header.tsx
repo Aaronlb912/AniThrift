@@ -25,9 +25,8 @@ import MessageIcon from "@mui/icons-material/Message";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../firebase-config"; // Adjust the path according to your project structure
+import { auth } from "../firebase-config"; // Adjust the path according to your project structure
 import { useSearch } from "./SearchHandler";
-import { doc, getDoc } from "firebase/firestore";
 
 const Header = () => {
   const theme = useTheme();
@@ -75,11 +74,10 @@ const Header = () => {
   );
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchUserProfile(user.uid);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
     });
+    return () => unsubscribe(); // Cleanup subscription on unmount
   }, []);
 
   const handleSignOut = () => {
@@ -91,16 +89,6 @@ const Header = () => {
       .catch((error) => {
         console.error("Sign out error:", error);
       });
-  };
-
-  const fetchUserProfile = async (uid: string) => {
-    const docRef = doc(db, "users", uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setUser(docSnap.data() as UserProfile);
-    } else {
-      console.error("No such document!");
-    }
   };
 
   const handleMenu = (event) => {
@@ -127,7 +115,7 @@ const Header = () => {
               }}
               onClick={handleMenu}
             >
-              Welcome, {user.username || "User"}
+              Welcome, {user.displayName || "User"}
               {/* Conditionally render the arrow icon based on menu open state */}
               {Boolean(anchorEl) ? <ArrowDropDownIcon /> : <ArrowRightIcon />}
             </Typography>
