@@ -20,7 +20,7 @@ body,
 }
 
 body {
-  background-color: #f0ead6;
+  background-color: var(--white);
 }
 
 /* Global CSS file */
