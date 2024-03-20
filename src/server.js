@@ -1,26 +1,35 @@
+require("dotenv").config();
 const express = require("express");
-const algoliasearch = require("algoliasearch");
-
+const axios = require("axios");
+const cors = require("cors");
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = 3000; // Or any port you prefer
 
-// Replace these with your Algolia application ID and admin API key
-const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
-const index = client.initIndex("items");
+app.use(cors());
+app.use(express.json());
 
-app.get("/api/facets", async (req, res) => {
+// Endpoint to handle search queries
+app.get("/api/search", async (req, res) => {
+  const { query } = req.query;
+
   try {
-    const settings = await index.getSettings();
-    res.json({
-      success: true,
-      attributesForFaceting: settings.attributesForFaceting,
-    });
+    const response = await axios.get(
+      `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.EBAY_OAUTH_TOKEN}`,
+          "Content-Type": "application/json",
+          "X-EBAY-C-MARKETPLACE-ID":EBAY_US,
+        },
+      }
+    );
+    res.json(response.data);
   } catch (error) {
-    console.error("Failed to fetch attributesForFaceting:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error fetching from eBay API:", error);
+    res.status(500).json({ error: "Failed to fetch data from eBay" });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+app.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);

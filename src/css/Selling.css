@@ -1,131 +1,128 @@
-.selling-form {
-  margin: 20px auto;
-  padding: 20px;
-  max-width: 800px; /* Adjust based on your layout */
-  background: #fff;
-}
-
-/* Align titles to the left */
-.selling-form h1,
-.selling-form h2,
-.selling-form h3 {
-  text-align: left;
-  margin-left: 10px; /* Adds a little space from the left edge */
-}
-
-.section,
-.form-actions {
-  margin-bottom: 20px;
-}
-
-/* Style for inputs and textareas */
-.selling-form input[type="text"],
-.selling-form input[type="number"],
-.selling-form textarea,
-.selling-form select {
-  width: calc(100% - 20px);
-  margin: 10px 0;
-  padding: 10px;
-}
-
-/* Style for the dropzone */
-.dropzone {
-  border: 2px dashed #007bff;
-  padding: 20px;
-  text-align: center;
-  margin-bottom: 20px;
-  cursor: pointer;
-}
-
-.photo-preview {
-  position: relative;
-  width: 100px;
-  height: 100px;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.remove-photo {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: red;
-  color: white;
-  border: none;
-}
-
-/* Condition selector adjustments */
-.condition-selector {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around; /* This will distribute the space evenly */
-  gap: 1mm; /* Maintain minimal gap */
-}
-
-/* Style adjustments for FormControlLabel to reposition the radio button and fit the text */
-.condition-selector .MuiFormControlLabel-root {
-  display: flex;
-  flex-direction: column-reverse; /* Puts the label text below the radio button */
-  align-items: center; /* Centers items horizontally */
-  text-align: center; /* Ensures label text is centered */
-  width: 120px; /* Adjust width as needed */
-  height: auto; /* Allows the height to adjust based on content */
-  padding: 8px; /* Padding inside the box */
-  box-sizing: border-box; /* Includes padding in the element's total width and height */
-  border: 1px solid #ccc; /* Optional: adds a border */
-  border-radius: 4px; /* Rounds the corners */
-  gap: 4px; /* Space between radio button and label text */
-  margin-bottom: 8px; /* Space below each box */
-}
-
-/* Ensure the radio button is at the top */
-.condition-selector .MuiRadio-root {
-  order: -1; /* Positions the radio button above the label text */
-  margin-bottom: 4px; /* Space between the radio button and the label */
-}
-
-/* Ensure the label text fits and is centered within the box */
-.condition-selector .MuiTypography-body1 {
-  font-size: 0.875rem; /* Adjust font size for better fit */
-  word-break: break-word; /* Allows long words to wrap and fit within the box */
-  line-height: 1.2; /* Adjusts the line height for better readability */
-}
-
-/* Pricing and quantity input adjustments to span almost the entirety of the form */
-.pricing-section input,
-.quantity-section input {
-  width: calc(100% - 20px); /* Adjusts width */
-}
-
-/* Button styles */
-.form-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.form-actions button {
-  text-align: center; /* Ensures button text is centered */
-  flex-grow: 1;
-  max-width: 200px; /* Maximum width for each button */
-  padding: 10px 0;
-  font-size: 16px;
-  border-radius: 5px;
-}
-
-/* For responsive adjustments */
-@media screen and (max-width: 600px) {
-  .condition-selector .MuiFormControlLabel-root {
-    width: 80px; /* Smaller width on smaller screens */
-    height: 80px; /* Smaller height on smaller screens */
+.selling-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
   }
-}
+  
+  /* Ensure the text boxes (and all form inputs) hit the edges of the form box */
+  .selling-form input[type="text"],
+  .selling-form textarea,
+  .selling-form select {
+    width: calc(100% - 20px); /* Subtracting padding */
+    margin: 5px 0;
+    padding: 10px;
+  }
+  
+  /* Additional styles to ensure consistency and aesthetic appeal */
+  .selling-form {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 800px; /* Adjust based on your layout */
+    background: #fff;
+  }
+  
+  /* Centering the title and giving some spacing */
+  .selling-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .section {
+    margin-bottom: 20px;
+    
+  }
+  
+  /* Adjust the height and width of the description box */
+  .description-section textarea {
+    width: 100%;
+    height: 150px; /* Adjust as needed */
+    padding: 10px;
+  }
+  
+  /* Styling for category and price boxes */
+  .category-section select,
+  .pricing-section input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+  }
+  
+  /* Centering and styling the buttons at the bottom */
+  .form-actions {
+    text-align: center;
+  }
+  
+  .form-actions button {
+    padding: 10px 20px;
+    margin: 0 10px; /* Space between buttons */
+    background-color: #007bff; /* Button color */
+    color: #fff;
+    border: none;
+    border-radius: 20px; /* Rounded borders */
+    cursor: pointer;
+    font-size: 16px; /* Larger font size */
+  }
+  
+  .form-actions button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+  }
+  
+  /* For the larger box requirement around specific inputs */
+  .large-box {
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+  }
+  
 
-/* Button hover effect */
-button:hover {
-  background-color: #0056b3;
-}
+  .dropzone {
+    padding: 5%;
+    height: auto !important;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+
+  .condition-selector {
+    display: flex; /* Enables Flexbox */
+    justify-content: space-around; /* Evenly spaces the children, including space at the edges */
+    flex-wrap: wrap; /* Allows items to wrap onto the next line if needed */
+    gap: 10px; /* Optional: Adds some space between items */
+  }
+  
+  .condition-selector .MuiFormControlLabel-root {
+    flex-direction: column;
+    align-items: center;
+    margin: 5px;
+    width: 100px; /* Adjust based on your design */
+    height: 100px; /* Adjust to make it square */
+    border: 2px solid #ddd; /* Example border */
+    border-radius: 8px; /* Rounded corners */
+    justify-content: center;
+    text-align: center;
+    cursor: pointer; /* Makes it clear the whole box is selectable */
+  }
+  
+  /* Adjust the radio button margin if needed */
+  .condition-selector .MuiRadio-root {
+    margin-bottom: 8px;
+  }
+
+  
+  .product-info-section textarea {
+    resize: vertical;
+  }
+  
+  button {
+    background-color: rgb(34, 34, 39);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto;
+    height: auto;
+  }
+  
+  button:hover{
+    background-color: aqua;
+  }

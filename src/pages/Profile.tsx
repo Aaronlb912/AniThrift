@@ -15,12 +15,11 @@ import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel"; // Adjust the path as necessary
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { DataGrid } from "@mui/x-data-grid";
 
 interface UserProfile {
   name: string;
   username: string;
-  uid: string;
+  userId: string;
   photoURL: string;
   rating: number;
   reviews: number;
@@ -33,25 +32,6 @@ interface SellingInfo {
   accountBalance: number;
 }
 
-const columns = [
-  {
-    field: "imageUrl",
-    headerName: "Image",
-    width: 160,
-    renderCell: (params: { value: any }) => (
-      <img
-        src={params.value || "defaultImageURLHere"} // Use a default image if imageUrl is missing
-        alt=""
-        style={{ width: "100%", height: "auto" }}
-      />
-    ),
-  },
-  { field: "id", headerName: "ID", width: 150 },
-  { field: "name", headerName: "Name", width: 130 },
-  { field: "price", headerName: "Price", type: "number", width: 90 },
-  // Add more columns as needed based on your item data structure
-];
-
 const Profile: React.FC = () => {
   const auth = getAuth();
   const navigate = useNavigate();
@@ -59,8 +39,6 @@ const Profile: React.FC = () => {
   const [userItems, setUserItems] = useState<any[]>([]); // State to store the user's selling items
   const [watchListItems, setWatchListItems] = useState<any[]>([]);
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<any[]>([]);
-  const [draftItems, setDraftItems] = useState<any[]>([]);
-  const [soldItems, setSoldItems] = useState<any[]>([]);
 
   const [sellingInfo, setSellingInfo] = useState<SellingInfo>({
     activeListings: 0,
@@ -74,9 +52,6 @@ const Profile: React.FC = () => {
         fetchUserProfile(user.uid);
         fetchUserItems(user.uid); // Fetch the user's selling items
         fetchWatchListItems(user.uid); // Fetch the user's watchlist items
-        fetchDraftItems(user.uid);
-        fetchSoldItems(user.uid);
-        fetchRecentlyViewedItems(user.uid);
       } else {
         navigate("/signin");
       }
@@ -94,221 +69,45 @@ const Profile: React.FC = () => {
     }
   };
 
-  const extractDocIdFromRefPath = (refPath: string) => {
-    const parts = refPath.split("/");
-    return parts[parts.length - 1];
-  };
-
   const fetchUserItems = async (uid: string) => {
-    const q = query(collection(db, "users", uid, "items"));
-
+    const q = query(collection(db, "items"), where("sellerId", "==", uid));
     const querySnapshot = await getDocs(q);
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Assuming itemRef is directly a Firestore DocumentReference
-      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
-      if (!itemRef) return null; // Guard against missing or incorrect refs
-
-      // Directly use the DocumentReference to fetch the document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (
-        itemSnapshot.exists() &&
-        itemSnapshot.data().listingStatus === "selling"
-      ) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
-          name: data.title,
-          // Add more fields as needed
-        };
-      } else {
-        console.error("No such item for ref:", itemRef);
-        return null;
-      }
+    const items = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...doc.data(),
+        imageUrl: doc.data().photos[0], // Assuming photos is an array
+        name: data.title,
+      };
     });
+    setUserItems(items);
 
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-    setUserItems(resolvedItems);
-
-    // Update the state as necessary
+    // Update the activeListings count in the sellingInfo state
     setSellingInfo((prevInfo) => ({
       ...prevInfo,
-      activeListings: resolvedItems.length,
+      activeListings: items.length,
     }));
   };
 
-  const fetchRecentlyViewedItems = async (uid: string) => {
-    // Reference to the user's recently viewed items collection
-    const recentlyViewedRef = collection(db, "users", uid, "recentlyViewed");
-
-    // Fetch all documents from the recently viewed collection
-    const querySnapshot = await getDocs(recentlyViewedRef);
-
-    // Map over each document to fetch the referenced item details
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Get the reference to the item
-      const itemRef = docSnapshot.data().ref;
-
-      // Guard against missing or incorrect refs
-      if (!itemRef) {
-        console.error(
-          "Missing or incorrect reference in recently viewed:",
-          docSnapshot.id
-        );
-        return null;
-      }
-
-      // Use the item reference to fetch the item document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (itemSnapshot.exists()) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Use the first photo as the image URL
-          name: data.title,
-          // Include any additional fields you need
-        };
-      } else {
-        console.error("No such item for ref:", itemRef.path);
-        return null;
-      }
-    });
-
-    // Resolve the promises and filter out any null values
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-
-    // Update your state with the fetched items
-    setRecentlyViewedItems(resolvedItems);
-  };
-
-  const fetchWatchListItems = async (uid) => {
+  const fetchWatchListItems = async (uid: string) => {
     const watchlistRef = collection(db, "users", uid, "watchlist");
     const querySnapshot = await getDocs(watchlistRef);
-
-    // Map over each document in the watchlist collection
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Retrieve the reference to the item from the watchlist document
-      const itemRef = docSnapshot.data().ref;
-
-      // Guard against missing or incorrect refs
-      if (!itemRef) {
-        console.error(
-          "Missing or incorrect reference in watchlist:",
-          docSnapshot.id
-        );
-        return null;
-      }
-
-      // Use the item reference to fetch the item document
+    const watchlist = [];
+    for (const docSnapshot of querySnapshot.docs) {
+      const itemRef = doc(db, "items", docSnapshot.data().itemId);
       const itemSnapshot = await getDoc(itemRef);
-
       if (itemSnapshot.exists()) {
-        const data = itemSnapshot.data();
-        return {
+        watchlist.push({
           id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Use the first photo as the image URL
-          name: data.title,
-          // Include any additional fields you need
-        };
-      } else {
-        console.error("No such item for ref:", itemRef.path);
-        return null;
+          ...itemSnapshot.data(),
+          imageUrl: itemSnapshot.data().photos[0],
+          name: itemSnapshot.data().title,
+          price: itemSnapshot.data().price,
+        });
       }
-    });
-
-    // Await all promises and filter out any null values
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-
-    // Now resolvedItems contains all items from the user's watchlist
-    // Here you would update your state or context with these items
-    setWatchListItems(resolvedItems);
-  };
-
-  const fetchDraftItems = async (uid: string) => {
-    const q = query(collection(db, "users", uid, "items"));
-
-    const querySnapshot = await getDocs(q);
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Assuming itemRef is directly a Firestore DocumentReference
-      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
-      if (!itemRef) return null; // Guard against missing or incorrect refs
-
-      // Directly use the DocumentReference to fetch the document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (
-        itemSnapshot.exists() &&
-        itemSnapshot.data().listingStatus === "draft"
-      ) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
-          name: data.title,
-          // Add more fields as needed
-        };
-      } else {
-        console.error("No such item for ref:", itemRef);
-        return null;
-      }
-    });
-
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-    setDraftItems(resolvedItems);
-  };
-
-  const fetchSoldItems = async (uid: string) => {
-    const q = query(collection(db, "users", uid, "items"));
-
-    const querySnapshot = await getDocs(q);
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Assuming itemRef is directly a Firestore DocumentReference
-      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
-      if (!itemRef) return null; // Guard against missing or incorrect refs
-
-      // Directly use the DocumentReference to fetch the document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (
-        itemSnapshot.exists() &&
-        itemSnapshot.data().listingStatus === "sold"
-      ) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
-          name: data.title,
-          // Add more fields as needed
-        };
-      } else {
-        console.error("No such item for ref:", itemRef);
-        return null;
-      }
-    });
-
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-    setSoldItems(resolvedItems);
-  };
-
-  const handleRowClick = (param: { id: any }) => {
-    navigate(`/item/${param.id}`); // Navigate to the item's page using its ID
+    }
+    setWatchListItems(watchlist);
   };
 
   if (!userProfile) return <div>Loading...</div>;
@@ -332,6 +131,7 @@ const Profile: React.FC = () => {
         <div>
           <h2>{userProfile.name}</h2>
           <p>Username: {userProfile.username}</p>
+          <p>User ID: {userProfile.userId}</p>
           <p>
             Rating: <StarRating rating={userProfile.rating} />
             Reviews: {userProfile.reviews}
@@ -364,71 +164,20 @@ const Profile: React.FC = () => {
       </div>
       <h2>Items I'm Selling</h2>
       {userItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={userItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row) => row.id}
-          />
-        </div>
+        <Carousel items={userItems} />
       ) : (
         <p>You do not have any items listed for sale.</p>
       )}
       {/* <ReviewsSection reviews={userProfile.reviews} /> */}
+      <h2>My Watch List</h2>
+      {watchListItems.length > 0 ? (
+        <Carousel items={watchListItems} />
+      ) : (
+        <p>You are not currently watching any items.</p>
+      )}
 
       <h2>Recently Viewed Items</h2>
       <Carousel items={recentlyViewedItems} />
-
-      <h2>My Watch List</h2>
-      {watchListItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={watchListItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You are not currently watching any items.</p>
-      )}
-
-      <h2>My Draft List</h2>
-      {draftItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={draftItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You are not currently watching any items.</p>
-      )}
-
-      <h2>My Sold List</h2>
-      {soldItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={soldItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You have not sold any items.</p>
-      )}
     </div>
   );
 };

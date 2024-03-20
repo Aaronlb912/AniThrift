@@ -21,7 +21,6 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import MenuIcon from "@mui/icons-material/Menu";
-import MessageIcon from "@mui/icons-material/Message";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -36,7 +35,7 @@ const Header = () => {
   const [searchInput, setSearchInput] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
-  const { setSearchQuery }: any = useSearch(); // Use setSearchQuery from your search context
+  const { setSearchQuery } = useSearch(); // Use setSearchQuery from your search context
 
   const handleSearch = (e) => {
     if (e.key === "Enter" && searchInput.trim()) {
@@ -52,7 +51,7 @@ const Header = () => {
   const drawer = (
     <List>
       {[
-        "Digital Media",
+        "Anime & Videos",
         "Manga & Novels",
         "Merchandise",
         "Figures & Trinkets",
@@ -127,19 +126,10 @@ const Header = () => {
               <MenuItem
                 onClick={() => {
                   handleClose(); // This will close the menu
-                  navigate("/profile"); // Navigate to the profile page
+                  navigate("/profile"); // Then navigate to the profile page
                 }}
               >
                 My Profile
-              </MenuItem>
-              {/* Add a menu item for Profile Settings */}
-              <MenuItem
-                onClick={() => {
-                  handleClose(); // Close the menu
-                  navigate("/profsettings"); // Navigate to the profile settings page
-                }}
-              >
-                Profile Settings
               </MenuItem>
               <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
             </Menu>
@@ -157,9 +147,6 @@ const Header = () => {
 
         {/* Right Side - Sell and Cart */}
         <div className="right-side">
-          <Button color="inherit" component={Link} to="/messages">
-            <MessageIcon />
-          </Button>
           <Button color="inherit" component={Link} to="/listing">
             Sell
           </Button>
@@ -174,7 +161,7 @@ const Header = () => {
         </div>
       </topbar>
       <header className="header">
-        <AppBar position="static" sx={{ bgcolor: `#a8d5ba`, color: `#333` }}>
+        <AppBar position="static" sx={{ bgcolor: "black" }}>
           <Toolbar>
             {/* Logo and Name */}
             <IconButton
@@ -237,28 +224,28 @@ const Header = () => {
         </>
       ) : (
         <nav className="navbar">
-          <Link to="/search?query=anime" className="nav-link">
-            Digital Media
+          <Link to="/anime" className="nav-link">
+            Anime & Videos
           </Link>
-          <Link to="/search?query=manga" className="nav-link">
+          <Link to="/manga" className="nav-link">
             Manga & Novels
           </Link>
-          <Link to="/search?query=merch" className="nav-link">
+          <Link to="/merchandise" className="nav-link">
             Merchandise
           </Link>
-          <Link to="/search?query=figures" className="nav-link">
+          <Link to="/figures-trinkets" className="nav-link">
             Figures & Trinkets
           </Link>
-          <Link to="/search?query=apparel" className="nav-link">
+          <Link to="/apparel" className="nav-link">
             Apparel
           </Link>
-          <Link to="/search?query=audio" className="nav-link">
+          <Link to="/audio" className="nav-link">
             Audio
           </Link>
-          <Link to="/search?query=games" className="nav-link">
+          <Link to="/games" className="nav-link">
             Games
           </Link>
-          <Link to="/search" className="nav-link">
+          <Link to="/all-categories" className="nav-link">
             All Categories
           </Link>
         </nav>

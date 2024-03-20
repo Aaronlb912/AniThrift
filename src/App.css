@@ -1,26 +1,20 @@
-@import "./ui/colors.css";
-
-.background {
-  background-color: var(--background-color);
-}
-
 .homepage {
-  width: 90%;
-  margin: auto;
-  padding: 2em;
-  background-color: white;
-}
+    width: 90%;
+    margin: auto;
+  }
+  
+  /* Additional styles for slideshow, carousel, arrows, and placeholders */
+  .slideshow {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    height: 300px;
+    background-color: aquamarine;
+  }
 
-/* Additional styles for slideshow, carousel, arrows, and placeholders */
-.slideshow {
-  flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
-  height: 300px;
-}
-
-.slideshow img {
-  display: flex;
-  width: 100%;
-  height: 300px;
-}
+  .slideshow img{ 
+    display: flex;
+    width   : 100%;
+    height: 300px;
+    
+  }

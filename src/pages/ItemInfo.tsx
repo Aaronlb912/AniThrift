@@ -10,10 +10,6 @@ import {
   query,
   where,
   getDocs,
-  setDoc,
-  updateDoc,
-  limit,
-  orderBy,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -25,7 +21,6 @@ import {
   DialogContentText,
   Snackbar,
   Alert,
-  TextField,
 } from "@mui/material";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
@@ -33,13 +28,11 @@ import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 const ItemInfo = () => {
   let { id } = useParams(); // This ID is now expected to be the global item ID
   const auth = getAuth();
-  const [mainImage, setMainImage] = useState("");
   const [item, setItem] = useState(null);
   const [seller, setSeller] = useState(null);
   const [userId, setUserId] = useState(null); // Initialize userId state
   const navigate = useNavigate(); // Use this to navigate after delete
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedQuantity, setSelectedQuantity] = useState(1); // State for tracking selected quantity
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -79,12 +72,6 @@ const ItemInfo = () => {
         const itemData = itemSnap.data();
         setItem(itemData);
 
-        if (itemData.photos && itemData.photos.length > 0) {
-          setMainImage(itemData.photos[0]);
-        }
-
-        updateRecentlyViewedItems(userId, id);
-
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
           const sellerRef = doc(db, "users", itemData.sellerId);
@@ -109,140 +96,69 @@ const ItemInfo = () => {
     };
 
     fetchItemAndSeller();
-  }, [id, userId]);
-
-  const updateRecentlyViewedItems = async (
-    userId: string | null,
-    itemId: string | undefined,
-    sellerId: string | undefined
-  ) => {
-    // Check if userId or itemId is null or undefined
-    if (!userId || !itemId) {
-      console.error("User ID or Item ID is missing");
-      return;
-    }
-
-    // Additional check to ensure not adding the item if the viewer is the seller
-    if (userId === sellerId) {
-      console.log("User is the seller, not adding to recently viewed");
-      return;
-    }
-
-    const itemRef = doc(db, "items", itemId);
-    const itemSnapshot = await getDoc(itemRef);
-
-    if (!itemSnapshot.exists()) {
-      console.error("Item does not exist");
-      return;
-    }
-
-    const userRef = doc(db, "users", userId);
-    const userSnapshot = await getDoc(userRef);
-
-    if (!userSnapshot.exists()) {
-      console.error("User does not exist");
-      return;
-    }
-
-    // Proceed with checking and adding to recently viewed as before
-    const recentlyViewedRef = collection(db, "users", userId, "recentlyViewed");
-    const recentlyViewedSnapshot = await getDocs(recentlyViewedRef);
-
-    let exists = false;
-    recentlyViewedSnapshot.forEach((doc) => {
-      if (doc.id === itemId) exists = true;
-    });
-
-    if (!exists) {
-      await setDoc(doc(recentlyViewedRef, itemId), { ref: itemRef });
-      console.log("Added item to recently viewed");
-    } else {
-      console.log("Item already exists in recently viewed");
-    }
-  };
+  }, [id]);
 
   const addToWatchlist = async () => {
-    if (!item || !userId) {
-      console.error("No item data available or user not logged in");
+    if (!item || !userId || !seller) {
+      console.error(
+        "No item data available, user not logged in, or seller info missing"
+      );
       return;
     }
 
-    // Reference to the watchlist in the user's document
-    const watchlistRef = doc(db, "users", userId, "watchlist", id); // Use item.id to create a unique document for each item
+    const watchlistRef = collection(db, "users", userId, "watchlist");
 
     try {
-      // Create a reference to the item in the global items collection
-      const itemRef = doc(db, "items", id);
-
-      // Set the document in the watchlist collection with the item reference
-      await setDoc(watchlistRef, {
-        ref: itemRef,
+      await addDoc(watchlistRef, {
+        itemId: id,
+        title: item.title,
+        imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
+        price: item.price,
+        sellerId: item.sellerId, // Push sellerId
+        sellerName: seller.name, // Include seller's name
+        addedOn: new Date(), // Optional: track when item was added
       });
 
-      console.log("Item added to watchlist with reference");
+      console.log("Item added to watchlist");
       setSnackbar({
         open: true,
         message: "Added to watchlist",
         severity: "success",
       });
     } catch (error) {
-      console.error("Error adding item reference to watchlist: ", error);
+      console.error("Error adding item to watchlist: ", error);
     }
   };
 
   const addToCart = async () => {
-    if (
-      !item ||
-      !userId ||
-      !seller ||
-      selectedQuantity < 1 ||
-      selectedQuantity > item.quantity
-    ) {
-      console.error("Invalid item data or quantity");
+    if (!item || !userId || !seller) {
+      console.error(
+        "No item data available, user not logged in, or seller info missing"
+      );
       return;
     }
 
     const cartRef = collection(db, "users", userId, "cart");
-    const cartQuery = query(cartRef, where("itemId", "==", id));
 
     try {
-      const querySnapshot = await getDocs(cartQuery);
-      if (querySnapshot.empty) {
-        // Item not in cart, add as new
-        await addDoc(cartRef, {
-          itemId: id,
-          title: item.title,
-          imageUrl: item.photos ? item.photos[0] : null,
-          price: item.price,
-          quantity: selectedQuantity,
-          sellerId: item.sellerId,
-          sellerName: seller.name,
-          addedOn: new Date(),
-        });
-      } else {
-        // Item already in cart, update quantity
-        querySnapshot.forEach(async (docSnapshot) => {
-          const existingItem = docSnapshot.data();
-          const newQuantity = existingItem.quantity + selectedQuantity;
-          if (newQuantity <= item.quantity) {
-            await updateDoc(doc(db, "users", userId, "cart", docSnapshot.id), {
-              quantity: newQuantity,
-            });
-          } else {
-            console.error("Not enough stock available");
-            // Handle error for exceeding stock
-          }
-        });
-      }
+      await addDoc(cartRef, {
+        itemId: id,
+        title: item.title,
+        imageUrl: item.photos ? item.photos[0] : null, // Assuming you have photos array
+        price: item.price,
+        sellerId: item.sellerId, // Push sellerId
+        sellerName: seller.name, // Include seller's name
+        addedOn: new Date(), // Optional: track when item was added
+      });
 
-      console.log("Cart updated");
+      console.log("Item added to cart");
       setSnackbar({
         open: true,
-        message: `Cart updated successfully`,
+        message: "Added to cart",
         severity: "success",
       });
     } catch (error) {
-      console.error("Error updating cart: ", error);
+      console.error("Error adding item to cart: ", error);
     }
   };
 
@@ -261,45 +177,29 @@ const ItemInfo = () => {
       });
 
       console.log("Item deleted successfully");
-      navigate("/profile"); // Or to any other page you'd like the user to go to after deletion
+      navigate("/"); // Or to any other page you'd like the user to go to after deletion
     } catch (error) {
       console.error("Error deleting item: ", error);
     }
-  };
-
-  const handleTagClick = (tag: any) => {
-    // Navigate to a search results page. Adjust the path as needed.
-    navigate(`/search?tag=${tag}`);
-  };
-
-  const handleThumbnailClick = (image: React.SetStateAction<string>) => {
-    setMainImage(image);
   };
 
   if (!item) return <div>Loading...</div>;
 
   return (
     <div className="item-info-container">
-      <div className="item-details">
-        <h2>{item.title}</h2>
-      </div>
-      <div className="main-image-container">
-        <img src={mainImage} alt="Main Item" className="main-image" />
-      </div>
-      <div className="thumbnail-container">
-        {item.photos?.map(
-          (photo: string | undefined, index: React.Key | null | undefined) => (
+      <div className="item-images">
+        {item.photos &&
+          item.photos.map((photo, index) => (
             <img
               key={index}
               src={photo}
-              alt={`Item Thumbnail ${index}`}
-              className="thumbnail"
-              onClick={() => handleThumbnailClick(photo)}
+              alt={`Item ${index}`}
+              className="item-image"
             />
-          )
-        )}
+          ))}
       </div>
       <div className="item-details">
+        <h2>{item.title}</h2>
         <p>
           <h3>Description:</h3> {item.description}
         </p>
@@ -309,49 +209,6 @@ const ItemInfo = () => {
         <p>
           <h3>Condition:</h3> {item.condition}
         </p>
-        <div className="item-tags">
-          <h3>Tags:</h3>
-          {item.tags &&
-            item.tags.map(
-              (
-                tag:
-                  | string
-                  | number
-                  | boolean
-                  | React.ReactElement<
-                      any,
-                      string | React.JSXElementConstructor<any>
-                    >
-                  | Iterable<React.ReactNode>
-                  | React.ReactPortal
-                  | null
-                  | undefined,
-                index: React.Key | null | undefined
-              ) => (
-                <Button
-                  key={index}
-                  onClick={() => handleTagClick(tag)}
-                  variant="contained"
-                  style={{ marginRight: "8px", marginBottom: "8px" }}
-                >
-                  {tag}
-                </Button>
-              )
-            )}
-        </div>
-        <div className="item-quantity-container">
-          <h3>Available Quantity: {item.quantity}</h3>
-          <TextField
-            label="Quantity"
-            type="number"
-            InputProps={{ inputProps: { min: 1, max: item.quantity } }}
-            value={selectedQuantity}
-            onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-            variant="outlined"
-            size="small"
-          />
-        </div>
-
         <p>
           <h3>Price: ${item.price}</h3>
         </p>
@@ -375,10 +232,6 @@ const ItemInfo = () => {
         <div className="seller-info">
           <h3>Seller: {seller.name}</h3>
           <p>Rating: {seller.rating}</p>
-          {/* Link to the seller's public profile */}
-          <button onClick={() => navigate(`/user/${item.sellerId}`)}>
-            View Profile
-          </button>
         </div>
       )}
       <Snackbar

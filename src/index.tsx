@@ -9,6 +9,13 @@ import Footer from "./components/Footer";
 import { auth } from "./firebase-config"; // Adjust the path according to your project structure
 import { onAuthStateChanged } from "firebase/auth";
 import SearchResult from "./pages/SearchResults";
+import AnimePage from "./pages/AnimePage"; // Import your category components
+import MangaPage from "./pages/MangaPage";
+import MerchandisePage from "./pages/MerchandisePage";
+import FigurePage from "./pages/FigurePage";
+import ApparelPage from "./pages/ApparelPage";
+import AudioPage from "./pages/AudioPage";
+import GamesPage from "./pages/GamesPage";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Listing from "./pages/Listing";
@@ -18,17 +25,6 @@ import Cart from "./pages/Cart";
 import AllCategories from "./pages/AllCategories";
 import SearchProvider from "./components/SearchHandler";
 import EditItem from "./pages/EditItem";
-import PublicProfile from "./pages/PublicProfile";
-import Messages from "./pages/Messages";
-import Checkout from "./pages/CheckOut";
-import ProfileSettings from "./pages/ProfileSettings";
-import PersonalInfoPage from "./components/PersonalInfo";
-import AddressesPage from "./components/Addresses";
-import PurchaseSuccess from "./components/PurchaseSuccess";
-import StripeOnboardingForm from "./components/StripeOnboardingForm";
-
-
-
 
 const Root = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -50,35 +46,28 @@ ReactDOM.render(
   <React.StrictMode>
     <SearchProvider>
       <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<App />}></Route>
-            <Route path="/signin" element={<SignInPage />} />
-            <Route path="/search" element={<SearchResult />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="edit-profile" element={<EditProfile />} />
-            <Route path="/listing" element={<Listing />} />
-            <Route path="/sell" element={<Selling />} />
-            <Route path="/item/:id" element={<ItemListing />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/all-categories" element={<AllCategories />} />
-            <Route path="edit-item/:id" element={<EditItem />} />
-            <Route path="/user/:userId" element={<PublicProfile />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/profsettings" element={<ProfileSettings />} />
-            <Route
-              path="/settings/personal-information"
-              element={<PersonalInfoPage />}
-            />
-            <Route path="/settings/addresses" element={<AddressesPage />} />
-            <Route path="/success" element={<PurchaseSuccess />} />
-            <Route
-              path="/StripeOnboardingForm"
-              element={<StripeOnboardingForm />}
-            />
-          </Routes>
-          <Footer />
+        <Header />
+        <Routes>
+          <Route path="/" element={<App />}></Route>
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/search" element={<SearchResult />} />
+          <Route path="/anime" element={<AnimePage />} />
+          <Route path="/manga" element={<MangaPage />} />
+          <Route path="/merchandise" element={<MerchandisePage />} />
+          <Route path="/figures-trinkets" element={<FigurePage />} />
+          <Route path="/apparel" element={<ApparelPage />} />
+          <Route path="/audio" element={<AudioPage />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="edit-profile" element={<EditProfile />} />
+          <Route path="/listing" element={<Listing />} />
+          <Route path="/sell" element={<Selling />} />
+          <Route path="/item/:id" element={<ItemListing />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/all-categories" element={<AllCategories />} />
+          <Route path="edit-item/:id" element={<EditItem />} />
+        </Routes>
+        <Footer />
       </BrowserRouter>
     </SearchProvider>
   </React.StrictMode>,
