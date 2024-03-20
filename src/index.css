@@ -19,6 +19,10 @@ body,
   font-weight: normal;
 }
 
+body {
+  background-color: #f0ead6;
+}
+
 /* Global CSS file */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
