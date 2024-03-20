@@ -83,7 +83,7 @@ const ItemInfo = () => {
           setMainImage(itemData.photos[0]);
         }
 
-        updateRecentlyViewedItems(userId, id);
+        updateRecentlyViewedItems(userId, id, seller);
 
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
@@ -203,14 +203,14 @@ const ItemInfo = () => {
     }
 
     const cartRef = collection(db, "users", userId, "cart");
-    const cartQuery = query(cartRef, where("itemId", "==", id));
+    const cartQuery = query(cartRef, where("itemId", "==", item.id)); // Use item.id to reference the exact item ID
 
     try {
       const querySnapshot = await getDocs(cartQuery);
       if (querySnapshot.empty) {
         // Item not in cart, add as new
         await addDoc(cartRef, {
-          itemId: id,
+          itemId: item.id, // Ensure you're using the item's existing ID
           title: item.title,
           imageUrl: item.photos ? item.photos[0] : null,
           price: item.price,
@@ -236,9 +236,10 @@ const ItemInfo = () => {
       }
 
       console.log("Cart updated");
+      // Assuming setSnackbar is a function to update state for displaying a notification
       setSnackbar({
         open: true,
-        message: `Cart updated successfully`,
+        message: "Cart updated successfully",
         severity: "success",
       });
     } catch (error) {

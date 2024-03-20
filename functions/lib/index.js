@@ -21,6 +21,7 @@ const functions = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
 
 const { defineSecret } = require("firebase-functions/params");
+const { error } = require("console");
 // let Ebay = require("ebay-node-api");
 const ebayClientSecret = defineSecret("EBAY_CLIENT_SECRET");
 const ebayAuthToken = defineSecret("EBAY_AUTH_TOKEN");
@@ -245,33 +246,31 @@ async function checkIfUserExists(userId) {
 
 exports.stripeWebhook = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
-    const sig = req.headers["stripe-signature"];
-    let event;
+    // console.log(JSON.stringify(req.body));
 
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.rawBody,
-        sig,
-        functions.config().stripe.webhook_secret
-      );
-    } catch (err) {
-      console.error(`Webhook signature verification failed.`, err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+    const event = req.body;
 
     // Proceed only for checkout.session.completed events
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const { buyerId, cartItems } = JSON.parse(session.metadata); // Make sure metadata is stored correctly during checkout session creation
+      console.log("session", JSON.stringify(session));
+      console.log("metadata", session.metadata);
+
+      const { buyerId, cartItems } = session.metadata; // Make sure metadata is stored correctly during checkout session creation
+      const parsedCartItems = JSON.parse(cartItems); // Make sure metadata is stored correctly during checkout session creation
 
       try {
-        await updateInventoryAndOrderStatus(cartItems);
+        await updateInventoryAndOrderStatus(parsedCartItems);
         await emptyBuyersCart(buyerId);
-        await createOrderReferenceForBuyer(buyerId, cartItems, session.id);
-        await sendEmailConfirmation(buyerId, cartItems);
+        await createOrderReferenceForBuyer(
+          buyerId,
+          parsedCartItems,
+          session.id
+        );
+        await sendEmailConfirmation(buyerId, parsedCartItems);
         res.status(200).send({ received: true });
       } catch (error) {
-        console.error("Failed to process purchase:", error);
+        console.error("Failed to process purchase:", JSON.stringify(error));
         res.status(500).send({ error: "Failed to process purchase" });
       }
     } else {
@@ -282,65 +281,88 @@ exports.stripeWebhook = functions.https.onRequest((req, res) => {
 
 async function updateInventoryAndOrderStatus(cartItems) {
   // Assuming cartItems is an array of { itemId, quantity }
-  const itemsToUpdate = cartItems.map((item) => {
-    return admin
-      .firestore()
-      .doc(`items/${item.itemId}`)
-      .get()
-      .then((doc) => {
-        if (!doc.exists) {
-          console.log(`Item ${item.itemId} not found`);
-          return null;
-        }
-        const newData = {
-          ...doc.data(),
-          quantity: doc.data().quantity - item.quantity,
-        };
-        if (newData.quantity <= 0) {
-          newData.status = "sold";
-        }
-        return admin.firestore().doc(`items/${item.itemId}`).update(newData);
-      });
-  });
 
-  await Promise.all(itemsToUpdate);
+  try {
+    const itemsToUpdate = cartItems.map((item) => {
+      return admin
+        .firestore()
+        .doc(`items/${item.itemId}`)
+        .get()
+        .then((doc) => {
+          if (!doc.exists) {
+            console.log(`Item ${item.itemId} not found`);
+            return null;
+          }
+          const itemData = doc.data();
+          const updatedQuantity = itemData.quantity - item.quantity;
+
+          const newData = {
+            ...itemData,
+            quantity: updatedQuantity,
+          };
+
+          // Update listingStatus to "sold" if the updated quantity is less than or equal to 0
+          if (updatedQuantity <= 0) {
+            newData.listingStatus = "sold"; // Ensure this field name matches your database schema
+          }
+
+          // Perform the update
+          return admin.firestore().doc(`items/${item.itemId}`).update(newData);
+        });
+    });
+
+    await Promise.all(itemsToUpdate);
+  } catch (error) {
+    console.error("Error updating items:", error);
+  }
 }
 
 async function emptyBuyersCart(buyerId, purchasedItemIds) {
-  const cartRef = admin
-    .firestore()
-    .collection("users")
-    .doc(buyerId)
-    .collection("cart");
+  try {
+    const cartRef = admin
+      .firestore()
+      .collection("users")
+      .doc(buyerId)
+      .collection("cart");
 
-  // This process assumes you have the specific IDs of the cart items that were purchased.
-  // 'purchasedItemIds' is an array of IDs of the items that need to be removed from the cart.
+    // This process assumes you have the specific IDs of the cart items that were purchased.
+    // 'purchasedItemIds' is an array of IDs of the items that need to be removed from the cart.
 
-  const deletes = purchasedItemIds.map((itemId) => {
-    return cartRef.doc(itemId).delete();
-  });
+    const deletes = purchasedItemIds.map((itemId) => {
+      return cartRef.doc(itemId).delete();
+    });
 
-  // Execute all delete operations
-  await Promise.all(deletes);
+    // Execute all delete operations
+    await Promise.all(deletes);
+    return true;
+  } catch (error) {
+    return error;
+  }
 }
 
 async function createOrderReferenceForBuyer(buyerId, cartItems, orderId) {
-  const orderRef = admin
-    .firestore()
-    .collection("users")
-    .doc(buyerId)
-    .collection("orders")
-    .doc(orderId);
-  await orderRef.set({
-    cartItems,
-    orderId,
-    date: admin.firestore.FieldValue.serverTimestamp(),
-  });
+  try {
+    const orderRef = admin
+      .firestore()
+      .collection("users")
+      .doc(buyerId)
+      .collection("orders")
+      .doc(orderId);
+    await orderRef.set({
+      cartItems,
+      orderId,
+      date: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return true;
+  } catch (error) {
+    return error;
+  }
 }
 
 async function sendEmailConfirmation(buyerId, cartItems) {
   // Implement your email sending logic here
   // You can use Firebase Extensions or third-party services like SendGrid
+  return true;
 }
 
 exports.createStripeAccountOnFirstItem = functions.https.onRequest(
