@@ -27,10 +27,12 @@
 }
 
 .search-page-container {
+  width: 95%;
+  margin: auto;
   display: flex;
   flex-direction: column; /* Stack children vertically */
   align-items: center; /* Center-align the children horizontally */
-  width: 100%; /* Take full width of the viewport */
+  background-color: #f5f5f5;
 }
 
 .Results {
