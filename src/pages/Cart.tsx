@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase-config";
 import {
   collection,
@@ -20,6 +20,7 @@ interface CartItem {
   price: number;
   sellerId: string;
   sellerName: string;
+  quantity: number;
 }
 
 interface GroupedCartItems {
@@ -32,6 +33,7 @@ interface GroupedCartItems {
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<GroupedCartItems>({});
   const [user, setUser] = useState<firebase.User | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
@@ -77,6 +79,11 @@ const CartPage: React.FC = () => {
     fetchCartItems(user.uid);
   };
 
+  const handleCheckout = () => {
+    const allItems = Object.values(cartItems).flatMap((group) => group.items);
+    navigate("/checkout", { state: { cartItems: allItems } });
+  };
+
   return (
     <div className="cart-container">
       {Object.keys(cartItems).length ? (
@@ -84,31 +91,49 @@ const CartPage: React.FC = () => {
           <div key={sellerId} className="seller-box">
             <h2>Seller: {sellerName}</h2>
             {items.map((item) => (
-              <div key={item.id} className="item-row">
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="item-image"
-                />
-                <div className="item-info">
-                  <p className="item-title">{item.title}</p>
-                  <p className="item-price">${item.price}</p>
+              <Link
+                to={`/item/${item.itemId}`}
+                key={item.id}
+                className="item-row-link"
+              >
+                <div className="item-row">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="item-image"
+                  />
+                  <div className="item-info">
+                    <p className="item-title">{item.title}</p>
+                    <p className="item-price">${item.price}</p>
+                    <p className="quantity">Quantity: {item.quantity}</p>
+                  </div>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent navigation when deleting
+                      removeItemFromCart(item.id);
+                    }}
+                    className="remove-item-btn"
+                  >
+                    <DeleteIcon />
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => removeItemFromCart(item.id)}
-                  className="remove-item-btn"
-                >
-                  <DeleteIcon />
-                </Button>
-              </div>
+              </Link>
             ))}
+
             <p className="total-price">
               Total: $
               {items
-                .reduce((total, item) => total + Number(item.price), 0)
+                .reduce(
+                  (total, item) => total + Number(item.price * item.quantity),
+                  0
+                )
                 .toFixed(2)}
             </p>
-            <Button variant="contained" className="checkout-btn">
+            <Button
+              variant="contained"
+              className="checkout-btn"
+              onClick={handleCheckout} // Updated to use the new handleCheckout function
+            >
               Checkout ({items.length} items)
             </Button>
           </div>

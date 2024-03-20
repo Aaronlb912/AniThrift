@@ -7,12 +7,39 @@
   align-items: center; /* Center align the content */
 }
 
+.main-image-container {
+  margin-bottom: 20px;
+}
+
+.main-image {
+  width: 350px; /* Adjust as needed */
+  height: 350px;
+  border-radius: 8px;
+}
+
+.thumbnail-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Adjust the space between thumbnails */
+  justify-content: center; /* Center the thumbnails within the container */
+  padding: 10px; /* Add some padding around the container */
+}
+
+.thumbnail {
+  width: 100px;
+  height: 100px;
+  cursor: pointer; /* Indicates clickable items */
+  border: 1px solid #ccc; /* Optional: adds a light border around thumbnails */
+  border-radius: 4px; /* Optional: rounds the corners of thumbnails */
+  object-fit: cover; /* Ensures the image covers the area without losing its aspect ratio */
+}
+
 .item-details {
   display: flex;
   flex-direction: column;
   align-items: center; /* Centers children horizontally */
   justify-content: center; /* Centers children vertically, if needed */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   margin: 20px 0;
   padding: 20px;
@@ -27,6 +54,7 @@
   gap: 10px;
   padding: 10px;
   justify-content: flex-start; /* Align items to the start of the container */
+  min-block-size: 200;
 }
 
 .item-image {
@@ -38,8 +66,9 @@
   border-radius: 5px; /* Optional: rounds corners of images */
 }
 
-.item-details, .seller-info {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds shadow for separation */
+.item-details,
+.seller-info {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds shadow for separation */
   border-radius: 5px; /* Rounds the corners of the boxes */
   margin: 20px 0; /* Adds space between sections */
   padding: 20px;
@@ -47,7 +76,10 @@
   box-sizing: border-box; /* Includes padding and border in the element's total width and height */
 }
 
-.item-details p, .item-details h2, .seller-info h3, .seller-info p {
+.item-details p,
+.item-details h2,
+.seller-info h3,
+.seller-info p {
   text-align: center; /* Centers the text */
 }
 
@@ -60,8 +92,41 @@ button {
   border: none;
   border-radius: 5px;
   display: inline-block; /* This makes `text-align: center;` effective */
+  align-items: center;
 }
 
 button:hover {
   background-color: #0056b3; /* Darker shade on hover */
+}
+
+.seller-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.seller-info h3,
+.seller-info p {
+  margin: 0; /* Removes default margin */
+  padding-bottom: 5px; /* Optional: adds a small space below the text */
+}
+
+.seller-info button {
+  align-self: center; /* Aligns the button to the start of the flex container */
+}
+
+.item-quantity-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; /* Adjust the gap between the title and the box as needed */
+}
+
+.quantity-box {
+  width: 100%; /* Or a fixed width, depending on your design */
+  display: flex;
+  justify-content: center; /* This will center the TextField */
+}
+
+.item-tags {
+  text-align: center;
 }

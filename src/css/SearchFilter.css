@@ -1,22 +1,48 @@
 .filter-bar {
   padding: 20px;
-  border: 1px solid #ddd; /* Entire filter bar in its own border box */
-  margin-bottom: 20px; /* Space below the filter bar */
+  border: 1px solid #ddd;
 }
 
-.category-dropdown {
-  border: 1px solid #ddd; /* Dropdown border */
-  margin-top: 10px; /* Space below the category title */
-}
-
-.category-option {
+.filter-by-title {
+  cursor: pointer;
   display: flex;
-  align-items: center; /* Align checkbox and label */
-  border: 1px solid #ddd; /* Border around each category */
-  margin: 5px 0; /* Space between category options */
-  padding: 5px; /* Padding inside each category option */
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  margin-top: 10px; /* Added to separate filter titles */
+  transition: background-color 0.3s ease;
+  border-radius: 1em;
 }
 
-.category-option input[type="checkbox"] {
-  margin-right: 10px; /* Space between checkbox and label */
+.filter-by-title:hover {
+  background-color: #f0f0f0;
+}
+
+.tag-search-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.dropdown {
+  display: block;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-top: 5px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.option input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.option label {
+  margin-left: 5px;
 }
