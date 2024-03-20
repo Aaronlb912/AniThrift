@@ -8,6 +8,7 @@
     "@algolia/client-search": "^4.22.1",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@minchat/react-chat-ui": "^0.16.2",
     "@mui/icons-material": "^5.15.8",
     "@mui/material": "^5.15.12",
     "@mui/styled-engine-sc": "^6.0.0-alpha.17",
