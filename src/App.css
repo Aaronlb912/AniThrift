@@ -1,14 +1,10 @@
 @import "./ui/colors.css";
 
-.background {
-  background-color: var(--background-color);
-}
-
 .homepage {
   width: 90%;
   margin: auto;
   padding: 2em;
-  background-color: white;
+  background-color: var(--background-color);
 }
 
 /* Additional styles for slideshow, carousel, arrows, and placeholders */
