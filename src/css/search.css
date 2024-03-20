@@ -9,6 +9,7 @@
   border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
+  height: fit-content;
 }
 
 .item-image {
@@ -27,23 +28,29 @@
 
 .search-page-container {
   display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center-align the children horizontally */
+  width: 100%; /* Take full width of the viewport */
+}
+
+.Results {
+  display: flex;
   flex-direction: row; /* Align children side by side */
   width: 100%; /* Take full width of the viewport */
+  padding-bottom: 1em;
+  border-bottom: 1px solid black;
 }
 
 .filter-bar {
   width: 20%; /* Filter bar takes up 20% of the container width */
-  /* Ensure it doesn't grow or shrink */
   flex: 0 0 20%;
-  /* Your existing styles for padding, border, etc. */
+  padding: 20px;
+  border-right: 1px solid #ddd; /* Optional: Adds a visual separation */
   overflow-y: auto; /* Allows scrolling within the filter bar if content overflows */
 }
 
 .search-results-container {
   flex-grow: 1; /* Allows this container to take up the remaining space */
-  width: 80%; /* Search results take the remaining 80% of the width */
-  /* Your existing styles for padding, display, etc. */
+  padding: 20px;
   overflow-y: auto; /* Allows scrolling within the search results if content overflows */
 }
-
-/* Your existing styles for .search-result-item, .item-image, .item-title, .item-price */
