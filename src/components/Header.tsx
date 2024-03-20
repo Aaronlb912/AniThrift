@@ -174,7 +174,7 @@ const Header = () => {
         </div>
       </topbar>
       <header className="header">
-        <AppBar position="static" sx={{ bgcolor: "black" }}>
+        <AppBar position="static" sx={{ bgcolor: `#a8d5ba`, color: `#333` }}>
           <Toolbar>
             {/* Logo and Name */}
             <IconButton
