@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebase-config";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import moment from "moment/moment";
+import { debounce } from 'lodash';
 
 import {
   signInWithEmailAndPassword,
@@ -37,6 +38,13 @@ const SignInPage: React.FC = () => {
   const [signUpPromo, setSignUpPromo] = useState(false);
   const [registerError, setRegisterError] = useState(""); // State for registration error
   const [loginError, setLoginError] = useState(""); // State for login error
+  const [isUsernameUnique, setIsUniqueUsername] = useState(false)
+  const [usernameIsValid, setUsernameIsValid] = useState(false)
+
+  const reserveUsername = (user: any, username: string) => {
+    const usernameRef = doc(db, "usernames", username.toLowerCase());
+    const userRef = doc(db, "users", user.uid);
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +69,10 @@ const SignInPage: React.FC = () => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setRegisterError("Passwords do not match.");
+      return;
+    }
+    if (!isValidUsername && !isUsernameUnique) {
+      setRegisterError("Username is not valid");
       return;
     }
     try {
@@ -92,6 +104,59 @@ const SignInPage: React.FC = () => {
           "An error occurred during registration. Please try again."
         );
       }
+    }
+  };
+
+  const renderUsernameExists = () => {
+    return (
+      <p>Username is taken</p>
+    )
+  }
+
+  const renderUsernameValid = () => {
+    return (
+      <p>Username is valid</p>
+    )
+  }
+
+  const renderUsernameNotValid = () => {
+    return (
+      <p>Username is not valid</p>
+    )
+  }
+
+  const isValidUsername = (name: string) => {
+    var nameRegex = /^[0-9A-Za-z]{6,16}$/;
+    if (name.match(nameRegex)) {
+      setUsernameIsValid(true)
+      return true
+    }
+    setUsernameIsValid(false)
+    return false
+  }
+
+  const checkUsername = async (name: string) => {
+    const usernameRef = doc(db, "usernames", name.toLowerCase());
+    const docSnap = await getDoc(usernameRef);
+    console.log(name, ' exists', docSnap.exists());
+    return !docSnap.exists();
+  }
+
+  const debouncedCheckUsername = useCallback(debounce((newUsername: string) => {
+    checkUsername(newUsername).then(isUnique => {
+      if (isUnique) {
+        setIsUniqueUsername(true);
+      } else {
+        setIsUniqueUsername(false);
+      }
+    });
+  }, 500), []);
+
+  const handleChange = (e: any) => {
+    const newUsername = e.target.value;
+    setUsername(newUsername);
+    if (isValidUsername(e.target.value)) {
+      debouncedCheckUsername(newUsername);
     }
   };
 
@@ -139,10 +204,13 @@ const SignInPage: React.FC = () => {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleChange}
               placeholder="Username"
               required
             />
+            {isUsernameUnique && usernameIsValid && username.length > 5 ? renderUsernameValid() : null}
+            {!isUsernameUnique && username.length > 5 ? renderUsernameExists() : null}
+            {!usernameIsValid && username.length > 1 ? renderUsernameNotValid() : null}
             <input
               type="email"
               value={newEmail}
