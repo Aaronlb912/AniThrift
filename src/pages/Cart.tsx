@@ -141,7 +141,7 @@ const CartPage: React.FC = () => {
       ) : (
         <div className="empty-cart-message">
           <p>Your cart is empty.</p>
-          <Button component={Link} to="/all-categories" className="explore-btn">
+          <Button component={Link} to="/search" className="explore-btn">
             Explore
           </Button>
         </div>

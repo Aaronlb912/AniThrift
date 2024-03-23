@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import moment from "moment/moment";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
 import {
   signInWithEmailAndPassword,
@@ -38,13 +38,13 @@ const SignInPage: React.FC = () => {
   const [signUpPromo, setSignUpPromo] = useState(false);
   const [registerError, setRegisterError] = useState(""); // State for registration error
   const [loginError, setLoginError] = useState(""); // State for login error
-  const [isUsernameUnique, setIsUniqueUsername] = useState(false)
-  const [usernameIsValid, setUsernameIsValid] = useState(false)
+  const [isUsernameUnique, setIsUniqueUsername] = useState(false);
+  const [usernameIsValid, setUsernameIsValid] = useState(false);
 
   const reserveUsername = (user: any, username: string) => {
     const usernameRef = doc(db, "usernames", username.toLowerCase());
     const userRef = doc(db, "users", user.uid);
-  }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,49 +108,46 @@ const SignInPage: React.FC = () => {
   };
 
   const renderUsernameExists = () => {
-    return (
-      <p>Username is taken</p>
-    )
-  }
+    return <p>Username is taken</p>;
+  };
 
   const renderUsernameValid = () => {
-    return (
-      <p>Username is valid</p>
-    )
-  }
+    return <p>Username is valid</p>;
+  };
 
   const renderUsernameNotValid = () => {
-    return (
-      <p>Username is not valid</p>
-    )
-  }
+    return <p>Username is not valid</p>;
+  };
 
   const isValidUsername = (name: string) => {
     var nameRegex = /^[0-9A-Za-z]{6,16}$/;
     if (name.match(nameRegex)) {
-      setUsernameIsValid(true)
-      return true
+      setUsernameIsValid(true);
+      return true;
     }
-    setUsernameIsValid(false)
-    return false
-  }
+    setUsernameIsValid(false);
+    return false;
+  };
 
   const checkUsername = async (name: string) => {
     const usernameRef = doc(db, "usernames", name.toLowerCase());
     const docSnap = await getDoc(usernameRef);
-    console.log(name, ' exists', docSnap.exists());
+    console.log(name, " exists", docSnap.exists());
     return !docSnap.exists();
-  }
+  };
 
-  const debouncedCheckUsername = useCallback(debounce((newUsername: string) => {
-    checkUsername(newUsername).then(isUnique => {
-      if (isUnique) {
-        setIsUniqueUsername(true);
-      } else {
-        setIsUniqueUsername(false);
-      }
-    });
-  }, 500), []);
+  const debouncedCheckUsername = useCallback(
+    debounce((newUsername: string) => {
+      checkUsername(newUsername).then((isUnique) => {
+        if (isUnique) {
+          setIsUniqueUsername(true);
+        } else {
+          setIsUniqueUsername(false);
+        }
+      });
+    }, 500),
+    []
+  );
 
   const handleChange = (e: any) => {
     const newUsername = e.target.value;
@@ -167,9 +164,6 @@ const SignInPage: React.FC = () => {
         <div className="returning-user">
           <h2>Returning Customer</h2>
           <p>Login below to check-in with an existing account</p>
-          <p>
-            Required <span className="required">*</span>
-          </p>
           <form onSubmit={handleLogin}>
             <input
               type="email"
@@ -197,9 +191,6 @@ const SignInPage: React.FC = () => {
         <div className="new-user">
           <h2>New Customer</h2>
           <p>Create an account for free</p>
-          <p>
-            Required <span className="required">*</span>
-          </p>
           <form onSubmit={handleRegister}>
             <input
               type="text"
@@ -208,9 +199,15 @@ const SignInPage: React.FC = () => {
               placeholder="Username"
               required
             />
-            {isUsernameUnique && usernameIsValid && username.length > 5 ? renderUsernameValid() : null}
-            {!isUsernameUnique && username.length > 5 ? renderUsernameExists() : null}
-            {!usernameIsValid && username.length > 1 ? renderUsernameNotValid() : null}
+            {isUsernameUnique && usernameIsValid && username.length > 5
+              ? renderUsernameValid()
+              : null}
+            {!isUsernameUnique && username.length > 5
+              ? renderUsernameExists()
+              : null}
+            {!usernameIsValid && username.length > 1
+              ? renderUsernameNotValid()
+              : null}
             <input
               type="email"
               value={newEmail}

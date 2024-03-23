@@ -88,7 +88,6 @@ const ItemInfo = () => {
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
           const sellerRef = doc(db, "users", itemData.sellerId);
-          console.log(sellerRef);
           const sellerSnap = await getDoc(sellerRef);
 
           if (sellerSnap.exists()) {
@@ -118,7 +117,11 @@ const ItemInfo = () => {
   ) => {
     // Check if userId or itemId is null or undefined
     if (!userId || !itemId) {
-      console.error("User ID or Item ID is missing");
+      if (!userId) {
+        console.error("User ID  is missing");
+      } else {
+        console.error("Item ID is missing");
+      }
       return;
     }
 
@@ -202,49 +205,40 @@ const ItemInfo = () => {
       return;
     }
 
-    const cartRef = collection(db, "users", userId, "cart");
-    const cartQuery = query(cartRef, where("itemId", "==", item.id)); // Use item.id to reference the exact item ID
+    // Check if the item already exists in the cart
+    const cartItemRef = doc(db, "users", userId, "cart", id); // This line is key
+    const cartDoc = await getDoc(cartItemRef);
 
-    try {
-      const querySnapshot = await getDocs(cartQuery);
-      if (querySnapshot.empty) {
-        // Item not in cart, add as new
-        await addDoc(cartRef, {
-          itemId: item.id, // Ensure you're using the item's existing ID
-          title: item.title,
-          imageUrl: item.photos ? item.photos[0] : null,
-          price: item.price,
-          quantity: selectedQuantity,
-          sellerId: item.sellerId,
-          sellerName: seller.name,
-          addedOn: new Date(),
-        });
-      } else {
-        // Item already in cart, update quantity
-        querySnapshot.forEach(async (docSnapshot) => {
-          const existingItem = docSnapshot.data();
-          const newQuantity = existingItem.quantity + selectedQuantity;
-          if (newQuantity <= item.quantity) {
-            await updateDoc(doc(db, "users", userId, "cart", docSnapshot.id), {
-              quantity: newQuantity,
-            });
-          } else {
-            console.error("Not enough stock available");
-            // Handle error for exceeding stock
-          }
-        });
-      }
-
-      console.log("Cart updated");
-      // Assuming setSnackbar is a function to update state for displaying a notification
-      setSnackbar({
-        open: true,
-        message: "Cart updated successfully",
-        severity: "success",
+    if (!cartDoc.exists()) {
+      // If the item is not already in the cart, create a new document with the item's ID
+      await setDoc(cartItemRef, {
+        itemId: id, // This ensures you're using the item's existing ID
+        title: item.title,
+        imageUrl: item.photos ? item.photos[0] : null,
+        price: item.price,
+        quantity: selectedQuantity,
+        sellerId: item.sellerId,
+        sellerName: seller.name,
+        addedOn: new Date(),
       });
-    } catch (error) {
-      console.error("Error updating cart: ", error);
+    } else {
+      // If the item is already in the cart, update its quantity
+      const existingItemData = cartDoc.data();
+      const newQuantity = existingItemData.quantity + selectedQuantity;
+      if (newQuantity <= item.quantity) {
+        await updateDoc(cartItemRef, { quantity: newQuantity });
+      } else {
+        console.error("Not enough stock available");
+        // Handle error for exceeding stock
+      }
     }
+
+    console.log("Cart updated");
+    setSnackbar({
+      open: true,
+      message: "Cart updated successfully",
+      severity: "success",
+    });
   };
 
   const deleteItem = async () => {

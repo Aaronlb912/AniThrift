@@ -1,0 +1,141 @@
+.your-orders-page {
+  padding: 20px;
+}
+
+.order-card {
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+}
+
+.order-top,
+.order-middle,
+.order-bottom {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-top {
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.order-date,
+.order-total,
+.order-ship-to,
+.order-id {
+  margin: 0;
+  font-weight: bold;
+}
+
+.order-info {
+  display: flex;
+  align-items: center;
+}
+
+.order-placed,
+.order-total {
+  margin-right: 20px;
+}
+
+.order-date {
+  color: #555;
+  font-size: 0.9em;
+}
+
+.order-number {
+  text-align: right;
+  font-weight: bold;
+}
+
+.order-details {
+  text-align: left;
+}
+
+.order-details p {
+  margin: 0;
+  padding: 0;
+}
+
+.order-id p {
+  text-align: right;
+  font-size: medium;
+}
+
+.order-middle {
+  display: flex;
+  justify-content: space-between; /* This keeps the left and right sections apart */
+  align-items: flex-start; /* Align items to the top */
+}
+
+.item {
+  display: flex;
+  width: 100%; /* Ensure the item occupies the full width of its container */
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item-image {
+  width: 80px;
+  height: 80px;
+  margin-right: 20px;
+  flex-shrink: 0; /* Prevent the image from shrinking */
+}
+
+.item-details {
+  flex: 1; /* Allow item details to fill the available space */
+  display: flex;
+  align-items: center; /* Align item details vertically in the center */
+}
+
+.item-title {
+  font-weight: bold;
+  margin-right: auto; /* Push everything else to the right */
+}
+
+.item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Align buttons to the right */
+  margin-left: 20px; /* Ensure some space between item details and actions */
+}
+
+.item-actions button {
+  margin-bottom: 5px;
+  background-color: #0077b6;
+  color: #fff;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.item-actions button:last-child {
+  margin-bottom: 0;
+}
+
+.order-bottom {
+  display: flex;
+  justify-content: flex-end; /* Align archive link to the right */
+}
+
+.order-bottom a {
+  color: #0077b6;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.order-action-button {
+  background-color: #0077b6;
+  color: #fff;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+}

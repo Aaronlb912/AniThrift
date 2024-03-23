@@ -144,6 +144,14 @@ const Header = () => {
               >
                 My Profile
               </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  navigate("/orders");
+                }}
+              >
+                My Orders
+              </MenuItem>
               {/* Add a menu item for Profile Settings */}
               <MenuItem
                 onClick={() => {

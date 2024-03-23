@@ -261,7 +261,7 @@ exports.stripeWebhook = functions.https.onRequest((req, res) => {
 
       try {
         await updateInventoryAndOrderStatus(parsedCartItems);
-        await emptyBuyersCart(buyerId);
+        await emptyBuyersCart(buyerId, parsedCartItems);
         await createOrderReferenceForBuyer(
           buyerId,
           parsedCartItems,
@@ -317,26 +317,44 @@ async function updateInventoryAndOrderStatus(cartItems) {
   }
 }
 
-async function emptyBuyersCart(buyerId, purchasedItemIds) {
+async function emptyBuyersCart(buyerId, cartItems) {
   try {
+    // First, extract the item IDs from the cartItems
+    const purchasedItemIds = cartItems.map((item) => item.itemId);
+
     const cartRef = admin
       .firestore()
       .collection("users")
       .doc(buyerId)
       .collection("cart");
 
-    // This process assumes you have the specific IDs of the cart items that were purchased.
-    // 'purchasedItemIds' is an array of IDs of the items that need to be removed from the cart.
+    // Firestore queries have a limitation on the 'in' operator to 10 items.
+    // You might need to segment the purchasedItemIds if there are more than 10.
+    const batchSize = 10;
+    for (let i = 0; i < purchasedItemIds.length; i += batchSize) {
+      const batchIds = purchasedItemIds.slice(i, i + batchSize);
 
-    const deletes = purchasedItemIds.map((itemId) => {
-      return cartRef.doc(itemId).delete();
-    });
+      // Fetch all cart items documents for the buyer matching the batch of IDs
+      const snapshot = await cartRef
+        .where(admin.firestore.FieldPath.documentId(), "in", batchIds)
+        .get();
 
-    // Execute all delete operations
-    await Promise.all(deletes);
-    return true;
+      if (!snapshot.empty) {
+        // Create a batch to perform deletion in one go
+        const batch = admin.firestore().batch();
+        snapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref); // Schedule deletion of each document
+        });
+
+        await batch.commit(); // Execute the batch deletion
+        console.log("Cart items removed successfully for batch.");
+      }
+    }
+    console.log("All cart items removed successfully.");
+    return true; // Indicate success
   } catch (error) {
-    return error;
+    console.error("Error removing items from cart:", error);
+    return false; // Indicate failure
   }
 }
 
