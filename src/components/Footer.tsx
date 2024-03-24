@@ -69,7 +69,6 @@ const Footer = () => {
           <h2>AniThrift</h2>
           <Link href="/about-us">About Us</Link>
           <Link href="/careers">Careers</Link>
-          <Link href="/api">API</Link>
         </div>
 
         {/* Help/Support */}
@@ -83,30 +82,14 @@ const Footer = () => {
           <Link href="/shipping">AniThrift Shipping</Link>
         </div>
 
-        {/* How to Become a Seller, etc. */}
-        <div className="join-section">
-          <h2>Join In</h2>
-          <Link href="/get-started">Get Started</Link>
-          <Link href="/sign-up">Sign Up</Link>
-          <Link href="/add-release">Add Release</Link>
-        </div>
-
         {/* Social Media Links */}
         <div className="social-media-section">
           <h2>Follow Us</h2>
           {/* Link and images for social media */}
-          <Link href="https://facebook.com/yourpage">
-            Facebook
-          </Link>
-          <Link href="https://twitter.com/yourpage">
-            Instagram
-          </Link>
-          <Link href="https://twitter.com/yourpage">
-            TikTok
-          </Link>
-          <Link href="https://twitter.com/yourpage">
-            LinkedIn
-          </Link>
+          <Link href="https://facebook.com/yourpage">Facebook</Link>
+          <Link href="https://twitter.com/yourpage">Instagram</Link>
+          <Link href="https://twitter.com/yourpage">TikTok</Link>
+          <Link href="https://twitter.com/yourpage">LinkedIn</Link>
           {/* Add more social media links */}
         </div>
 
@@ -137,7 +120,9 @@ const Footer = () => {
           <Link href="/cookie-policy">Cookie Policy</Link>
           <Link href="/terms-of-service">Terms of Service</Link>
           <Link href="/privacy-policy">Privacy Policy</Link>
-          <Link href="/california-privacy-notice">California Privacy Notice</Link>
+          <Link href="/california-privacy-notice">
+            California Privacy Notice
+          </Link>
           <Link href="/accessibility-statement">Accessibility Statement</Link>
         </div>
       </legal>

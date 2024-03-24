@@ -26,6 +26,10 @@ import StripeOnboardingForm from "./components/StripeOnboardingForm";
 import Orders from "./pages/orders";
 import Archives from "./pages/ArchivedOrders";
 import { AuthProvider } from "./components/userAuth";
+import AboutUsPage from "./pages/AboutUs";
+import CareersPage from "./pages/Careers";
+import HelpAndSupportPage from "./pages/HelpAndSupport";
+import AccountSettings from "./pages/AccountSettings";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -53,6 +57,10 @@ ReactDOM.render(
               element={<PersonalInfoPage />}
             />
             <Route path="/settings/addresses" element={<AddressesPage />} />
+            <Route
+              path="/settings/account-settings"
+              element={<AccountSettings />}
+            />
             <Route path="/success" element={<PurchaseSuccess />} />
             <Route
               path="/StripeOnboardingForm"
@@ -60,6 +68,9 @@ ReactDOM.render(
             />
             <Route path="/orders" element={<Orders />} />
             <Route path="/archives" element={<Archives />} />
+            <Route path="/about-us" element={<AboutUsPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/help-support" element={<HelpAndSupportPage />} />
           </Routes>
           <Footer />
         </BrowserRouter>

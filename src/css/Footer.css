@@ -18,7 +18,7 @@
   ); /* Adjust based on your content and design preference */
   gap: 20px; /* Space between columns */
   background-color: var(--secondary-color); /* Darker background for contrast */
-  padding: 20px;
+  padding: 20px 60px;
 }
 
 /* Ensures that each section including the title and links behaves like a mini-grid */

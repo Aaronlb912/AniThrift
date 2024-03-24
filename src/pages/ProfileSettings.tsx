@@ -15,7 +15,7 @@ const ProfileSettings = () => {
         <ListItem button component={Link} to="/settings/personal-information">
           <ListItemText primary="Personal Information" />
         </ListItem>
-        <ListItem button component={Link} to="/settings/sign-in-security">
+        <ListItem button component={Link} to="/settings/account-settings">
           <ListItemText primary="Sign-in and Security" />
         </ListItem>
         <ListItem button component={Link} to="/settings/addresses">

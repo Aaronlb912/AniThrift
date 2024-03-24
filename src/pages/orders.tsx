@@ -137,7 +137,7 @@ const YourOrdersPage = () => {
                 </div>
                 <div className="item-actions">
                   <button>Message seller</button>
-                  <button>Write a review</button>
+                  <button>Rate/Review</button>
                 </div>
               </div>
             ))}

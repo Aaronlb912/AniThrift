@@ -1,4 +1,4 @@
-.edit-profile {
+.account-settings {
   max-width: 500px;
   margin: 40px auto;
   padding: 20px;
@@ -8,38 +8,36 @@
   background-color: #fff;
 }
 
-.edit-profile h2 {
+.account-settings h2 {
   text-align: center;
   margin-bottom: 20px;
   color: #333;
 }
 
-.edit-profile-form {
+.account-settings-form {
   display: flex;
   flex-direction: column;
   gap: 15px; /* Ensures even spacing between form fields */
 }
 
-.edit-profile-form label {
-  display: block;
-  margin-bottom: 10px;
+.account-settings-form label {
+  display: flex;
+  flex-direction: column;
   font-weight: bold;
   color: #555;
 }
 
-.edit-profile-form input[type="text"],
-.edit-profile-form input[type="password"],
-.edit-profile-form input[type="file"],
-.edit-profile-form button {
+.account-settings-form input[type="password"],
+.account-settings-form input[type="email"],
+.account-settings-form button {
   padding: 10px;
   margin-top: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 16px;
-  width: 100%; /* Adjusts input fields to take full width */
 }
 
-.edit-profile-form button {
+.account-settings-form button {
   background-color: #007bff;
   color: #ffffff;
   cursor: pointer;
@@ -49,17 +47,16 @@
   transition: background-color 0.3s ease;
 }
 
-.edit-profile-form button:hover {
+.account-settings-form button:hover {
   background-color: #0056b3;
 }
 
-/* Adjustments for larger screens */
+/* Ensure the form elements are not too wide on larger screens */
 @media (min-width: 768px) {
-  .edit-profile-form input[type="text"],
-  .edit-profile-form input[type="password"],
-  .edit-profile-form input[type="file"],
-  .edit-profile-form button {
+  .account-settings-form input[type="password"],
+  .account-settings-form input[type="email"],
+  .account-settings-form button {
     width: 70%;
-    align-self: center; /* Center the form elements on larger screens */
+    align-self: center; /* Center the form elements */
   }
 }

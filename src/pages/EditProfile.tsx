@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db, storage } from "../firebase-config";
-import { updateProfile, updatePassword } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import "../css/EditProfile.css";
@@ -10,26 +10,35 @@ import "../css/EditProfile.css";
 const EditProfile = () => {
   const user = auth.currentUser;
   const [username, setUsername] = useState(user?.displayName || "");
-  const [newPassword, setNewPassword] = useState("");
-  const [reEnteredPassword, setReEnteredPassword] = useState("");
+  const [bio, setBio] = useState(""); // Add state for user bio
   const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Ensure user is not null
+    // Ensure user is not null and fetch the existing bio from the database
     if (!user) {
       navigate("/signin");
       return;
     }
+    const fetchUserInfo = async () => {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+      } else {
+        const userData = userDoc.data();
+        setBio(userData.bio || "");
+      }
+    };
+    fetchUserInfo();
   }, [user, navigate]);
 
-  const handleImageChange = (e:any) => {
+  const handleImageChange = (e: any) => {
     if (e.target.files[0]) {
       setSelectedImage(e.target.files[0]);
     }
   };
 
-  const handleUpdateProfile = async (e:any) => {
+  const handleUpdateProfile = async (e: any) => {
     e.preventDefault();
     if (!user) return;
 
@@ -44,24 +53,16 @@ const EditProfile = () => {
       imageUrl = await getDownloadURL(imageRef);
     }
 
-    if (username) {
-      await updateProfile(user, {
-        displayName: username,
-        photoURL: imageUrl,
-      });
-    }
-
-    if (newPassword && newPassword === reEnteredPassword) {
-      await updatePassword(user, newPassword);
-    } else if (newPassword !== reEnteredPassword) {
-      alert("Passwords do not match. Please try again.");
-      return;
-    }
+    await updateProfile(user, {
+      displayName: username,
+      photoURL: imageUrl,
+    });
 
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, {
       username: username,
       photoURL: imageUrl,
+      bio: bio, // Update the user bio
     });
 
     alert("Profile updated successfully.");
@@ -81,20 +82,12 @@ const EditProfile = () => {
           />
         </label>
         <label>
-          New Password: (Leave blank to keep the same)
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-        </label>
-        <label>
-          Re-enter New Password:
-          <input
-            type="password"
-            value={reEnteredPassword}
-            onChange={(e) => setReEnteredPassword(e.target.value)}
-          />
+          Bio: {/* Add a label for bio */}
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            style={{ minHeight: "100px", minWidth: "100%" }} // Style for minimum height and width
+          ></textarea>
         </label>
         <label>
           Profile Image:

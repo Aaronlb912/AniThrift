@@ -1,0 +1,27 @@
+/* CareersPage.css */
+.careers-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  min-height: 60%;
+}
+
+.careers-container h1,
+.careers-container h2 {
+  color: #0077b6; /* Adjust to match your site's theme */
+}
+
+.careers-container p {
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.contact-info a {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.contact-info a:hover {
+  text-decoration: underline;
+}
