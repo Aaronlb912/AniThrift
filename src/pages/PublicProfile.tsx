@@ -109,6 +109,8 @@ const PublicProfile: React.FC = () => {
             <br />
             <StarRating rating={userProfile.rating} />
           </p>
+          <p>Bio</p>
+          <p className="bio">{userProfile.bio}</p>
           {/* Display other user information as needed */}
         </div>
         {/* Possibly display reviews if appropriate */}

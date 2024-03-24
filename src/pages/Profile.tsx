@@ -25,6 +25,7 @@ interface UserProfile {
   rating: number;
   reviews: number;
   creationDate: string;
+  bio: string;
 }
 
 interface SellingInfo {
@@ -69,7 +70,7 @@ const Profile: React.FC = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         fetchUserProfile(user.uid);
         fetchUserItems(user.uid); // Fetch the user's selling items
@@ -77,6 +78,30 @@ const Profile: React.FC = () => {
         fetchDraftItems(user.uid);
         fetchSoldItems(user.uid);
         fetchRecentlyViewedItems(user.uid);
+
+        const fetchStripeInfo = async (userId: any) => {
+          const stripeInfoUrl = `https://us-central1-anithrift-e77a9.cloudfunctions.net/fetchStripeAccountInfo?userId=${userId}`;
+          try {
+            const response = await fetch(stripeInfoUrl);
+            if (!response.ok) {
+              throw new Error("Failed to fetch Stripe account info");
+            }
+            const data = await response.json();
+            setSellingInfo((prevInfo) => ({
+              ...prevInfo,
+              sales: data.transaction_count, // Adjust based on your JSON structure
+              accountBalance:
+                data.balance.reduce(
+                  (acc: any, curr: { amount: any }) => acc + curr.amount,
+                  0
+                ) / 100, // Convert to a readable format if necessary
+            }));
+          } catch (error) {
+            console.error("Error fetching Stripe info:", error);
+          }
+        };
+
+        fetchStripeInfo(user.uid);
       } else {
         navigate("/signin");
       }
@@ -92,11 +117,6 @@ const Profile: React.FC = () => {
     } else {
       console.error("No such document!");
     }
-  };
-
-  const extractDocIdFromRefPath = (refPath: string) => {
-    const parts = refPath.split("/");
-    return parts[parts.length - 1];
   };
 
   const fetchUserItems = async (uid: string) => {
@@ -337,6 +357,8 @@ const Profile: React.FC = () => {
             Reviews: {userProfile.reviews}
           </p>
           <p>Member since: {userProfile.creationDate}</p>
+          <p>Bio</p>
+          <p className="bio">{userProfile.bio}</p>
         </div>
       </div>
       <button
@@ -353,13 +375,17 @@ const Profile: React.FC = () => {
           <br />
           Active Listings
         </div>
+        {/* Display the sales count fetched from Stripe */}
         <div className="info-box">
-          {sellingInfo.sales} <br /> Sales{" "}
-        </div>
-        <div className="info-box">
-          ${sellingInfo.accountBalance}
+          {sellingInfo.sales}
           <br />
-          Account Balance:
+          Sales
+        </div>
+        {/* Display the account balance fetched from Stripe */}
+        <div className="info-box">
+          ${sellingInfo.accountBalance.toFixed(2)}
+          <br />
+          Account Balance
         </div>
       </div>
       <h2>Items I'm Selling</h2>

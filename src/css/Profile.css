@@ -12,6 +12,17 @@
   text-align: left;
 }
 
+.bio {
+  background-color: #f2f2f2; /* Light grey background to differentiate the bio section */
+  border: 1px solid #ddd; /* Slight border for definition */
+  border-radius: 5px; /* Rounded corners for a softer look */
+  padding: 15px; /* Space inside the box */
+  margin-top: 10px; /* Space between the "Bio:" label and the bio box */
+  white-space: pre-wrap; /* Ensures that whitespace and line breaks in the bio are respected */
+  width: 500px; /* Limits the width of the bio box, adjust as needed */
+  height: 100px;
+}
+
 .profile-info {
   display: flex;
   align-items: center;

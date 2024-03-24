@@ -17,6 +17,7 @@ const AccountSettings = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState(""); // State for confirming new password
   const navigate = useNavigate();
 
   const reauthenticate = async (currentPassword: string) => {
@@ -42,6 +43,14 @@ const AccountSettings = () => {
     const isReauthenticated = await reauthenticate(currentPassword);
     if (!isReauthenticated) return;
 
+    // Check if new passwords match
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    let updatesMade = false; // Flag to check if any updates were made
+
     if (newEmail) {
       try {
         await updateEmail(user, newEmail);
@@ -49,20 +58,27 @@ const AccountSettings = () => {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, { email: newEmail });
         alert("Email updated successfully.");
+        updatesMade = true;
       } catch (error) {
         console.error("Error updating email:", error);
         alert("Failed to update email.");
       }
     }
 
-    if (newPassword) {
+    if (newPassword && newPassword === confirmNewPassword) {
       try {
         await updatePassword(user, newPassword);
         alert("Password updated successfully.");
+        updatesMade = true;
       } catch (error) {
         console.error("Error updating password:", error);
         alert("Failed to update password.");
       }
+    }
+
+    // Navigate back to the profile page if any updates were made
+    if (updatesMade) {
+      navigate("/profile");
     }
   };
 
@@ -70,6 +86,14 @@ const AccountSettings = () => {
     <div className="account-settings">
       <h2>Account Settings</h2>
       <form onSubmit={handleUpdate} className="account-settings-form">
+        <label>
+          New Email:
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+          />
+        </label>
         <label>
           Current Password:
           <input
@@ -80,19 +104,19 @@ const AccountSettings = () => {
           />
         </label>
         <label>
-          New Email:
-          <input
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-          />
-        </label>
-        <label>
           New Password:
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </label>
+        <label>
+          Confirm New Password:
+          <input
+            type="password"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
           />
         </label>
         <button type="submit">Update Account</button>

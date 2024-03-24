@@ -140,6 +140,69 @@ const stripe = require("stripe")(
   "sk_test_51OmlACB42524Tsr4u5DxNgH2OJluMx2gZa888g0TX5kAqLDlKs2LScFM3zmrK3MvjmuzPmxOl4pHPPQPWluPz2VK00cGhyFCZm"
 );
 
+exports.fetchStripeAccountInfo = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const userId = req.query.userId; // Ensure you have a way to securely identify the user
+      const userRef = admin.firestore().collection("users").doc(userId);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        return res.status(404).send("User not found");
+      }
+
+      const stripeAccountId = userDoc.data().stripeAccountId;
+
+      // Fetch the Stripe account balance for the Connect account
+      const balance = await stripe.balance.retrieve({
+        stripeAccount: stripeAccountId,
+      });
+
+      let allTransactions = [];
+      let hasMore = true;
+      let startingAfter = null;
+
+      while (hasMore) {
+        let params = { limit: 100 };
+        if (startingAfter) {
+          params.starting_after = startingAfter;
+        }
+
+        const transactions = await stripe.balanceTransactions.list(params, {
+          stripeAccount: stripeAccountId,
+        });
+
+        allTransactions.push(...transactions.data);
+        hasMore = transactions.has_more;
+        if (hasMore && transactions.data.length > 0) {
+          startingAfter = transactions.data[transactions.data.length - 1].id;
+        }
+      }
+
+      // Optionally, filter transactions based on your criteria for "incoming" transactions
+      // const incomingTransactions = allTransactions.filter(transaction => ...);
+
+      const accountInfo = {
+        balance: balance.available.map((amt) => ({
+          currency: amt.currency,
+          amount: amt.amount,
+        })),
+        pending_balance: balance.pending.map((amt) => ({
+          currency: amt.currency,
+          amount: amt.amount,
+        })),
+        // If filtered, use incomingTransactions.length, otherwise allTransactions.length
+        transaction_count: allTransactions.length,
+      };
+
+      res.json(accountInfo);
+    } catch (error) {
+      console.error("Failed to fetch Stripe account info:", error);
+      res.status(500).send("Internal server error");
+    }
+  });
+});
+
 exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     // Ensure that you're receiving a POST request
