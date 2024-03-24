@@ -11,6 +11,8 @@ import {
 } from "firebase/auth";
 import "../css/Signin.css"; // Ensure the path is correct
 import { useNavigate } from "react-router-dom";
+import BadWordsNext from 'bad-words-next';
+const en = require('bad-words-next/data/en.json')
 
 const SignInPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,8 +45,8 @@ const SignInPage: React.FC = () => {
 
   const reserveUsername = (user: any, username: string) => {
     const usernameRef = doc(db, "usernames", username.toLowerCase());
-    const userRef = doc(db, "users", user.uid);
-  };
+    setDoc(usernameRef, { userId: user.uid }); // Reserve username
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +96,8 @@ const SignInPage: React.FC = () => {
         creationDate: moment().format("MMM Do YY"), // Log the account creation date
       });
 
+      reserveUsername({uid: userCredential.user.uid}, username);
+
       navigate("/"); // This will navigate the user to the homepage after successful registration
     } catch (error) {
       console.error("Registration error:", error);
@@ -120,14 +124,19 @@ const SignInPage: React.FC = () => {
   };
 
   const isValidUsername = (name: string) => {
+    const badwords = new BadWordsNext({ data: en })
     var nameRegex = /^[0-9A-Za-z]{6,16}$/;
-    if (name.match(nameRegex)) {
-      setUsernameIsValid(true);
-      return true;
+    if (!name.match(nameRegex)) {
+      setUsernameIsValid(false)
+      return false
     }
-    setUsernameIsValid(false);
-    return false;
-  };
+    if (badwords.check(name)) {
+      return false
+    }
+
+    setUsernameIsValid(false)
+    return true
+  }
 
   const checkUsername = async (name: string) => {
     const usernameRef = doc(db, "usernames", name.toLowerCase());
