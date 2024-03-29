@@ -17,6 +17,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [facets, setFacets] = useState<{ [key: string]: string[] }>({});
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
   const [tagSearchQuery, setTagSearchQuery] = useState("");
+  const [animeTagSearchQuery, setAnimeTagSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchFacets = async () => {
@@ -112,6 +113,38 @@ const FilterBar: React.FC<FilterBarProps> = ({
                               }
                             />
                             <label htmlFor={`tag-${value}`}>{value}</label>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </>
+              ) : facet === "animeTags" ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search anime tags..."
+                    value={animeTagSearchQuery}
+                    onChange={(e) => setAnimeTagSearchQuery(e.target.value)}
+                  />
+                  {animeTagSearchQuery && (
+                    <div className="tag-options">
+                      {facets[facet]
+                        .filter((value) =>
+                          value
+                            .toLowerCase()
+                            .includes(animeTagSearchQuery.toLowerCase())
+                        )
+                        .map((value) => (
+                          <div key={value} className="option">
+                            <input
+                              type="checkbox"
+                              id={`animeTag-${value}`}
+                              checked={isFacetSelected("animeTags", value)}
+                              onChange={() =>
+                                updateFacetSelection("animeTags", value)
+                              }
+                            />
+                            <label htmlFor={`animeTag-${value}`}>{value}</label>
                           </div>
                         ))}
                     </div>

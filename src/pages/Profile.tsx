@@ -388,6 +388,9 @@ const Profile: React.FC = () => {
           Account Balance
         </div>
       </div>
+      <h2>Recently Viewed Items</h2>
+      <Carousel items={recentlyViewedItems} />
+
       <h2>Items I'm Selling</h2>
       {userItems.length > 0 ? (
         <div style={{ height: 400, width: "100%" }}>
@@ -404,9 +407,6 @@ const Profile: React.FC = () => {
         <p>You do not have any items listed for sale.</p>
       )}
       {/* <ReviewsSection reviews={userProfile.reviews} /> */}
-
-      <h2>Recently Viewed Items</h2>
-      <Carousel items={recentlyViewedItems} />
 
       <h2>My Watch List</h2>
       {watchListItems.length > 0 ? (

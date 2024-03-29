@@ -28,6 +28,10 @@
   padding: 10px;
 }
 
+.form-field {
+  z-index: 0;
+}
+
 /* Style for the dropzone */
 .dropzone {
   border: 2px dashed #007bff;

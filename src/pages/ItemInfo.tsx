@@ -112,22 +112,11 @@ const ItemInfo = () => {
 
   const updateRecentlyViewedItems = async (
     userId: string | null,
-    itemId: string | undefined,
-    sellerId: string | undefined
+    itemId: string | undefined
   ) => {
     // Check if userId or itemId is null or undefined
     if (!userId || !itemId) {
-      if (!userId) {
-        console.error("User ID  is missing");
-      } else {
-        console.error("Item ID is missing");
-      }
-      return;
-    }
-
-    // Additional check to ensure not adding the item if the viewer is the seller
-    if (userId === sellerId) {
-      console.log("User is the seller, not adding to recently viewed");
+      console.error("User ID or Item ID is missing");
       return;
     }
 
@@ -139,15 +128,14 @@ const ItemInfo = () => {
       return;
     }
 
-    const userRef = doc(db, "users", userId);
-    const userSnapshot = await getDoc(userRef);
+    const itemData = itemSnapshot.data();
 
-    if (!userSnapshot.exists()) {
-      console.error("User does not exist");
+    // Prevent adding the item if the viewer is the seller
+    if (itemData.sellerId === userId) {
+      console.log("User is the seller, not adding to recently viewed");
       return;
     }
 
-    // Proceed with checking and adding to recently viewed as before
     const recentlyViewedRef = collection(db, "users", userId, "recentlyViewed");
     const recentlyViewedSnapshot = await getDocs(recentlyViewedRef);
 
@@ -304,35 +292,52 @@ const ItemInfo = () => {
         <p>
           <h3>Condition:</h3> {item.condition}
         </p>
-        <div className="item-tags">
+        <div className="item-tags ">
           <h3>Tags:</h3>
-          {item.tags &&
-            item.tags.map(
-              (
-                tag:
-                  | string
-                  | number
-                  | boolean
-                  | React.ReactElement<
-                      any,
-                      string | React.JSXElementConstructor<any>
-                    >
-                  | Iterable<React.ReactNode>
-                  | React.ReactPortal
-                  | null
-                  | undefined,
-                index: React.Key | null | undefined
-              ) => (
+          <div className="tag-container">
+            {item.tags &&
+              item.tags.map(
+                (
+                  tag:
+                    | string
+                    | number
+                    | boolean
+                    | React.ReactElement<
+                        any,
+                        string | React.JSXElementConstructor<any>
+                      >
+                    | Iterable<React.ReactNode>
+                    | React.ReactPortal
+                    | null
+                    | undefined,
+                  index: React.Key | null | undefined
+                ) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleTagClick(tag)}
+                    variant="contained"
+                    style={{ marginRight: "8px", marginBottom: "8px" }}
+                  >
+                    {tag}
+                  </Button>
+                )
+              )}
+          </div>
+        </div>
+        <div className="anime-tags ">
+          <h3>Anime Tags:</h3>
+          <div className="tag-container">
+            {item.animeTags &&
+              item.animeTags.map((animeTag, index) => (
                 <Button
                   key={index}
-                  onClick={() => handleTagClick(tag)}
                   variant="contained"
                   style={{ marginRight: "8px", marginBottom: "8px" }}
                 >
-                  {tag}
+                  {animeTag}
                 </Button>
-              )
-            )}
+              ))}
+          </div>
         </div>
         <div className="item-quantity-container">
           <h3>Available Quantity: {item.quantity}</h3>
@@ -350,6 +355,10 @@ const ItemInfo = () => {
         <p>
           <h3>Price: ${item.price}</h3>
         </p>
+        <div className="listing-status">
+          <h3>Listing Status:</h3>
+          <p>{item.listingStatus}</p>
+        </div>
         {userId === item.sellerId ? (
           // If the current user is the seller, show Edit and Delete buttons
           <div>

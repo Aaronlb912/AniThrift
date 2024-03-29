@@ -130,3 +130,31 @@ button:hover {
 .item-tags {
   text-align: center;
 }
+
+.anime-tags {
+  text-align: center;
+}
+
+.tag-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Default to 4 columns */
+  gap: 8px;
+  justify-items: center; /* Centers items in their cell */
+
+  justify-content: center;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* For smaller screens, adjust the number of columns */
+@media (max-width: 768px) {
+  .tag-container {
+    grid-template-columns: repeat(2, 1fr); /* Use 2 columns on medium screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .tag-container {
+    grid-template-columns: 1fr; /* Use 1 column on small screens */
+  }
+}

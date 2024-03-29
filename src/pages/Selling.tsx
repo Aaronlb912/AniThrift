@@ -32,7 +32,9 @@ import {
   Radio,
   RadioGroup,
   Chip,
+  CircularProgress,
 } from "@mui/material";
+import MalSearch from "../components/MalSearch";
 import axios from "axios";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
@@ -92,6 +94,7 @@ const Selling = () => {
   // const [title, setTitle] = useState("");
   // const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
+  const [animeTags, setAnimeTags] = useState([]);
   // const [category, setCategory] = useState("");
   // const [condition, setCondition] = useState("");
   // const [packageCondition, setPackageCondition] = useState(""); // For package condition
@@ -102,6 +105,8 @@ const Selling = () => {
   const [userId, setUserId] = useState<string | null>(null);
   // const [quantity, setQuantity] = useState(1); // Default to 1
   const navigate = useNavigate(); // Add this line
+  const [isLoading, setIsLoading] = useState(false);
+
   // const [listingStatus, setListingStatus] =
   // useState<MarketplaceItemStatus>("listing pending");
   const autocompleteContainerRef = useRef(null); // Ref for the autocomplete container
@@ -194,8 +199,6 @@ const Selling = () => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
 
-  console.log("photos", photos);
-
   useEffect(() => {
     if (!autocompleteContainerRef.current) return;
 
@@ -259,9 +262,18 @@ const Selling = () => {
     setTags(tags.filter((tag) => tag.label !== labelToRemove));
   };
 
+  const handleMalItemSelected = (selectedItem) => {
+    // Directly use the title for animeTags
+    const title = selectedItem.title;
+    if (!animeTags.includes(title)) {
+      setAnimeTags([...animeTags, title]);
+    }
+  };
+
   // Handle form submit
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true); // Start loading
 
     console.log("Submitting form...");
 
@@ -279,6 +291,7 @@ const Selling = () => {
       const newItemData = {
         ...item,
         tags: tags.map((tag) => tag?.label), // Assuming tags are objects with a label property
+        animeTags, // Add animeTags to your payload
         photos: photoUrls,
         creationDate: moment().toISOString(),
         sellerId: userId,
@@ -302,11 +315,14 @@ const Selling = () => {
       );
 
       console.log("Item listed with ID:", globalItemDocRef.id);
+
       navigate(`/item/${globalItemDocRef.id}`); // Redirect to the item page using the consistent item ID
     } catch (e) {
       console.error("Error listing item:", e);
       alert("An error occurred while listing the item. Please try again.");
     }
+
+    setIsLoading(false); // Stop loading
   };
 
   const dropzoneStyle =
@@ -321,6 +337,18 @@ const Selling = () => {
 
   return (
     <div className="selling-form">
+      {isLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CircularProgress />
+        </div>
+      )}
       <h1>List an Item</h1>
       <form onSubmit={handleSubmit}>
         <h2>Photos</h2>
@@ -391,6 +419,21 @@ const Selling = () => {
                 key={index}
                 label={tag.label} // Make sure to access the label property
                 onDelete={() => handleRemoveTag(tag.label)} // Assuming you want to remove by label
+                style={{ margin: "5px" }}
+              />
+            ))}
+          </div>
+          <div className="animeTags-section">
+            <h3>Anime Relation</h3>
+            <MalSearch onItemSelected={handleMalItemSelected} />
+            {/* Display selected animeTags */}
+            {animeTags.map((title, index) => (
+              <Chip
+                key={index}
+                label={title}
+                onDelete={() =>
+                  setAnimeTags(animeTags.filter((t) => t !== title))
+                }
                 style={{ margin: "5px" }}
               />
             ))}
