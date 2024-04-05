@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import algoliasearch from "algoliasearch/lite";
 import FilterBar from "../components/SearchFilter";
+import EbayResults from "../components/EbayResults";
 import "../css/search.css";
 
 const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
@@ -71,13 +72,13 @@ const SearchResults: React.FC = () => {
                 className="search-result-item"
                 onClick={() => handleItemClick(item.objectID)}
               >
+                <div className="item-title">{item.title}</div>
+                <div className="item-price">${item.price}</div>
                 <img
                   src={item.photos[0] || "placeholder-image-url"}
                   alt={item.title}
                   className="item-image"
                 />
-                <div className="item-title">{item.title}</div>
-                <div className="item-price">${item.price}</div>
               </div>
             ))
           ) : (
@@ -86,7 +87,9 @@ const SearchResults: React.FC = () => {
         </div>
       </div>
       <h1>Ebay Results</h1>
-      <div className="Results"></div>
+      <div className="Results">
+        <EbayResults searchQuery={searchQuery} />
+      </div>
       <h1>FaceBook MarketPlace Results</h1>
       <div className="Results"></div>
     </div>

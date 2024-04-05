@@ -228,9 +228,6 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
       // This step is optional and should be used according to your security requirements
       const buyerExists = await checkIfUserExists(buyerId);
 
-      console.log("we are here");
-      console.log("cart", cartItems);
-
       // Assuming the first cart item to determine the seller for simplification. Adjust as necessary.
       const sellerStripeAccountId = await fetchSellerStripeAccountId(
         cartItems[0].sellerId
@@ -251,9 +248,6 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
         },
         quantity: item.quantity,
       }));
-
-      console.log("now we are here");
-      console.log("StripeID", sellerStripeAccountId);
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -316,8 +310,6 @@ exports.stripeWebhook = functions.https.onRequest((req, res) => {
     // Proceed only for checkout.session.completed events
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      console.log("session", JSON.stringify(session));
-      console.log("metadata", session.metadata);
 
       const { buyerId, cartItems } = session.metadata; // Make sure metadata is stored correctly during checkout session creation
       const parsedCartItems = JSON.parse(cartItems); // Make sure metadata is stored correctly during checkout session creation
@@ -546,4 +538,39 @@ exports.completeStripeOnboarding = functions.https.onRequest(
   }
 );
 
+const Ebay = require("ebay-node-api");
 
+exports.searchEbayItems = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    const { keywords = "Anime", offset = 0 } = req.body;
+
+    let ebay = new Ebay({
+      clientID: "Anithrif-Anithrif-PRD-b7fc0fe97-09fe34fa",
+      clientSecret: "PRD-7fc0fe97ba6b-5be0-4310-a07b-7ffa",
+      body: {
+        grant_type: "client_credentials",
+        scope: "https://api.ebay.com/oauth/api_scope",
+      },
+    });
+
+    try {
+      await ebay.getAccessToken();
+      const items = await ebay.searchItems({
+        keyword: keywords,
+        limit: "12",
+        offset: offset.toString(),
+      });
+
+      console.log("Items to return:", items);
+      res.status(200).send(items);
+    } catch (error) {
+      console.error("Error with eBay API:", error);
+      res.status(500).send("Error fetching data from eBay");
+    }
+  });
+});

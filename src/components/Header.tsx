@@ -111,6 +111,24 @@ const Header = () => {
     setAnchorEl(null);
   };
 
+  const handleCategoryClick = (query) => {
+    // Update the search query in the context
+    setSearchQuery(`${query}`);
+    // Navigate to the search page. The EbayResults component will pick up the updated query.
+    navigate(`/search?query=${encodeURIComponent(`${query}`)}`);
+  };
+
+  const categories = [
+    { name: "Digital Media", query: "anime" },
+    { name: "Manga & Novels", query: "manga" },
+    { name: "Merchandise", query: "merch" },
+    { name: "Figures & Trinkets", query: "figures" },
+    { name: "Apparel", query: "apparel" },
+    { name: "Audio", query: "audio" },
+    { name: "Games", query: "games" },
+    { name: "All Categories", query: "" },
+  ];
+
   return (
     <>
       <topbar>
@@ -257,30 +275,16 @@ const Header = () => {
         </>
       ) : (
         <nav className="navbar">
-          <Link to="/search?query=anime" className="nav-link">
-            Digital Media
-          </Link>
-          <Link to="/search?query=manga" className="nav-link">
-            Manga & Novels
-          </Link>
-          <Link to="/search?query=merch" className="nav-link">
-            Merchandise
-          </Link>
-          <Link to="/search?query=figures" className="nav-link">
-            Figures & Trinkets
-          </Link>
-          <Link to="/search?query=apparel" className="nav-link">
-            Apparel
-          </Link>
-          <Link to="/search?query=audio" className="nav-link">
-            Audio
-          </Link>
-          <Link to="/search?query=games" className="nav-link">
-            Games
-          </Link>
-          <Link to="/search" className="nav-link">
-            All Categories
-          </Link>
+          {categories.map((category, index) => (
+            <Button
+              key={index}
+              className="nav-link"
+              onClick={() => handleCategoryClick(category.query)}
+              style={{ textTransform: "none" }}
+            >
+              {category.name}
+            </Button>
+          ))}
         </nav>
       )}
     </>
