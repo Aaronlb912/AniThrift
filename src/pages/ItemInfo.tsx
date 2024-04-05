@@ -27,6 +27,7 @@ import {
   Alert,
   TextField,
 } from "@mui/material";
+import { useSearch } from "../components/SearchHandler";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 
@@ -45,6 +46,7 @@ const ItemInfo = () => {
     message: "",
     severity: "success", // Can be "error", "warning", "info", or "success"
   });
+  const { setSearchQuery } = useSearch(); // Destructure setSearchQuery from the context
 
   const handleOpenDeleteDialog = () => {
     setOpenDeleteDialog(true);
@@ -251,8 +253,9 @@ const ItemInfo = () => {
   };
 
   const handleTagClick = (tag: any) => {
-    // Navigate to a search results page. Adjust the path as needed.
-    navigate(`/search?tag=${tag}`);
+    // Navigate to a search results page with the tag as a query parameter.
+    navigate(`/search?query=${encodeURIComponent(tag)}`);
+    setSearchQuery(tag);
   };
 
   const handleThumbnailClick = (image: React.SetStateAction<string>) => {
@@ -296,32 +299,16 @@ const ItemInfo = () => {
           <h3>Tags:</h3>
           <div className="tag-container">
             {item.tags &&
-              item.tags.map(
-                (
-                  tag:
-                    | string
-                    | number
-                    | boolean
-                    | React.ReactElement<
-                        any,
-                        string | React.JSXElementConstructor<any>
-                      >
-                    | Iterable<React.ReactNode>
-                    | React.ReactPortal
-                    | null
-                    | undefined,
-                  index: React.Key | null | undefined
-                ) => (
-                  <Button
-                    key={index}
-                    onClick={() => handleTagClick(tag)}
-                    variant="contained"
-                    style={{ marginRight: "8px", marginBottom: "8px" }}
-                  >
-                    {tag}
-                  </Button>
-                )
-              )}
+              item.tags.map((tag, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleTagClick(tag)}
+                  variant="contained"
+                  style={{ marginRight: "8px", marginBottom: "8px" }}
+                >
+                  {tag}
+                </Button>
+              ))}
           </div>
         </div>
         <div className="anime-tags ">
@@ -331,6 +318,7 @@ const ItemInfo = () => {
               item.animeTags.map((animeTag, index) => (
                 <Button
                   key={index}
+                  onClick={() => handleTagClick(animeTag)} // Reuse the same function for anime tags
                   variant="contained"
                   style={{ marginRight: "8px", marginBottom: "8px" }}
                 >
