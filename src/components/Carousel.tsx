@@ -66,7 +66,7 @@ export const Carousel = ({ items }: { items: any }) => {
           <div key={index} className="carousel-item">
             <Link to={`/item/${item?.id}`} className="carousel-item-link">
               <img src={item?.imageUrl} alt={`Item ${index + 1}`} />
-              <p>{item?.name}</p>
+              <p>{item?.title}</p>
               <p>${item?.price}</p>
             </Link>
           </div>

@@ -83,7 +83,7 @@
   text-align: center; /* Centers the text */
 }
 
-button {
+.item-info-container button {
   margin: 10px;
   padding: 10px 20px;
   cursor: pointer;
@@ -95,7 +95,7 @@ button {
   align-items: center;
 }
 
-button:hover {
+.item-info-container button:hover {
   background-color: #0056b3; /* Darker shade on hover */
 }
 

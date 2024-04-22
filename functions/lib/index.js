@@ -562,7 +562,7 @@ exports.searchEbayItems = functions.https.onRequest((req, res) => {
       await ebay.getAccessToken();
       const items = await ebay.searchItems({
         keyword: keywords,
-        limit: "12",
+        limit: "120",
         offset: offset.toString(),
       });
 

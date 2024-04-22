@@ -62,3 +62,34 @@
   text-decoration: none;
   color: inherit;
 }
+
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+  z-index: 1000;
+  display: none; /* Initially hidden */
+}
+.buttonsContainer button.selectedPage {
+  background-color: #4caf50; /* Green background for selected page */
+  color: white; /* White text for visibility */
+}
+
+.buttonsContainer button {
+  background-color: #5c67a3; /* Custom background color */
+  color: white; /* Text color */
+  padding: 8px 16px; /* Padding around text */
+  border-radius: 4px; /* Rounded corners */
+}
+
+.buttonsContainer button:hover {
+  background-color: navy; /* Darker background on hover */
+}
