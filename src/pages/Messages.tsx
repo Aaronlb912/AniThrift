@@ -9,13 +9,40 @@ import {
   MessageInput,
   MessageContainer,
   MessageList,
-  MessageHeader
+  MessageHeader,
+  ConversationList,
 } from "@minchat/react-chat-ui";
 
 // The main messaging page component
 const Messages = () => {
-  const [conversations, setConversations] = useState();
-  const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [conversations, setConversations] = useState([
+    {
+      title: "John Doe",
+      lastMessage: {
+        text: "Hello, how are you?",
+        senderId: "johnDoe",
+        timestamp: 1643723400
+      },
+      unread: true,
+      avatar: "(link unavailable)",
+      username: "joneaux",
+      id: "conversation-123",
+      messageThreadRef: "",
+    }
+  ]);
+  const [selectedConversation, setSelectedConversation] = useState<any>({
+    title: "John Doe",
+    lastMessage: {
+      text: "Hello, how are you?",
+      senderId: "johnDoe",
+      timestamp: 1643723400
+    },
+    unread: true,
+    avatar: "(link unavailable)",
+    username: "joneaux",
+    id: "conversation-123",
+    messageThreadRef: "",
+  });
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -50,8 +77,6 @@ const Messages = () => {
       messageThreadRef: doc(db, "message_threads", messageThreadRef.id),
     });
   });
-
-  console.log("New conversation started with ID: ", messageThreadRef.id);
 };
 
 const fetchMessages = async (messageThreadId: string) => {
@@ -121,26 +146,35 @@ useEffect(() => {
 }, [selectedConversation?.messageThreadRef]); // Re-run this effect if messageThreadId changes
 
   return (
-    <div className="messages-page">
-      <MinChatUiProvider theme="#6ea9d7">
-        <MainContainer style={{ height: '100vh' }}>
-          <MessageContainer>
-            <MessageHeader />
-            <MessageList
-              currentUserId='dan'
-              messages={[{
-                text: 'Hello',
-                user: {
-                  id: 'mark',
-                  name: 'Markus',
-                },
-              }]}
-            />
-            <MessageInput showSendButton={false} placeholder={"Type message here"} />
-          </MessageContainer>
-        </MainContainer>
-      </MinChatUiProvider>
+    <div className="messages-page" style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ width: '25%', borderRight: '1px solid #ccc' }}>
+      <h3>Conversations</h3>
+      <ul>
+        {conversations.map((conversation) => (
+          <li
+            key={conversation?.messageThreadRef?.id}
+            onClick={() => setSelectedConversation(conversation)}
+            style={{ padding: '10px', cursor: 'pointer' }}
+          >
+            {conversation?.username}
+          </li>
+        ))}
+      </ul>
     </div>
+    <div style={{ width: '75%' }}>
+      <MainContainer style={{ height: '100%' }}>
+        <MessageContainer>
+          <MessageHeader />
+          <MessageList messages={messages} currentUserId={user?.uid} />
+          <MessageInput onSendMessage={(text) => {
+            let messageThreadId = selectedConversation?.messageThreadId
+            let senderId = user?.uid
+            sendMessage(messageThreadId, senderId, text)
+          }} showSendButton={true} placeholder="Type message here" />
+        </MessageContainer>
+      </MainContainer>
+    </div>
+  </div>
   );
 };
 
