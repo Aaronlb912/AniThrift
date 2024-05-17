@@ -161,6 +161,78 @@ const Profile: React.FC = () => {
     }));
   };
 
+  const fetchDraftItems = async (uid: string) => {
+    const q = query(collection(db, "users", uid, "items"));
+
+    const querySnapshot = await getDocs(q);
+    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
+      // Assuming itemRef is directly a Firestore DocumentReference
+      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
+      if (!itemRef) return null; // Guard against missing or incorrect refs
+
+      // Directly use the DocumentReference to fetch the document
+      const itemSnapshot = await getDoc(itemRef);
+
+      if (
+        itemSnapshot.exists() &&
+        itemSnapshot.data().listingStatus === "draft"
+      ) {
+        const data = itemSnapshot.data();
+        return {
+          id: itemSnapshot.id,
+          ...data,
+          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
+          name: data.title,
+          // Add more fields as needed
+        };
+      } else {
+        console.error("No such item for ref:", itemRef);
+        return null;
+      }
+    });
+
+    const resolvedItems = (await Promise.all(itemsPromises)).filter(
+      (item) => item !== null
+    );
+    setDraftItems(resolvedItems);
+  };
+
+  const fetchSoldItems = async (uid: string) => {
+    const q = query(collection(db, "users", uid, "items"));
+
+    const querySnapshot = await getDocs(q);
+    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
+      // Assuming itemRef is directly a Firestore DocumentReference
+      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
+      if (!itemRef) return null; // Guard against missing or incorrect refs
+
+      // Directly use the DocumentReference to fetch the document
+      const itemSnapshot = await getDoc(itemRef);
+
+      if (
+        itemSnapshot.exists() &&
+        itemSnapshot.data().listingStatus === "sold"
+      ) {
+        const data = itemSnapshot.data();
+        return {
+          id: itemSnapshot.id,
+          ...data,
+          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
+          name: data.title,
+          // Add more fields as needed
+        };
+      } else {
+        console.error("No such item for ref:", itemRef);
+        return null;
+      }
+    });
+
+    const resolvedItems = (await Promise.all(itemsPromises)).filter(
+      (item) => item !== null
+    );
+    setSoldItems(resolvedItems);
+  };
+
   const fetchRecentlyViewedItems = async (uid: string) => {
     // Reference to the user's recently viewed items collection
     const recentlyViewedRef = collection(db, "users", uid, "recentlyViewed");
@@ -253,78 +325,6 @@ const Profile: React.FC = () => {
     // Now resolvedItems contains all items from the user's watchlist
     // Here you would update your state or context with these items
     setWatchListItems(resolvedItems);
-  };
-
-  const fetchDraftItems = async (uid: string) => {
-    const q = query(collection(db, "users", uid, "items"));
-
-    const querySnapshot = await getDocs(q);
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Assuming itemRef is directly a Firestore DocumentReference
-      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
-      if (!itemRef) return null; // Guard against missing or incorrect refs
-
-      // Directly use the DocumentReference to fetch the document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (
-        itemSnapshot.exists() &&
-        itemSnapshot.data().listingStatus === "draft"
-      ) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
-          name: data.title,
-          // Add more fields as needed
-        };
-      } else {
-        console.error("No such item for ref:", itemRef);
-        return null;
-      }
-    });
-
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-    setDraftItems(resolvedItems);
-  };
-
-  const fetchSoldItems = async (uid: string) => {
-    const q = query(collection(db, "users", uid, "items"));
-
-    const querySnapshot = await getDocs(q);
-    const itemsPromises = querySnapshot.docs.map(async (docSnapshot) => {
-      // Assuming itemRef is directly a Firestore DocumentReference
-      const itemRef = docSnapshot.data().ref; // This should be a DocumentReference if not a string
-      if (!itemRef) return null; // Guard against missing or incorrect refs
-
-      // Directly use the DocumentReference to fetch the document
-      const itemSnapshot = await getDoc(itemRef);
-
-      if (
-        itemSnapshot.exists() &&
-        itemSnapshot.data().listingStatus === "sold"
-      ) {
-        const data = itemSnapshot.data();
-        return {
-          id: itemSnapshot.id,
-          ...data,
-          imageUrl: data.photos && data.photos.length > 0 ? data.photos[0] : "", // Fallback to empty string if no photos
-          name: data.title,
-          // Add more fields as needed
-        };
-      } else {
-        console.error("No such item for ref:", itemRef);
-        return null;
-      }
-    });
-
-    const resolvedItems = (await Promise.all(itemsPromises)).filter(
-      (item) => item !== null
-    );
-    setSoldItems(resolvedItems);
   };
 
   const handleRowClick = (param: { id: any }) => {
@@ -437,7 +437,7 @@ const Profile: React.FC = () => {
           />
         </div>
       ) : (
-        <p>You are not currently watching any items.</p>
+        <p>You do not have any items saved as draft.</p>
       )}
 
       <h2>My Sold List</h2>

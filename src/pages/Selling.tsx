@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  Fragment,
-  useRef,
-} from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -51,7 +45,7 @@ interface MarketplaceItemType {
   deliveryOption: string;
   price: string;
   quantity: number;
-  photos?: PhotoType;
+  photos?: PhotoType[];
   creationDate: string;
   sellerId?: string;
   listingStatus: MarketplaceItemStatus;
@@ -61,14 +55,7 @@ type PhotoType = {
   downloadURL: string | null;
   preview: string;
 };
-/**
- * selling = the item is available on the marketplace for purchase
- * sold = the item has been purchased and is no longer available on the marketpalce, can still be seen in the sold section of the user profile
- * draft = the user is creating an item but it will not be available for purchase yet, they can go back and edit it
- * listing pending = the item has been submited to be sold, it is going through a review process
- * cancelled = someone chose to cancel an order, the originial item can be set to selling and a duplicate of the item information will be created on the person who cancelled's account so that they can see their cancelled orders
- * purchased = items users have purchased, will be a copy of a sold item shown on the purchaser user's account
- */
+
 type MarketplaceItemStatus =
   | "selling"
   | "sold"
@@ -78,7 +65,6 @@ type MarketplaceItemStatus =
   | "purchased";
 
 const Selling = () => {
-  // State for form inputs
   const [item, setItem] = useState<MarketplaceItemType>({
     title: "",
     description: "",
@@ -91,54 +77,37 @@ const Selling = () => {
     creationDate: "",
     listingStatus: "selling",
   });
-  // const [title, setTitle] = useState("");
-  // const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
   const [animeTags, setAnimeTags] = useState([]);
-  // const [category, setCategory] = useState("");
-  // const [condition, setCondition] = useState("");
-  // const [packageCondition, setPackageCondition] = useState(""); // For package condition
-  // const [color, setColor] = useState("");
-  // const [deliveryOption, setDeliveryOption] = useState("");
-  // const [price, setPrice] = useState("");
   const [photos, setPhotos] = useState<PhotoType[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
-  // const [quantity, setQuantity] = useState(1); // Default to 1
-  const navigate = useNavigate(); // Add this line
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
-  // const [listingStatus, setListingStatus] =
-  // useState<MarketplaceItemStatus>("listing pending");
-  const autocompleteContainerRef = useRef(null); // Ref for the autocomplete container
+  const autocompleteContainerRef = useRef(null);
 
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, set userId state
         setUserId(user.uid);
       } else {
-        // User is signed out, redirect to login page
-        navigate("/signin"); // Update this path to your login route
+        navigate("/signin");
       }
     });
   }, [navigate]);
 
-  // Handle change for file input
   const onDrop = useCallback(
     (acceptedFiles: any) => {
       const storage = getStorage();
 
-      // Check if adding new photos exceeds the limit
       const potentialNewTotal = photos.length + acceptedFiles.length;
       if (potentialNewTotal > 10) {
         alert(
           `You can only upload up to 10 images. Currently selected: ${photos.length}.`
         );
-        return; // Prevent further execution
+        return;
       }
 
-      // Proceed with the file processing
       const newPhotosWithPreview = acceptedFiles.map((file: any) => {
         const previewUrl = URL.createObjectURL(file);
         const fileRef = storageRef(
@@ -149,9 +118,7 @@ const Selling = () => {
 
         uploadTask.on(
           "state_changed",
-          (snapshot) => {
-            // Optional: handle upload progress
-          },
+          (snapshot) => {},
           (error) => {
             console.error("Upload error:", error);
           },
@@ -186,15 +153,12 @@ const Selling = () => {
     event.stopPropagation();
     event.preventDefault();
 
-    // Filter out the photo to be removed
     const filteredPhotos = photos.filter((photo) => photo.preview !== photoUrl);
     setPhotos(filteredPhotos);
 
-    // Revoke the object URL of the removed photo
     URL.revokeObjectURL(photoUrl);
   };
 
-  // Remember to revoke data uris to avoid memory leaks
   React.useEffect(() => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
@@ -229,17 +193,14 @@ const Selling = () => {
               if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
                 setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
               }
-              // Note: Directly clearing the query with setQuery isn't done here; focus on onSelect logic
             },
           },
         ];
       },
-      // The onSubmit callback is adjusted to avoid using state.setQuery
       onSubmit({ state }) {
         const tagToAdd = state.query.trim();
         if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
           setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
-          // Here, rather than trying to clear the input directly, you'd reset the external state managing the input value if applicable
         }
       },
     });
@@ -251,7 +212,6 @@ const Selling = () => {
     };
   }, [tags]);
 
-  // New method for adding tags, ensuring we don't trigger the useEffect unnecessarily
   const addTag = (newTag) => {
     if (newTag && !tags.includes(newTag)) {
       setTags((currentTags) => [...currentTags, newTag]);
@@ -263,23 +223,28 @@ const Selling = () => {
   };
 
   const handleMalItemSelected = (selectedItem) => {
-    // Directly use the title for animeTags
     const title = selectedItem.title;
     if (!animeTags.includes(title)) {
       setAnimeTags([...animeTags, title]);
     }
   };
 
-  // Handle form submit
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     console.log("Submitting form...");
 
     if (!userId) {
       console.error("User not authenticated");
       alert("You must be logged in to list an item.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (item.quantity < 1) {
+      alert("Quantity must be at least 1.");
+      setIsLoading(false);
       return;
     }
 
@@ -287,24 +252,22 @@ const Selling = () => {
       const uploadedPhotos = photos.filter((photo) => photo.downloadURL);
       const photoUrls = uploadedPhotos.map((photo) => photo.downloadURL);
 
-      // Prepare data for new item
       const newItemData = {
         ...item,
-        tags: tags.map((tag) => tag?.label), // Assuming tags are objects with a label property
-        animeTags, // Add animeTags to your payload
+        tags: tags.map((tag) => tag?.label),
+        animeTags,
         photos: photoUrls,
         creationDate: moment().toISOString(),
         sellerId: userId,
       };
 
       console.log(newItemData);
-      // Step 1: Add to the global 'items' collection
+
       const globalItemDocRef = await addDoc(
         collection(db, "items"),
         newItemData
       );
 
-      // Step 2: Use the same ID to create a document in the user's 'selling' collection
       await setDoc(doc(db, "users", userId, "items", globalItemDocRef.id), {
         ref: globalItemDocRef,
       });
@@ -316,28 +279,34 @@ const Selling = () => {
 
       console.log("Item listed with ID:", globalItemDocRef.id);
 
-      navigate(`/item/${globalItemDocRef.id}`); // Redirect to the item page using the consistent item ID
+      navigate(`/item/${globalItemDocRef.id}`);
     } catch (e) {
       console.error("Error listing item:", e);
       alert("An error occurred while listing the item. Please try again.");
     }
 
-    setIsLoading(false); // Stop loading
+    setIsLoading(false);
   };
 
   const handleSaveDraft = async () => {
-    setIsLoading(true); // Indicate loading state
+    setIsLoading(true);
 
     if (!userId) {
       console.error("User not authenticated");
       alert("You must be logged in to save an item.");
-      setIsLoading(false); // Stop loading if not logged in
+      setIsLoading(false);
+      return;
+    }
+
+    if (item.quantity < 1) {
+      alert("Quantity must be at least 1.");
+      setIsLoading(false);
       return;
     }
 
     const draftItemData = {
       ...item,
-      listingStatus: "draft", // Set the listing status to draft
+      listingStatus: "draft",
       tags: tags.map((tag) => tag?.label),
       animeTags,
       photos: photos.map((photo) => photo.downloadURL),
@@ -346,16 +315,24 @@ const Selling = () => {
     };
 
     try {
-      const docRef = await addDoc(collection(db, "items"), draftItemData);
-      console.log("Draft saved with ID:", docRef.id);
+      const globalItemDocRef = await addDoc(
+        collection(db, "items"),
+        draftItemData
+      );
+
+      await setDoc(doc(db, "users", userId, "items", globalItemDocRef.id), {
+        ref: globalItemDocRef,
+      });
+
+      console.log("Draft saved with ID:", globalItemDocRef.id);
       alert("Item saved as draft.");
-      navigate(`/item/${docRef.id}`); // Optional: redirect to a drafts page
+      navigate(`/item/${globalItemDocRef.id}`);
     } catch (error) {
       console.error("Error saving draft:", error);
       alert("Failed to save draft. Please try again.");
     }
 
-    setIsLoading(false); // Stop loading
+    setIsLoading(false);
   };
 
   const dropzoneStyle =
@@ -450,8 +427,8 @@ const Selling = () => {
             {tags.map((tag, index) => (
               <Chip
                 key={index}
-                label={tag.label} // Make sure to access the label property
-                onDelete={() => handleRemoveTag(tag.label)} // Assuming you want to remove by label
+                label={tag.label}
+                onDelete={() => handleRemoveTag(tag.label)}
                 style={{ margin: "5px" }}
               />
             ))}
@@ -459,7 +436,6 @@ const Selling = () => {
           <div className="animeTags-section">
             <h3>Anime Relation</h3>
             <MalSearch onItemSelected={handleMalItemSelected} />
-            {/* Display selected animeTags */}
             {animeTags.map((title, index) => (
               <Chip
                 key={index}
@@ -481,7 +457,7 @@ const Selling = () => {
               }
               label="Category"
             >
-              <MenuItem value="Digital Media"> Digital Media</MenuItem>
+              <MenuItem value="Digital Media">Digital Media</MenuItem>
               <MenuItem value="Manga">Manga</MenuItem>
               <MenuItem value="Novels">Novels</MenuItem>
               <MenuItem value="Merchandise">Merchandise</MenuItem>
@@ -490,7 +466,6 @@ const Selling = () => {
               <MenuItem value="Apparel">Apparel</MenuItem>
               <MenuItem value="Audio">Audio</MenuItem>
               <MenuItem value="Games">Games</MenuItem>
-              {/* Add more MenuItem here */}
             </Select>
           </FormControl>
           <h3>Color</h3>
@@ -617,7 +592,6 @@ const Selling = () => {
               control={<Radio />}
               label="None (There is not any packaging for this item)"
             />
-            {/* Add more conditions as necessary */}
           </RadioGroup>
         </div>
         <div className="section delivery-section">
@@ -642,12 +616,11 @@ const Selling = () => {
             />
           </RadioGroup>
         </div>
-        {/* Quantity input field */}
         <h3>Quantity</h3>
         <TextField
           label="Quantity"
           type="number"
-          InputProps={{ inputProps: { min: 1 } }} // Minimum quantity is 1
+          InputProps={{ inputProps: { min: 1 } }}
           value={item?.quantity}
           onChange={(e) =>
             setItem((prev) => ({
@@ -657,19 +630,17 @@ const Selling = () => {
           }
         />
         <h3>Price</h3>
-
         <div className="section pricing-section">
           <TextField
             label="Price"
             type="number"
-            InputProps={{ inputProps: { min: 0 } }} // Prevent negative numbers
+            InputProps={{ inputProps: { min: 0 } }}
             value={item?.price}
             onChange={(e) =>
               setItem((prev) => ({ ...prev, price: e.target.value }))
             }
           />
         </div>
-
         <div className="form-actions">
           <Button
             variant="contained"
