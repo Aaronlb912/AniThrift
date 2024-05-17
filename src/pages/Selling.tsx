@@ -89,7 +89,7 @@ const Selling = () => {
     price: "",
     quantity: 0,
     creationDate: "",
-    listingStatus: "draft",
+    listingStatus: "selling",
   });
   // const [title, setTitle] = useState("");
   // const [description, setDescription] = useState("");
@@ -320,6 +320,39 @@ const Selling = () => {
     } catch (e) {
       console.error("Error listing item:", e);
       alert("An error occurred while listing the item. Please try again.");
+    }
+
+    setIsLoading(false); // Stop loading
+  };
+
+  const handleSaveDraft = async () => {
+    setIsLoading(true); // Indicate loading state
+
+    if (!userId) {
+      console.error("User not authenticated");
+      alert("You must be logged in to save an item.");
+      setIsLoading(false); // Stop loading if not logged in
+      return;
+    }
+
+    const draftItemData = {
+      ...item,
+      listingStatus: "draft", // Set the listing status to draft
+      tags: tags.map((tag) => tag?.label),
+      animeTags,
+      photos: photos.map((photo) => photo.downloadURL),
+      creationDate: moment().toISOString(),
+      sellerId: userId,
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, "items"), draftItemData);
+      console.log("Draft saved with ID:", docRef.id);
+      alert("Item saved as draft.");
+      navigate(`/item/${docRef.id}`); // Optional: redirect to a drafts page
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      alert("Failed to save draft. Please try again.");
     }
 
     setIsLoading(false); // Stop loading
@@ -638,7 +671,12 @@ const Selling = () => {
         </div>
 
         <div className="form-actions">
-          <Button variant="contained" color="primary" type="button">
+          <Button
+            variant="contained"
+            color="primary"
+            type="button"
+            onClick={handleSaveDraft}
+          >
             Save as Draft
           </Button>
           <Button variant="contained" color="secondary" type="submit">

@@ -1,28 +1,77 @@
 .edit-item-container {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    background-color: white;
-  }
-  
-  .edit-item-container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .edit-item-container form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .edit-item-container form .MuiTextField-root {
-    margin: 8px 0; /* Adjust the margin as necessary */
-  }
-  
-  .edit-item-container form .MuiButton-root {
-    margin-top: 20px;
-  }
-  
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: white;
+}
+
+.edit-item-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.edit-item-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.edit-item-container form .MuiTextField-root {
+  margin: 8px 0; /* Adjust the margin as necessary */
+}
+
+.edit-item-container form .MuiButton-root {
+  margin-top: 20px;
+}
+
+.dropzone {
+  border: 2px dashed #cccccc;
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: border 0.3s ease-in-out;
+}
+
+.dropzone:hover {
+  border-color: #999999;
+}
+
+.dropzone p {
+  margin: 0;
+  font-size: 16px;
+  color: #777777;
+}
+
+.photo-preview {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.preview-image {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 10px;
+}
+.remove-photo {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+.remove-photo:hover {
+  background: rgba(0, 0, 0, 0.8);
+}

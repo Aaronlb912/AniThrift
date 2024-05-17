@@ -3,6 +3,8 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
   padding: 20px;
+  flex-grow: 1; /* Allows this container to take up the remaining space */
+  overflow-y: auto; /* Allows scrolling within the search results if content overflows */
 }
 
 .search-result-item {
@@ -50,10 +52,4 @@
   padding: 20px;
   border-right: 1px solid #ddd; /* Optional: Adds a visual separation */
   overflow-y: auto; /* Allows scrolling within the filter bar if content overflows */
-}
-
-.search-results-container {
-  flex-grow: 1; /* Allows this container to take up the remaining space */
-  padding: 20px;
-  overflow-y: auto; /* Allows scrolling within the search results if content overflows */
 }
