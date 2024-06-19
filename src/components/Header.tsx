@@ -212,7 +212,7 @@ const Header = () => {
         </div>
       </topbar>
       <header className="header">
-        <AppBar position="static" sx={{ bgcolor: `#a8d5ba`, color: `#333` }}>
+        <AppBar position="static" sx={{ bgcolor: `#9e9e9e`, color: `#333` }}>
           <Toolbar>
             {/* Logo and Name */}
             <IconButton

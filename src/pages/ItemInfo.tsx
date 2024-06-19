@@ -368,7 +368,9 @@ const ItemInfo = () => {
           <h3>Seller: {seller.name}</h3>
           <p>Rating: {seller.rating}</p>
           {/* Link to the seller's public profile */}
-          <button onClick={() => navigate(`/user/${item.sellerId}`)}>
+          <button
+            onClick={() => navigate(`/user/${seller.name.toLowerCase()}`)}
+          >
             View Profile
           </button>
         </div>

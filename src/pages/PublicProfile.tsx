@@ -36,24 +36,31 @@ const columns = [
 
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>(); // Assume routing setup to capture userId
+  const { username } = useParams<{ username: string }>(); // Assume routing setup to capture userId
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userItems, setUserItems] = useState<any[]>([]);
   const [soldItems, setSoldItems] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (userId) {
-      fetchUserProfile(userId);
-      fetchUserItems(userId); // Fetch items the user is selling
-      fetchSoldItems(userId); // Fetch items the user has sold
+    if (username) {
+      fetchUserProfile(username);
     }
-  }, [userId]);
+  }, [username]);
 
-  const fetchUserProfile = async (uid: string) => {
-    const docRef = doc(db, "users", uid);
+  const fetchUserProfile = async (username: string) => {
+    const docRef = doc(db, "usernames", username);
+
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      setUserProfile(docSnap.data());
+      let userId = docSnap.data().userId;
+      const userRef = doc(db, "users", userId);
+      let userSnap = await getDoc(userRef);
+      fetchUserItems(userId); // Fetch items the user is selling
+      fetchSoldItems(userId); // Fetch items the user has sold
+      if (userSnap.exists()) {
+        setUserProfile(userSnap.data());
+      }
     } else {
       console.log("No such document!");
     }

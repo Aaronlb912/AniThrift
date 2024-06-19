@@ -30,6 +30,7 @@ import AboutUsPage from "./pages/AboutUs";
 import CareersPage from "./pages/Careers";
 import HelpAndSupportPage from "./pages/HelpAndSupport";
 import AccountSettings from "./pages/AccountSettings";
+import FBResults from "./components/FBResults";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -48,7 +49,7 @@ ReactDOM.render(
             <Route path="/item/:id" element={<ItemListing />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/edit-item/:id" element={<EditItem />} />
-            <Route path="/user/:userId" element={<PublicProfile />} />
+            <Route path="/user/:username" element={<PublicProfile />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/profsettings" element={<ProfileSettings />} />
@@ -71,6 +72,7 @@ ReactDOM.render(
             <Route path="/about-us" element={<AboutUsPage />} />
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/help-support" element={<HelpAndSupportPage />} />
+            <Route path="/fbresults" element={<FBResults />} />
           </Routes>
           <Footer />
         </BrowserRouter>

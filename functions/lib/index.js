@@ -10,7 +10,7 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const db = admin.firestore();
-const axios_1 = require("axios");
+const axios = require("axios");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const express = require("express");
@@ -571,6 +571,47 @@ exports.searchEbayItems = functions.https.onRequest((req, res) => {
     } catch (error) {
       console.error("Error with eBay API:", error);
       res.status(500).send("Error fetching data from eBay");
+    }
+  });
+});
+
+const APP_ID = "1051253752632272";
+const APP_SECRET = "4c96a3feadf40491781d3cd11804bfd4";
+
+exports.fetchFacebookMarketplace = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    try {
+      // Step 1: Get Access Token
+      const tokenResponse = await fetch(
+        `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&client_secret=${APP_SECRET}&grant_type=client_credentials`
+      );
+      const tokenData = await tokenResponse.json();
+      const accessToken = tokenData.access_token;
+
+      if (!accessToken) {
+        throw new Error("Unable to fetch access token");
+      }
+
+      // Step 2: Fetch Facebook Marketplace Listings
+      const marketplaceResponse = await fetch(
+        `https://graph.facebook.com/v12.0/marketplace?access_token=${accessToken}`
+      );
+      const marketplaceData = await marketplaceResponse.json();
+
+      if (!marketplaceData) {
+        throw new Error("Unable to fetch marketplace data");
+      }
+
+      console.log("Items to return:", marketplaceData);
+      res.status(200).send(marketplaceData);
+    } catch (error) {
+      console.error("Error with Facebook Graph API:", error);
+      res.status(500).send("Error fetching data from Facebook Marketplace");
     }
   });
 });
