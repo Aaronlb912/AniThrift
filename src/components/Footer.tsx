@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import AppStore from "../assets/app-store-badge.png";
-import PlayStore from "../assets/google-play-badge.png";
-import Phones from "../assets/phones.png";
+// import AppStore from "../assets/app-store-badge.png";
+// import PlayStore from "../assets/google-play-badge.png";
+// import Phones from "../assets/phones.png";
 import placeholder from "../assets/accout_icon.png";
 import { Link } from "@mui/material";
 
@@ -83,18 +83,16 @@ const Footer = () => {
         </div>
 
         {/* Social Media Links */}
-        <div className="social-media-section">
+        {/* <div className="social-media-section">
           <h2>Follow Us</h2>
-          {/* Link and images for social media */}
           <Link href="https://facebook.com/yourpage">Facebook</Link>
           <Link href="https://twitter.com/yourpage">Instagram</Link>
           <Link href="https://twitter.com/yourpage">TikTok</Link>
           <Link href="https://twitter.com/yourpage">LinkedIn</Link>
-          {/* Add more social media links */}
-        </div>
+        </div> */}
 
         {/* App Store Links */}
-        <div className="app-store-section">
+        {/* <div className="app-store-section">
           <h2>On The Go</h2>
           <Link href="https://link-to-apple-store">
             <img
@@ -110,7 +108,7 @@ const Footer = () => {
               className="app-store-icon"
             />
           </Link>
-        </div>
+        </div> */}
       </footer>
       <legal className="footer-layer legal-info">
         <img src={placeholder} alt="AniThrift Logo" className="footer-logo" />©
