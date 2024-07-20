@@ -31,6 +31,7 @@ import CareersPage from "./pages/Careers";
 import HelpAndSupportPage from "./pages/HelpAndSupport";
 import AccountSettings from "./pages/AccountSettings";
 import FBResults from "./components/FBResults";
+import FeedbackForm from "./components/Feedback";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -73,6 +74,7 @@ ReactDOM.render(
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/help-support" element={<HelpAndSupportPage />} />
             <Route path="/fbresults" element={<FBResults />} />
+            <Route path="/feedback" element={<FeedbackForm/>}/>
           </Routes>
           <Footer />
         </BrowserRouter>

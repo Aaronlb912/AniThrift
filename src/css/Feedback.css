@@ -1,0 +1,26 @@
+.feedback-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+}
+
+.feedback-form-box {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-form-box .MuiFormControl-root,
+.feedback-form-box .MuiTextField-root {
+  margin-bottom: 15px;
+}
+
+.feedback-form-box .MuiButton-root {
+  display: block;
+  width: 100%;
+}

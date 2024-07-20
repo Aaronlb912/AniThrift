@@ -301,6 +301,28 @@ async function checkIfUserExists(userId) {
   }
 }
 
+exports.submitFeedback = functions.https.onRequest(async (req, res) => {
+  const { userId, category, feedback } = req.body;
+
+  if (!userId || !category || !feedback) {
+    return res.status(400).send('Missing required fields');
+  }
+
+  try {
+    const feedbackRef = admin.firestore().collection('feedback').doc();
+    await feedbackRef.set({
+      userId,
+      category,
+      feedback,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.status(200).send('Feedback submitted successfully');
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 exports.stripeWebhook = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
     // console.log(JSON.stringify(req.body));
