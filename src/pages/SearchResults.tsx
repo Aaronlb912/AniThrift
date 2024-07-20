@@ -86,12 +86,12 @@ const SearchResults: React.FC = () => {
           )}
         </div>
       </div>
-      <h1>Ebay Results</h1>
+      {/* <h1>Ebay Results</h1>
       <div className="Results">
         <EbayResults searchQuery={searchQuery} />
       </div>
       <h1>FaceBook MarketPlace Results</h1>
-      <div className="Results"></div>
+      <div className="Results"></div> */}
     </div>
   );
 };
