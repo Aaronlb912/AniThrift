@@ -21,6 +21,7 @@ const SearchResults: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const searchQuery = queryParams.get("query") || ""; // Extract 'query' parameter from URL
 
+  const [allItems, setAllItems] = useState<SearchResult[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedFacets, setSelectedFacets] = useState<{
     [key: string]: string[];
@@ -29,6 +30,8 @@ const SearchResults: React.FC = () => {
     min?: number;
     max?: number;
   }>({});
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 12;
 
   // Adjust handleFacetChange to match the expected signature from FilterBar
   const handleFacetChange = (updatedFacets: { [key: string]: string[] }) => {
@@ -123,7 +126,13 @@ const SearchResults: React.FC = () => {
           });
         }
 
-        setSearchResults(items);
+        // Store all items and paginate
+        setAllItems(items);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedItems = items.slice(startIndex, endIndex);
+        
+        setSearchResults(paginatedItems);
       } catch (error) {
         console.error("Error fetching items from Firebase:", error);
         setSearchResults([]);
@@ -131,6 +140,11 @@ const SearchResults: React.FC = () => {
     };
 
     fetchItems();
+  }, [searchQuery, selectedFacets, priceRange, currentPage]);
+  
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [searchQuery, selectedFacets, priceRange]);
 
   const handleItemClick = (itemId: string) => {
@@ -174,6 +188,57 @@ const SearchResults: React.FC = () => {
             <div>No results found.</div>
           )}
         </div>
+        {/* Pagination Controls */}
+        {allItems.length > itemsPerPage && (
+          <div className="pagination-controls" style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '10px', 
+            marginTop: '20px',
+            padding: '20px'
+          }}>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '10px 16px',
+                border: '2px solid var(--primary-color)',
+                borderRadius: '12px',
+                backgroundColor: currentPage === 1 ? 'var(--secondary-dark)' : 'var(--secondary-light)',
+                color: currentPage === 1 ? '#999' : 'var(--primary-color)',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 600
+              }}
+            >
+              Previous
+            </button>
+            <span style={{ 
+              padding: '0 15px',
+              fontFamily: 'Nunito, sans-serif',
+              color: '#333'
+            }}>
+              Page {currentPage} of {Math.ceil(allItems.length / itemsPerPage)}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(Math.ceil(allItems.length / itemsPerPage), prev + 1))}
+              disabled={currentPage >= Math.ceil(allItems.length / itemsPerPage)}
+              style={{
+                padding: '10px 16px',
+                border: '2px solid var(--primary-color)',
+                borderRadius: '12px',
+                backgroundColor: currentPage >= Math.ceil(allItems.length / itemsPerPage) ? 'var(--secondary-dark)' : 'var(--secondary-light)',
+                color: currentPage >= Math.ceil(allItems.length / itemsPerPage) ? '#999' : 'var(--primary-color)',
+                cursor: currentPage >= Math.ceil(allItems.length / itemsPerPage) ? 'not-allowed' : 'pointer',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 600
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
       <h1>Ebay Results</h1>
       <div className="Results">

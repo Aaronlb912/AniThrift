@@ -1,77 +1,324 @@
-.edit-item-container {
-  max-width: 600px;
+/* Use the same styles as Selling.css */
+.selling-form {
   margin: 20px auto;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  max-width: 900px;
+  background: var(--secondary-light);
   border-radius: 16px;
-  background-color: var(--secondary-light);
-}
-
-.edit-item-container h2 {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
-  margin-bottom: 20px;
 }
 
-.edit-item-container form {
+.selling-form h1 {
+  text-align: center;
+  margin: 0 auto 30px auto;
+  padding: 20px 40px;
+  color: #333;
+  font-size: 2rem;
+  background-color: var(--secondary-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: block;
+  width: 85%;
+  max-width: 100%;
+}
+
+.selling-form h2 {
+  text-align: left;
+  margin: 25px 0 15px 0;
+  color: #444;
+  font-size: 1.5rem;
+  text-decoration: none;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-color);
+  display: inline-block;
+  width: 100%;
+}
+
+.selling-form form {
+  text-align: left;
+}
+
+.selling-form h3 {
+  text-align: left;
+  margin: 20px 0 10px 0;
+  color: #555;
+  font-size: 1.2rem;
+  text-decoration: none;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid #6c757d;
+  display: inline-block;
+  width: 100%;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.form-actions {
+  margin-top: 40px;
+  margin-bottom: 20px;
+  padding-top: 20px;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   gap: 20px;
 }
 
-.edit-item-container form .MuiTextField-root {
-  margin: 8px 0; /* Adjust the margin as necessary */
+.form-actions button {
+  text-align: center;
+  min-width: 180px;
+  padding: 12px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-transform: none;
 }
 
-.edit-item-container form .MuiButton-root {
-  margin-top: 20px;
+.form-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.selling-form .MuiOutlinedInput-root {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.selling-form .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.selling-form .MuiInputBase-root {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.selling-form .MuiInputBase-input {
+  border: none;
+}
+
+.selling-form .MuiOutlinedInput-root:hover {
+  border-color: #999;
+}
+
+.selling-form .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--primary-color);
+}
+
+.selling-form .MuiInputLabel-root {
+  display: none !important;
+}
+
+.selling-form .MuiInputLabel-outlined {
+  display: none !important;
+}
+
+.form-field {
+  z-index: 0;
+  margin-bottom: 15px;
 }
 
 .dropzone {
-  border: 2px dashed #cccccc;
-  border-radius: 12px;
-  padding: 20px;
-  cursor: pointer;
+  border: 2px dashed var(--primary-color);
+  padding: 30px;
   text-align: center;
-  transition: border 0.3s ease-in-out;
+  margin-bottom: 20px;
+  cursor: pointer;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dropzone:hover {
-  border-color: #999999;
+  border-color: var(--primary-light);
+  background-color: #e7f3ff;
 }
 
 .dropzone p {
-  margin: 0;
+  color: #666;
   font-size: 16px;
-  color: #777777;
+  margin: 0;
 }
 
 .photo-preview {
   position: relative;
-  display: inline-block;
-  margin: 10px;
+  width: 120px;
+  height: 120px;
+  margin: 5px;
 }
 
 .preview-image {
-  max-width: 100px;
-  max-height: 100px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 12px;
 }
+
 .remove-photo {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(0, 0, 0, 0.5);
+  top: -8px;
+  right: -8px;
+  background-color: #dc3545;
   color: white;
-  border: none;
+  border: 2px solid white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.3s ease-in-out;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
 .remove-photo:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+.condition-selector {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 1mm;
+}
+
+.condition-selector .MuiFormControlLabel-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 140px;
+  min-height: 120px;
+  height: auto;
+  padding: 12px 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
+  justify-content: flex-start;
+}
+
+.condition-selector .MuiRadio-root {
+  order: 0;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.condition-selector .MuiTypography-body1 {
+  font-size: 0.875rem;
+  word-break: break-word;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.condition-label-container {
+  padding: 4px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.condition-label-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.condition-label-description {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: auto;
+}
+
+.tags-section,
+.animeTags-section {
+  margin: 10px 0 20px 0;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #fafafa;
+}
+
+.tag-chip {
+  margin: 5px;
+}
+
+.autocomplete-container {
+  position: relative;
+}
+
+.product-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.pricing-section input,
+.quantity-section input {
+  width: calc(100% - 20px);
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.loading-overlay-content p {
+  margin-top: 10px;
+}
+
+.loading-overlay-spinner {
+  color: white;
+}
+
+@media screen and (max-width: 768px) {
+  .selling-form {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .condition-selector .MuiFormControlLabel-root {
+    width: 100px;
+    font-size: 0.75rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+    max-width: none;
+  }
+
+  .section {
+    padding: 15px;
+  }
 }

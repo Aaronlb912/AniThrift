@@ -1,6 +1,19 @@
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .star-rating span {
-    color: gold;
-    font-size: 20px;
-    margin-right: 2px;
-  }
+  color: gold;
+  font-size: 20px;
+  margin-right: 2px;
+}
+
+.rating-value {
+  margin-left: 8px;
+  color: var(--font-color-dark);
+  font-size: 14px;
+  font-weight: 600;
+}
   

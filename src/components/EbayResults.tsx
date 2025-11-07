@@ -230,60 +230,65 @@ const EbayResults: React.FC<EbayResultsProps> = ({ searchQuery: propSearchQuery 
             Loading...
           </div>
         )}
-        <div className="resultsContainer">
-        {results[smallOffset]?.map((item, index) => (
-          <a
-            key={index}
-            href={item.itemWebUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="resultLink"
-          >
-            <div className="resultItem">
-              <h3>{item.title || "No Title"}</h3>
-              <p>
-                {item.price
-                  ? `${item.price.value} ${item.price.currency}`
-                  : "No Price"}
-              </p>
-              <img
-                src={item.image ? item.image.imageUrl : ""}
-                alt={item.title || "Item image"}
-              />
-            </div>
-          </a>
-        ))}
-      </div>
-      <div className="buttonsContainer">
-        <button onClick={handlePrevLarge} disabled={bigOffset === 0}>
-          <KeyboardDoubleArrowLeftIcon />
-        </button>
-        <button
-          onClick={handlePrevSmall}
-          disabled={smallOffset === 0 && bigOffset === 0}
-        >
-          <KeyboardArrowLeftIcon />
-        </button>
-        {Array.from({ length: 10 }).map((_, index) => {
-          const pageNum = index + 1 + (bigOffset / largeItemsPerPage) * 10;
-          return (
-            <button
+        <div className="search-results-container">
+          {results[smallOffset]?.map((item, index) => (
+            <a
               key={index}
-              onClick={() => setSmallOffset(index)}
-              disabled={index >= results.length}
-              className={smallOffset === index ? "selectedPage" : ""}
+              href={item.itemWebUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resultLink"
             >
-              {pageNum}
-            </button>
-          );
-        })}
-        <button onClick={handleNextSmall}>
-          <KeyboardArrowRightIcon />
-        </button>
-        <button onClick={handleNextLarge}>
-          <KeyboardDoubleArrowRightIcon />
-        </button>
-      </div>
+              <div className="search-result-item">
+                <div className="item-image-wrapper">
+                  <img
+                    src={item.image ? item.image.imageUrl : ""}
+                    alt={item.title || "Item image"}
+                    className="item-image"
+                  />
+                </div>
+                <div className="item-info">
+                  <div className="item-title">{item.title || "No Title"}</div>
+                  <div className="item-price">
+                    {item.price
+                      ? `${item.price.value} ${item.price.currency}`
+                      : "No Price"}
+                  </div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div className="buttonsContainer">
+          <button onClick={handlePrevLarge} disabled={bigOffset === 0}>
+            <KeyboardDoubleArrowLeftIcon />
+          </button>
+          <button
+            onClick={handlePrevSmall}
+            disabled={smallOffset === 0 && bigOffset === 0}
+          >
+            <KeyboardArrowLeftIcon />
+          </button>
+          {Array.from({ length: 10 }).map((_, index) => {
+            const pageNum = index + 1 + (bigOffset / largeItemsPerPage) * 10;
+            return (
+              <button
+                key={index}
+                onClick={() => setSmallOffset(index)}
+                disabled={index >= results.length}
+                className={smallOffset === index ? "selectedPage" : ""}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          <button onClick={handleNextSmall}>
+            <KeyboardArrowRightIcon />
+          </button>
+          <button onClick={handleNextLarge}>
+            <KeyboardDoubleArrowRightIcon />
+          </button>
+        </div>
       </div>
     </div>
   );

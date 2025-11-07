@@ -331,8 +331,8 @@ const Selling = () => {
         return;
       }
 
-      if (!item.price || parseFloat(item.price) <= 0) {
-        alert("Please enter a valid price greater than 0.");
+      if (!item.price || parseFloat(item.price) < 0.01) {
+        alert("Please enter a valid price of at least $0.01.");
         setIsLoading(false);
         return;
       }
@@ -747,11 +747,11 @@ const Selling = () => {
           <TextField
             label="Price"
             type="number"
-            InputProps={{ inputProps: { min: 0 } }}
+            InputProps={{ inputProps: { min: 0.01, step: 0.01 } }}
             value={item?.price}
             onChange={(e) => {
               const value = e.target.value;
-              // Allow empty string or valid number input
+              // Allow empty string or valid number input (including decimals like 0.50)
               if (value === "" || /^\d*\.?\d*$/.test(value)) {
                 setItem((prev) => ({ ...prev, price: value }));
               }

@@ -60,7 +60,13 @@ const PublicProfile: React.FC = () => {
       fetchUserItems(userId); // Fetch items the user is selling
       fetchSoldItems(userId); // Fetch items the user has sold
       if (userSnap.exists()) {
-        setUserProfile(userSnap.data());
+        const userData = userSnap.data();
+        // Ensure rating is a number (default to 0 if not set)
+        const rating = typeof userData.rating === 'number' ? userData.rating : 0;
+        setUserProfile({
+          ...userData,
+          rating: rating,
+        });
       }
     } else {
       console.log("No such document!");
