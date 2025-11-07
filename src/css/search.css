@@ -3,29 +3,81 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
   padding: 20px;
-  flex-grow: 1; /* Allows this container to take up the remaining space */
+  flex: 1; /* Take remaining space */
+  min-width: 0; /* Prevent grid from overflowing */
   overflow-y: auto; /* Allows scrolling within the search results if content overflows */
+  box-sizing: border-box;
 }
 
 .search-result-item {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 0;
   text-align: center;
-  height: fit-content;
+  height: 100%;
+  min-height: 260px;
+  max-height: 260px; /* Fixed max height to prevent growing */
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: var(--secondary-light);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  width: 100%; /* Ensure consistent width */
+  box-sizing: border-box;
+}
+
+.search-result-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.item-image-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background-color: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .item-image {
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.item-info {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  flex-grow: 1;
+  min-height: 60px;
+  gap: 4px;
 }
 
 .item-title {
-  margin-top: 10px;
-  font-weight: bold;
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .item-price {
-  margin-top: 5px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #c45500;
+  margin-top: 0;
 }
 
 .search-page-container {
@@ -35,7 +87,7 @@
   min-height: 60%;
   flex-direction: column; /* Stack children vertically */
   align-items: center; /* Center-align the children horizontally */
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
 }
 
 .Results {
@@ -44,12 +96,22 @@
   width: 100%; /* Take full width of the viewport */
   padding-bottom: 1em;
   border-bottom: 1px solid black;
+  align-items: flex-start; /* Align items to the top */
 }
 
 .filter-bar {
-  width: 20%; /* Filter bar takes up 20% of the container width */
-  flex: 0 0 20%;
+  width: 250px; /* Fixed width instead of percentage */
+  min-width: 250px; /* Prevent shrinking */
+  max-width: 250px; /* Prevent growing */
+  flex: 0 0 250px; /* Fixed flex basis */
   padding: 20px;
-  border-right: 1px solid #ddd; /* Optional: Adds a visual separation */
+  border-right: 2px solid #ddd; /* Border to separate from results */
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
   overflow-y: auto; /* Allows scrolling within the filter bar if content overflows */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  box-sizing: border-box;
+  background-color: transparent; /* No background box */
+  align-self: stretch; /* Stretch to full height */
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { getAuth } from "firebase/auth";
 import {
   Button,
@@ -9,14 +9,21 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  AlertColor,
 } from "@mui/material";
 
 import "../css/Feedback.css";
 
-const FeedbackForm = () => {
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: AlertColor;
+}
+
+const FeedbackForm: React.FC = React.memo(() => {
   const [category, setCategory] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [snackbar, setSnackbar] = useState({
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: "",
     severity: "success",
@@ -25,7 +32,7 @@ const FeedbackForm = () => {
   const auth = getAuth();
   const user = auth.currentUser;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       alert("You must be logged in to submit feedback");
@@ -60,7 +67,11 @@ const FeedbackForm = () => {
         severity: "error",
       });
     }
-  };
+  }, [user, category, feedback]);
+
+  const handleCloseSnackbar = useCallback(() => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  }, []);
 
   return (
     <div className="feedback-form-container">
@@ -99,14 +110,14 @@ const FeedbackForm = () => {
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          onClose={handleCloseSnackbar}
           anchorOrigin={{
             vertical: 'top',
             horizontal: 'center',
           }}
         >
           <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            onClose={handleCloseSnackbar}
             severity={snackbar.severity}
             sx={{ width: '100%' }}
           >
@@ -116,6 +127,8 @@ const FeedbackForm = () => {
       </div>
     </div>
   );
-};
+});
+
+FeedbackForm.displayName = "FeedbackForm";
 
 export default FeedbackForm;

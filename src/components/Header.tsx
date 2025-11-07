@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   AppBar,
   Toolbar,
@@ -25,109 +25,134 @@ import MessageIcon from "@mui/icons-material/Message";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../firebase-config"; // Adjust the path according to your project structure
+import { auth, db } from "../firebase-config";
 import { useSearch } from "./SearchHandler";
 import { doc, getDoc } from "firebase/firestore";
 
-const Header = () => {
+interface UserProfile {
+  username?: string;
+  [key: string]: unknown;
+}
+
+const Header: React.FC = React.memo(() => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [searchInput, setSearchInput] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false); // State to control Drawer open state
-  const { setSearchQuery }: any = useSearch(); // Use setSearchQuery from your search context
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { setSearchQuery } = useSearch();
 
-  const handleSearch = (e) => {
-    if (e.key === "Enter" && searchInput.trim()) {
-      setSearchQuery(searchInput.trim());
-      navigate(`/search?query=${encodeURIComponent(searchInput.trim())}`);
-    }
-  };
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen); // Toggle Drawer open state
-  };
-
-  const drawer = (
-    <List>
-      {[
-        "Digital Media",
-        "Manga & Novels",
-        "Merchandise",
-        "Figures & Trinkets",
-        "Apparel",
-        "Audio",
-        "Games",
-        "All Categories",
-      ].map((text, index) => (
-        <ListItem
-          button
-          key={text}
-          component={Link}
-          to={`/${text.toLowerCase().replace(/ & /g, "-").replace(/ /g, "")}`}
-        >
-          <ListItemText primary={text} />
-        </ListItem>
-      ))}
-    </List>
+  const categories = useMemo(
+    () => [
+      { name: "Digital Media", query: "anime" },
+      { name: "Manga & Novels", query: "manga" },
+      { name: "Merchandise", query: "merch" },
+      { name: "Figures & Trinkets", query: "figures" },
+      { name: "Apparel", query: "apparel" },
+      { name: "Audio", query: "audio" },
+      { name: "Games", query: "games" },
+      { name: "All Categories", query: "" },
+    ],
+    []
   );
+
+  const drawerItems = useMemo(
+    () => [
+      "Digital Media",
+      "Manga & Novels",
+      "Merchandise",
+      "Figures & Trinkets",
+      "Apparel",
+      "Audio",
+      "Games",
+      "All Categories",
+    ],
+    []
+  );
+
+  const fetchUserProfile = useCallback(async (uid: string) => {
+    try {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUser(docSnap.data() as UserProfile);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserProfile(user.uid);
+      } else {
+        setUser(null);
       }
     });
+    return () => unsubscribe();
+  }, [fetchUserProfile]);
+
+  const handleSearch = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent) => {
+      if (searchInput.trim()) {
+        setSearchQuery(searchInput.trim());
+        navigate(`/search?query=${encodeURIComponent(searchInput.trim())}`);
+      }
+    },
+    [searchInput, setSearchQuery, navigate]
+  );
+
+  const handleDrawerToggle = useCallback(() => {
+    setMobileOpen((prev) => !prev);
   }, []);
 
-  const handleSignOut = () => {
+  const handleSignOut = useCallback(() => {
     signOut(auth)
       .then(() => {
-        navigate("/"); // Optionally navigate to sign-in page
-        window.location.reload(true); // Or ensure the header updates accordingly without reloading
+        setUser(null);
+        navigate("/");
       })
       .catch((error) => {
         console.error("Sign out error:", error);
       });
-  };
+  }, [navigate]);
 
-  const fetchUserProfile = async (uid: string) => {
-    const docRef = doc(db, "users", uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setUser(docSnap.data() as UserProfile);
-    } else {
-      console.error("No such document!");
-    }
-  };
-
-  const handleMenu = (event) => {
+  const handleMenu = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleCategoryClick = (query) => {
-    // Update the search query in the context
-    setSearchQuery(`${query}`);
-    // Navigate to the search page. The EbayResults component will pick up the updated query.
-    navigate(`/search?query=${encodeURIComponent(`${query}`)}`);
-  };
+  const handleCategoryClick = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      navigate(`/search?query=${encodeURIComponent(query)}`);
+    },
+    [setSearchQuery, navigate]
+  );
 
-  const categories = [
-    { name: "Digital Media", query: "anime" },
-    { name: "Manga & Novels", query: "manga" },
-    { name: "Merchandise", query: "merch" },
-    { name: "Figures & Trinkets", query: "figures" },
-    { name: "Apparel", query: "apparel" },
-    { name: "Audio", query: "audio" },
-    { name: "Games", query: "games" },
-    { name: "All Categories", query: "" },
-  ];
+  const drawer = useMemo(
+    () => (
+      <List>
+        {drawerItems.map((text) => (
+          <ListItem
+            button
+            key={text}
+            component={Link}
+            to={`/${text.toLowerCase().replace(/ & /g, "-").replace(/ /g, "")}`}
+          >
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List>
+    ),
+    [drawerItems]
+  );
 
   return (
     <>
@@ -153,6 +178,19 @@ const Header = () => {
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleClose}
+              disableScrollLock={true}
+              disableAutoFocusItem={true}
+              MenuListProps={{
+                'aria-labelledby': 'user-menu-button',
+              }}
+              slotProps={{
+                paper: {
+                  style: {
+                    maxWidth: '200px',
+                    width: '200px',
+                  },
+                },
+              }}
             >
               <MenuItem
                 onClick={() => {
@@ -212,7 +250,7 @@ const Header = () => {
         </div>
       </topbar>
       <header className="header">
-        <AppBar position="static" sx={{ bgcolor: `#9e9e9e`, color: `#333` }}>
+        <AppBar position="static" sx={{ bgcolor: `#FFFDD0`, color: `#333` }}>
           <Toolbar>
             {/* Logo and Name */}
             <IconButton
@@ -236,13 +274,13 @@ const Header = () => {
                 placeholder="Search…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                onKeyPress={handleSearch}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
                 className="searchBar"
                 endAdornment={
                   <IconButton
                     type="submit"
                     aria-label="search"
-                    onClick={handleSearch}
+                    onClick={(e) => handleSearch(e)}
                   >
                     <SearchIcon />
                   </IconButton>
@@ -289,6 +327,8 @@ const Header = () => {
       )}
     </>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

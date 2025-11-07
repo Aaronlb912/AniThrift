@@ -4,7 +4,6 @@ import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import moment from "moment/moment";
 import {
   getStorage,
   ref as storageRef,
@@ -54,6 +53,8 @@ interface MarketplaceItemType {
 type PhotoType = {
   downloadURL: string | null;
   preview: string;
+  fileName?: string;
+  fileSize?: number;
 };
 
 type MarketplaceItemStatus =
@@ -77,8 +78,8 @@ const Selling = () => {
     creationDate: "",
     listingStatus: "selling",
   });
-  const [tags, setTags] = useState([]);
-  const [animeTags, setAnimeTags] = useState([]);
+  const [tags, setTags] = useState<{ label: string }[]>([]);
+  const [animeTags, setAnimeTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<PhotoType[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -108,7 +109,43 @@ const Selling = () => {
         return;
       }
 
-      const newPhotosWithPreview = acceptedFiles.map((file: any) => {
+      // Filter out duplicate files by checking file name and size
+      const uniqueFiles = acceptedFiles.filter((file: any) => {
+        // Check if a file with the same name and size already exists
+        const isDuplicate = photos.some((photo) => {
+          // Compare by stored fileName and fileSize if available
+          if (photo.fileName && photo.fileSize) {
+            return photo.fileName === file.name && photo.fileSize === file.size;
+          }
+          // Fallback: try to extract filename from downloadURL
+          if (photo.downloadURL) {
+            const uploadedFileName =
+              photo.downloadURL
+                .split("/")
+                .pop()
+                ?.split("_")
+                .slice(1)
+                .join("_") || "";
+            if (uploadedFileName === file.name) {
+              return true;
+            }
+          }
+          return false;
+        });
+
+        if (isDuplicate) {
+          alert(`The image "${file.name}" has already been uploaded.`);
+          return false;
+        }
+
+        return true;
+      });
+
+      if (uniqueFiles.length === 0) {
+        return;
+      }
+
+      const newPhotosWithPreview = uniqueFiles.map((file: any) => {
         const previewUrl = URL.createObjectURL(file);
         const fileRef = storageRef(
           storage,
@@ -135,7 +172,12 @@ const Selling = () => {
           }
         );
 
-        return { preview: previewUrl, downloadURL: null };
+        return {
+          preview: previewUrl,
+          downloadURL: null,
+          fileName: file.name,
+          fileSize: file.size,
+        };
       });
 
       setPhotos((prevPhotos) => [...prevPhotos, ...newPhotosWithPreview]);
@@ -145,7 +187,7 @@ const Selling = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: "image/*",
+    accept: { "image/*": [] },
     maxFiles: 10,
   });
 
@@ -188,8 +230,8 @@ const Selling = () => {
                 return `${item.label}`;
               },
             },
-            onSelect({ item }) {
-              const tagToAdd = item.label.trim();
+            onSelect({ item }: any) {
+              const tagToAdd = (item?.label || "").trim();
               if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
                 setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
               }
@@ -212,24 +254,24 @@ const Selling = () => {
     };
   }, [tags]);
 
-  const addTag = (newTag) => {
-    if (newTag && !tags.includes(newTag)) {
-      setTags((currentTags) => [...currentTags, newTag]);
+  const addTag = (newTag: string) => {
+    if (newTag && !tags.find((tag) => tag.label === newTag)) {
+      setTags((currentTags) => [...currentTags, { label: newTag }]);
     }
   };
 
-  const handleRemoveTag = (labelToRemove) => {
+  const handleRemoveTag = (labelToRemove: string) => {
     setTags(tags.filter((tag) => tag.label !== labelToRemove));
   };
 
-  const handleMalItemSelected = (selectedItem) => {
+  const handleMalItemSelected = (selectedItem: { title: string }) => {
     const title = selectedItem.title;
-    if (!animeTags.includes(title)) {
+    if (title && !animeTags.includes(title)) {
       setAnimeTags([...animeTags, title]);
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
@@ -252,12 +294,62 @@ const Selling = () => {
       const uploadedPhotos = photos.filter((photo) => photo.downloadURL);
       const photoUrls = uploadedPhotos.map((photo) => photo.downloadURL);
 
+      // Validate required fields
+      if (!item.title.trim()) {
+        alert("Please enter a title for your item.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.description.trim()) {
+        alert("Please enter a description for your item.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.category) {
+        alert("Please select a category.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.condition) {
+        alert("Please select an item condition.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.packageCondition) {
+        alert("Please select a packaging condition.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.deliveryOption) {
+        alert("Please select a delivery option.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.price || parseFloat(item.price) <= 0) {
+        alert("Please enter a valid price greater than 0.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (uploadedPhotos.length === 0) {
+        alert("Please upload at least one photo.");
+        setIsLoading(false);
+        return;
+      }
+
       const newItemData = {
         ...item,
+        price: parseFloat(item.price), // Convert price to number
         tags: tags.map((tag) => tag?.label),
         animeTags,
         photos: photoUrls,
-        creationDate: moment().toISOString(),
+        creationDate: new Date().toISOString(),
         sellerId: userId,
       };
 
@@ -306,11 +398,14 @@ const Selling = () => {
 
     const draftItemData = {
       ...item,
+      price: item.price ? parseFloat(item.price) : 0, // Convert price to number
       listingStatus: "draft",
       tags: tags.map((tag) => tag?.label),
       animeTags,
-      photos: photos.map((photo) => photo.downloadURL),
-      creationDate: moment().toISOString(),
+      photos: photos
+        .map((photo) => photo.downloadURL)
+        .filter((url) => url !== null),
+      creationDate: new Date().toISOString(),
       sellerId: userId,
     };
 
@@ -335,7 +430,7 @@ const Selling = () => {
     setIsLoading(false);
   };
 
-  const dropzoneStyle =
+  const dropzoneStyle: React.CSSProperties =
     photos.length > 0
       ? {
           display: "flex",
@@ -348,15 +443,11 @@ const Selling = () => {
   return (
     <div className="selling-form">
       {isLoading && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <CircularProgress />
+        <div className="loading-overlay">
+          <div className="loading-overlay-content">
+            <CircularProgress className="loading-overlay-spinner" />
+            <p>Processing...</p>
+          </div>
         </div>
       )}
       <h1>List an Item</h1>
@@ -417,24 +508,24 @@ const Selling = () => {
             }
             className="form-field"
           />
+          <h3>Tags</h3>
           <div className="tags-section">
-            <h3>Tags</h3>
             <div
               id="autocomplete"
               ref={autocompleteContainerRef}
-              style={{ position: "relative" }}
+              className="autocomplete-container"
             ></div>
             {tags.map((tag, index) => (
               <Chip
                 key={index}
                 label={tag.label}
                 onDelete={() => handleRemoveTag(tag.label)}
-                style={{ margin: "5px" }}
+                className="tag-chip"
               />
             ))}
           </div>
+          <h3>Anime Relation</h3>
           <div className="animeTags-section">
-            <h3>Anime Relation</h3>
             <MalSearch onItemSelected={handleMalItemSelected} />
             {animeTags.map((title, index) => (
               <Chip
@@ -443,7 +534,7 @@ const Selling = () => {
                 onDelete={() =>
                   setAnimeTags(animeTags.filter((t) => t !== title))
                 }
-                style={{ margin: "5px" }}
+                className="tag-chip"
               />
             ))}
           </div>
@@ -496,12 +587,11 @@ const Selling = () => {
               value="New"
               control={<Radio />}
               label={
-                <div>
-                  New
-                  <br />
-                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                <div className="condition-label-container">
+                  <div className="condition-label-title">New</div>
+                  <div className="condition-label-description">
                     Item is brand new, with no signs of use.
-                  </span>
+                  </div>
                 </div>
               }
             />
@@ -509,12 +599,11 @@ const Selling = () => {
               value="Like New"
               control={<Radio />}
               label={
-                <div>
-                  Like New
-                  <br />
-                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Like New</div>
+                  <div className="condition-label-description">
                     Item is brand new, with no signs of use.
-                  </span>
+                  </div>
                 </div>
               }
             />
@@ -522,12 +611,11 @@ const Selling = () => {
               value="Good"
               control={<Radio />}
               label={
-                <div>
-                  Good
-                  <br />
-                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Good</div>
+                  <div className="condition-label-description">
                     Item has minor wear, but still fully functional.
-                  </span>
+                  </div>
                 </div>
               }
             />
@@ -535,13 +623,12 @@ const Selling = () => {
               value="Fair"
               control={<Radio />}
               label={
-                <div>
-                  Fair
-                  <br />
-                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Fair</div>
+                  <div className="condition-label-description">
                     Item shows wear from consistent use, but remains in good
                     condition.
-                  </span>
+                  </div>
                 </div>
               }
             />
@@ -549,12 +636,11 @@ const Selling = () => {
               value="Poor"
               control={<Radio />}
               label={
-                <div>
-                  Poor
-                  <br />
-                  <span style={{ fontSize: "0.75rem", color: "#666" }}>
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Poor</div>
+                  <div className="condition-label-description">
                     Item has significant wear and tear but is still functional.
-                  </span>
+                  </div>
                 </div>
               }
             />
@@ -575,22 +661,48 @@ const Selling = () => {
             <FormControlLabel
               value="Original"
               control={<Radio />}
-              label="Original (Unopened)"
+              label={
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Original</div>
+                  <div className="condition-label-description">Unopened</div>
+                </div>
+              }
             />
             <FormControlLabel
               value="Repackaged"
               control={<Radio />}
-              label="Repackaged (Opened but repackaged)"
+              label={
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Repackaged</div>
+                  <div className="condition-label-description">
+                    Opened but repackaged
+                  </div>
+                </div>
+              }
             />
             <FormControlLabel
               value="Damaged"
               control={<Radio />}
-              label="Damaged (Packaging is damaged but item is intact)"
+              label={
+                <div className="condition-label-container">
+                  <div className="condition-label-title">Damaged</div>
+                  <div className="condition-label-description">
+                    Packaging is damaged but item is intact
+                  </div>
+                </div>
+              }
             />
             <FormControlLabel
               value="None"
               control={<Radio />}
-              label="None (There is not any packaging for this item)"
+              label={
+                <div className="condition-label-container">
+                  <div className="condition-label-title">None</div>
+                  <div className="condition-label-description">
+                    There is not any packaging for this item
+                  </div>
+                </div>
+              }
             />
           </RadioGroup>
         </div>
@@ -622,12 +734,13 @@ const Selling = () => {
           type="number"
           InputProps={{ inputProps: { min: 1 } }}
           value={item?.quantity}
-          onChange={(e) =>
+          onChange={(e) => {
+            const value = parseInt(e.target.value, 10);
             setItem((prev) => ({
               ...prev,
-              quantity: parseInt(e.target.value, 10),
-            }))
-          }
+              quantity: isNaN(value) ? 0 : Math.max(0, value),
+            }));
+          }}
         />
         <h3>Price</h3>
         <div className="section pricing-section">
@@ -636,9 +749,13 @@ const Selling = () => {
             type="number"
             InputProps={{ inputProps: { min: 0 } }}
             value={item?.price}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, price: e.target.value }))
-            }
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow empty string or valid number input
+              if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                setItem((prev) => ({ ...prev, price: value }));
+              }
+            }}
           />
         </div>
         <div className="form-actions">

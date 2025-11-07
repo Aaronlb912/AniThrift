@@ -7,11 +7,12 @@ import { Link } from "@mui/material";
 
 import "../css/Footer.css";
 
-const Footer = () => {
+const Footer: React.FC = () => {
   const [email, setEmail] = useState("");
+  const currentYear = new Date().getFullYear();
 
   // Function to handle form submission
-  const handleSubscribe = (e) => {
+  const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would integrate with Mailchimp.
     // For direct API integration, you would send the email to Mailchimp's API.
@@ -110,9 +111,11 @@ const Footer = () => {
           </Link>
         </div> */}
       </footer>
-      <legal className="footer-layer legal-info">
-        <img src={placeholder} alt="AniThrift Logo" className="footer-logo" />©
-        2024 AniThrift
+      <div className="footer-layer legal-info">
+        <div className="footer-copyright">
+          <img src={placeholder} alt="AniThrift Logo" className="footer-logo" />
+          <span>© {currentYear} AniThrift</span>
+        </div>
         <div className="legal-links">
           <Link href="/cookie-settings">Cookie Settings</Link>
           <Link href="/cookie-policy">Cookie Policy</Link>
@@ -123,7 +126,7 @@ const Footer = () => {
           </Link>
           <Link href="/accessibility-statement">Accessibility Statement</Link>
         </div>
-      </legal>
+      </div>
     </>
   );
 };

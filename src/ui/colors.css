@@ -1,16 +1,36 @@
 :root {
-  --primary-color: black;
-  --secondary-color: darkgray;
-  --accent-color: #36454f;
-  --hover-color: #93bdcd;
+  /* Primary: Cobalt Blue */
+  --primary-color: #0047AB;
+  --primary-dark: #003380;
+  --primary-light: #3366CC;
+  
+  /* Secondary: Cream White */
+  --secondary-color: #FFFDD0;
+  --secondary-dark: #F5F5DC;
+  --secondary-light: #FFFEF5;
+  
+  /* Tertiary: Warm Coral (complements cobalt blue) */
+  --tertiary-color: #FF6B6B;
+  --tertiary-dark: #E55555;
+  --tertiary-light: #FF8E8E;
+  
+  /* Accent colors */
+  --accent-color: #5A9FD4; /* Light blue-gray accent */
+  --hover-color: #3366CC; /* Lighter cobalt for hovers */
+  
+  /* Status colors */
   --success-color: #28a745;
   --danger-color: #dc3545;
   --warning-color: #ffc107;
   --info-color: #17a2b8;
-  --light-color: #f8f9fa;
-  --dark-color: #343a40;
-  --font-color: #fff;
-  --background-color: #F5F5F5;
+  
+  /* Neutral colors */
+  --light-color: #FFFEF5; /* Cream white for light backgrounds */
+  --dark-color: #1a1a2e; /* Dark blue-gray for dark text */
+  --font-color: #fff; /* White text for dark backgrounds */
+  --font-color-dark: #1a1a2e; /* Dark text for light backgrounds */
+  --background-color: #F5F0E8; /* Softer, less bright cream background */
+  --border-color: #E0E0E0; /* Light gray for borders */
 }
 
 /* :root {

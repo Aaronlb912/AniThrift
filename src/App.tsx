@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./App.css";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "./firebase-config";
@@ -9,9 +9,7 @@ import "slick-carousel/slick/slick-theme.css";
 import ban1 from "./assets/ban1.jpeg";
 import ban2 from "./assets/ban2.jpg";
 import ban3 from "./assets/ban3.jpg";
-import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, DocumentReference } from "firebase/firestore";
 
 interface Item {
   id: string;
@@ -20,93 +18,88 @@ interface Item {
   price: string;
 }
 
-const App = () => {
-  const [user, loading, error] = useAuthState(auth); // This hook comes from react-firebase-hooks
-  const [watchListItems, setWatchListItems] = useState<any[]>([]);
-  const navigate = useNavigate();
+const App: React.FC = () => {
+  const [user] = useAuthState(auth);
+  const [watchListItems, setWatchListItems] = useState<Item[]>([]);
+
+  const fetchWatchListItems = useCallback(async (uid: string) => {
+    try {
+      const watchlistRef = collection(db, "users", uid, "watchlist");
+      const querySnapshot = await getDocs(watchlistRef);
+      const items = (
+        await Promise.all(
+          querySnapshot.docs.map(async (docSnapshot) => {
+            const itemRef = docSnapshot.data().ref as DocumentReference | undefined;
+            if (!itemRef) return null;
+
+            const itemSnapshot = await getDoc(itemRef);
+            if (itemSnapshot.exists()) {
+              const data = itemSnapshot.data();
+              return {
+                id: itemSnapshot.id,
+                name: data.name || "",
+                price: data.price || "",
+                imageUrl: Array.isArray(data.photos) && data.photos.length > 0 
+                  ? data.photos[0] 
+                  : "",
+              } as Item;
+            }
+            return null;
+          })
+        )
+      ).filter((item): item is Item => item !== null);
+      setWatchListItems(items);
+    } catch (error) {
+      console.error("Error fetching watchlist items:", error);
+      setWatchListItems([]);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchWatchListItems(user.uid);
     }
-  }, [user, navigate]);
-  const fetchWatchListItems = async (uid: string) => {
-    const watchlistRef = collection(db, "users", uid, "watchlist");
-    const querySnapshot = await getDocs(watchlistRef);
-    const items = (
-      await Promise.all(
-        querySnapshot.docs.map(async (docSnapshot) => {
-          const itemRef = docSnapshot.data().ref;
-          if (!itemRef) return null;
+  }, [user, fetchWatchListItems]);
 
-          const itemSnapshot = await getDoc(itemRef);
-          if (itemSnapshot.exists()) {
-            const { id: _, ...rest } = itemSnapshot.data() as Item; // Use _ to ignore the id from data, if it exists
-            return {
-              id: itemSnapshot.id, // Keep this id
-              ...rest, // Spread the rest of the properties excluding the original id
-              imageUrl: itemSnapshot.data().photos[0],
-            };
-          } else {
-            return null;
-          }
-        })
-      )
-    ).filter((item): item is Item => item !== null);
-    setWatchListItems(items);
-  };
+  const defaultCarouselItems = useMemo(
+    () => [
+      {
+        imageUrl: "path/to/your/image1.jpg",
+        name: "New Product 1",
+        price: "15",
+      },
+      {
+        imageUrl: "path/to/your/image2.jpg",
+        name: "New Product 2",
+        price: "25",
+      },
+    ],
+    []
+  );
 
-  const carouselItems = user
-    ? [
-        {
-          imageUrl: "path/to/your/image1.jpg",
-          name: "Product 1",
-          price: "20",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "Product 2",
-          price: "30",
-        },
-      ] // Picks for the user
-    : [
-        {
-          imageUrl: "path/to/your/image1.jpg",
-          name: "New Product 1",
-          price: "15",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "New Product 2",
-          price: "25",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "New Product 2",
-          price: "25",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "New Product 2",
-          price: "25",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "New Product 2",
-          price: "25",
-        },
-        {
-          imageUrl: "path/to/your/image2.jpg",
-          name: "New Product 2",
-          price: "25",
-        },
-      ]; // New items for non-logged-in users
+  const userCarouselItems = useMemo(
+    () => [
+      {
+        imageUrl: "path/to/your/image1.jpg",
+        name: "Product 1",
+        price: "20",
+      },
+      {
+        imageUrl: "path/to/your/image2.jpg",
+        name: "Product 2",
+        price: "30",
+      },
+    ],
+    []
+  );
+
+  const carouselItems = user ? userCarouselItems : defaultCarouselItems;
 
   return (
     <div className="background">
       <div className="homepage">
         <div className="slideshow">
-          <Slider autoplay autoplaySpeed={3000}>
+          <Slider autoplay autoplaySpeed={5000} speed={1000}>
             <div>
               <img src={ban1} alt="News 1" />
             </div>
@@ -118,8 +111,7 @@ const App = () => {
             </div>
             {/* Add more slides as needed */}
           </Slider>
-        </div>{" "}
-        {/* Image carousel */}
+        </div>
         <div className="first-carousel">
           <h2>{user ? "Picks for You" : "Recent Uploads"}</h2>
           <Carousel items={carouselItems} />
@@ -128,22 +120,12 @@ const App = () => {
           <h2>{user ? "Your Recent Categories" : "Popular Items"}</h2>
           <Carousel items={carouselItems} />
         </div>
-        <div className="Liked items">
-          {user && watchListItems.length > 0 && (
-            <>
-              <h2>Saved Items</h2>
-              <Carousel items={watchListItems} />
-            </>
-          )}
-        </div>
-        <div className="Liked items">
-          {user && watchListItems.length > 0 && (
-            <>
-              <h2>another category????</h2>
-              <Carousel items={carouselItems} />
-            </>
-          )}
-        </div>
+        {user && watchListItems.length > 0 && (
+          <div className="Liked items">
+            <h2>Saved Items</h2>
+            <Carousel items={watchListItems} />
+          </div>
+        )}
       </div>
     </div>
   );

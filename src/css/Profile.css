@@ -13,9 +13,9 @@
 }
 
 .bio {
-  background-color: #f2f2f2; /* Light grey background to differentiate the bio section */
+  background-color: var(--secondary-dark); /* Cream background to differentiate the bio section */
   border: 1px solid #ddd; /* Slight border for definition */
-  border-radius: 5px; /* Rounded corners for a softer look */
+  border-radius: 12px; /* Rounded corners for a softer look */
   padding: 15px; /* Space inside the box */
   margin-top: 10px; /* Space between the "Bio:" label and the bio box */
   white-space: pre-wrap; /* Ensures that whitespace and line breaks in the bio are respected */
@@ -46,7 +46,7 @@
   color: var(--font-color);
   padding: 10px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 12px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -65,9 +65,9 @@
   flex: 1;
   padding: 20px;
   margin: 0 10px;
-  background-color: #f9f9f9;
+  background-color: var(--secondary-dark);
   border: 1px solid #eaeaea;
-  border-radius: 8px;
+  border-radius: 16px;
   text-align: center;
 }
 
@@ -78,7 +78,7 @@
 .reviews-section button {
   margin: 10px 5px; /* Space between buttons */
   padding: 8px 16px;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border-radius: 20px;
   border: none;
@@ -86,7 +86,7 @@
 }
 
 .reviews-section button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-dark);
 }
 
 .carousel-container {

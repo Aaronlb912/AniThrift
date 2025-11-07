@@ -93,11 +93,12 @@ const ItemInfo = () => {
           const sellerSnap = await getDoc(sellerRef);
 
           if (sellerSnap.exists()) {
-            // Here you might want to include only the necessary seller info
-            // Adjust according to your user document structure
+            const sellerData = sellerSnap.data();
+            // Store seller info including sellerId for navigation
             setSeller({
-              name: sellerSnap.data().username, // Assuming 'name' field exists
-              rating: sellerSnap.data().rating, // Assuming 'rating' field exists
+              sellerId: itemData.sellerId, // Store the sellerId
+              name: sellerData.username, // Username for display and navigation
+              rating: sellerData.rating, // Seller rating
             });
           } else {
             console.log("Seller document does not exist");
@@ -262,119 +263,195 @@ const ItemInfo = () => {
     setMainImage(image);
   };
 
-  if (!item) return <div>Loading...</div>;
+  if (!item) return <div className="loading-container">Loading...</div>;
 
   return (
     <div className="item-info-container">
-      <div className="item-details">
-        <h2>{item.title}</h2>
-      </div>
-      <div className="main-image-container">
-        <img src={mainImage} alt="Main Item" className="main-image" />
-      </div>
-      <div className="thumbnail-container">
-        {item.photos?.map(
-          (photo: string | undefined, index: React.Key | null | undefined) => (
-            <img
-              key={index}
-              src={photo}
-              alt={`Item Thumbnail ${index}`}
-              className="thumbnail"
-              onClick={() => handleThumbnailClick(photo)}
-            />
-          )
-        )}
-      </div>
-      <div className="item-details">
-        <p>
-          <h3>Description:</h3> {item.description}
-        </p>
-        <p>
-          <h3>Category:</h3> {item.category}
-        </p>
-        <p>
-          <h3>Condition:</h3> {item.condition}
-        </p>
-        <div className="item-tags ">
-          <h3>Tags:</h3>
-          <div className="tag-container">
-            {item.tags &&
-              item.tags.map((tag, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleTagClick(tag)}
-                  variant="contained"
-                  style={{ marginRight: "8px", marginBottom: "8px" }}
-                >
-                  {tag}
-                </Button>
-              ))}
+      {/* Main Product Section - Two Column Layout */}
+      <div className="product-main-section">
+        {/* Left Column - Images */}
+        <div className="product-images-section">
+          <div className="main-image-container">
+            <img src={mainImage} alt="Main Item" className="main-image" />
           </div>
-        </div>
-        <div className="anime-tags ">
-          <h3>Anime Tags:</h3>
-          <div className="tag-container">
-            {item.animeTags &&
-              item.animeTags.map((animeTag, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleTagClick(animeTag)} // Reuse the same function for anime tags
-                  variant="contained"
-                  style={{ marginRight: "8px", marginBottom: "8px" }}
-                >
-                  {animeTag}
-                </Button>
-              ))}
-          </div>
-        </div>
-        <div className="item-quantity-container">
-          <h3>Available Quantity: {item.quantity}</h3>
-          <TextField
-            label="Quantity"
-            type="number"
-            InputProps={{ inputProps: { min: 1, max: item.quantity } }}
-            value={selectedQuantity}
-            onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-            variant="outlined"
-            size="small"
-          />
+          {item.photos && item.photos.length > 1 && (
+            <div className="thumbnail-container">
+              {item.photos.map(
+                (photo: string | undefined, index: React.Key | null | undefined) => (
+                  <img
+                    key={index}
+                    src={photo}
+                    alt={`Item Thumbnail ${index}`}
+                    className={`thumbnail ${mainImage === photo ? "active" : ""}`}
+                    onClick={() => handleThumbnailClick(photo)}
+                  />
+                )
+              )}
+            </div>
+          )}
         </div>
 
-        <p>
-          <h3>Price: ${item.price}</h3>
-        </p>
-        <div className="listing-status">
-          <h3>Listing Status:</h3>
-          <p>{item.listingStatus}</p>
+        {/* Right Column - Product Details */}
+        <div className="product-details-section">
+          <h1 className="product-title">{item.title}</h1>
+          
+          <div className="product-price-section">
+            <span className="product-price">${typeof item.price === 'number' ? item.price.toFixed(2) : item.price}</span>
+            {item.quantity > 0 && (
+              <span className="product-availability">In Stock ({item.quantity} available)</span>
+            )}
+          </div>
+
+          <div className="product-condition">
+            <span className="condition-label">Condition:</span>
+            <span className="condition-value">{item.condition}</span>
+          </div>
+
+          {seller && item.sellerId && (
+            <div className="seller-info-box">
+              <div className="seller-header">
+                <span className="seller-label">Seller:</span>
+                <span className="seller-name">{seller.name}</span>
+                {seller.rating && (
+                  <span className="seller-rating">⭐ {seller.rating}</span>
+                )}
+              </div>
+              <div className="seller-buttons">
+                <button
+                  className="view-seller-btn"
+                  onClick={() => {
+                    // Navigate using sellerId - fetch username from sellerId
+                    if (seller.name && item.sellerId) {
+                      // Use the username fetched from sellerId to navigate
+                      navigate(`/user/${seller.name.toLowerCase()}`);
+                    }
+                  }}
+                >
+                  View Seller Profile
+                </button>
+                {userId !== item.sellerId && (
+                  <button
+                    className="message-seller-btn"
+                    onClick={() => {
+                      navigate(`/messages/${item.sellerId}`);
+                    }}
+                  >
+                    Message Seller
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="product-quantity-section">
+            <label className="quantity-label">Quantity:</label>
+            <TextField
+              type="number"
+              InputProps={{ inputProps: { min: 1, max: item.quantity } }}
+              value={selectedQuantity}
+              onChange={(e) => setSelectedQuantity(Number(e.target.value))}
+              variant="outlined"
+              size="small"
+              className="quantity-input"
+            />
+            <span className="quantity-available">({item.quantity} available)</span>
+          </div>
+
+          <div className="product-actions">
+            {userId === item.sellerId ? (
+              <div className="seller-actions">
+                <button className="btn-primary" onClick={() => navigate(`/edit-item/${id}`)}>
+                  Edit Listing
+                </button>
+                <button className="btn-secondary" onClick={handleOpenDeleteDialog}>
+                  Delete Listing
+                </button>
+              </div>
+            ) : (
+              <div className="buyer-actions">
+                <button className="btn-buy-now" onClick={addToCart}>
+                  Add to Cart
+                </button>
+                <button className="btn-watchlist" onClick={addToWatchlist}>
+                  Add to Watchlist
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="listing-status-box">
+            <span className="status-label">Status:</span>
+            <span className="status-value">{item.listingStatus}</span>
+          </div>
         </div>
-        {userId === item.sellerId ? (
-          // If the current user is the seller, show Edit and Delete buttons
-          <div>
-            <button onClick={() => navigate(`/edit-item/${id}`)}>
-              Edit Listing
-            </button>
-            <button onClick={handleOpenDeleteDialog}>Delete Listing</button>
-          </div>
-        ) : (
-          // If the current user is not the seller, show Add to Watchlist and Cart buttons
-          <div>
-            <button onClick={addToWatchlist}>Add to Watchlist</button>
-            <button onClick={addToCart}>Add to Cart</button>
-          </div>
-        )}
       </div>
-      {seller && (
-        <div className="seller-info">
-          <h3>Seller: {seller.name}</h3>
-          <p>Rating: {seller.rating}</p>
-          {/* Link to the seller's public profile */}
-          <button
-            onClick={() => navigate(`/user/${seller.name.toLowerCase()}`)}
-          >
-            View Profile
-          </button>
+
+      {/* Product Information Section */}
+      <div className="product-info-section">
+        <div className="info-tabs">
+          <div className="info-tab active">Description</div>
         </div>
-      )}
+        <div className="info-content">
+          <div className="description-section">
+            <h3>Item Description</h3>
+            <p className="description-text">{item.description}</p>
+          </div>
+
+          <div className="item-specs">
+            <h3>Item Details</h3>
+            <div className="specs-grid">
+              <div className="spec-item">
+                <span className="spec-label">Category:</span>
+                <span className="spec-value">{item.category}</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Condition:</span>
+                <span className="spec-value">{item.condition}</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Quantity Available:</span>
+                <span className="spec-value">{item.quantity}</span>
+              </div>
+            </div>
+          </div>
+
+          {item.tags && item.tags.length > 0 && (
+            <div className="tags-section">
+              <h3>Tags</h3>
+              <div className="tag-container">
+                {item.tags.map((tag, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleTagClick(tag)}
+                    variant="outlined"
+                    className="tag-button"
+                  >
+                    {tag}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {item.animeTags && item.animeTags.length > 0 && (
+            <div className="tags-section">
+              <h3>Anime Tags</h3>
+              <div className="tag-container">
+                {item.animeTags.map((animeTag, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleTagClick(animeTag)}
+                    variant="outlined"
+                    className="tag-button"
+                  >
+                    {animeTag}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

@@ -35,11 +35,11 @@ const columns = [
 ];
 
 const PublicProfile: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>(); // Assume routing setup to capture userId
   const { username } = useParams<{ username: string }>(); // Assume routing setup to capture userId
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userItems, setUserItems] = useState<any[]>([]);
   const [soldItems, setSoldItems] = useState<any[]>([]);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,6 +54,7 @@ const PublicProfile: React.FC = () => {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       let userId = docSnap.data().userId;
+      setProfileUserId(userId); // Store the userId for messaging
       const userRef = doc(db, "users", userId);
       let userSnap = await getDoc(userRef);
       fetchUserItems(userId); // Fetch items the user is selling
@@ -123,9 +124,11 @@ const PublicProfile: React.FC = () => {
         {/* Possibly display reviews if appropriate */}
       </div>
       {/* Option to send a message */}
-      <Link to={`/messages/${userId}`} className="edit-profile-btn">
-        Send a Message
-      </Link>
+      {profileUserId && (
+        <Link to={`/messages/${profileUserId}`} className="edit-profile-btn">
+          Send a Message
+        </Link>
+      )}
       {/* Items User is Selling */}
       <h2>Items for Sale</h2>
       {userItems.length > 0 ? (

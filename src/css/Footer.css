@@ -12,36 +12,58 @@
 /* Footer.css */
 .footer-layer.info-links {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(180px, 1fr)
-  ); /* Adjust based on your content and design preference */
-  gap: 20px; /* Space between columns */
-  background-color: var(--secondary-color); /* Darker background for contrast */
-  padding: 20px 60px;
+  grid-template-columns: 1fr 1fr 1fr 1fr; /* 4 equal columns */
+  gap: 40px; /* Consistent space between columns */
+  background-color: var(--secondary-color); /* Cream white background */
+  padding: 40px 60px;
+  align-items: start; /* Align all sections to the top */
 }
 
-/* Ensures that each section including the title and links behaves like a mini-grid */
-.footer-layer.info-links div {
+/* Position the info-section in column 2 */
+.footer-layer.info-links .info-section {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Position the help-section in column 3 */
+.footer-layer.info-links .help-section {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensures that each section including the title and links behaves uniformly */
+.footer-layer.info-links > div {
   display: flex;
   flex-direction: column;
 }
 
 .footer-layer.info-links h2 {
-  margin-bottom: 10px; /* Space between the title and the first link */
-  color: var(--dark-color);
+  margin: 0 0 16px 0; /* Consistent spacing: top, right, bottom, left */
+  color: var(--primary-color); /* Cobalt blue for headings */
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 /* Adjusts the link appearance */
 .footer-layer.info-links a {
-  color: var(--font-color);
+  color: var(--font-color-dark); /* Dark text on cream background */
   text-decoration: none; /* No underlines */
-  margin-bottom: 5px; /* Space between links */
+  margin-bottom: 12px; /* Consistent spacing between links */
+  font-size: 0.9rem;
+  line-height: 1.5;
   transition: color 0.3s; /* Smooth transition for hover effect */
+  display: block; /* Ensures links are block-level for consistent spacing */
+}
+
+.footer-layer.info-links a:last-child {
+  margin-bottom: 0; /* Remove margin from last link */
 }
 
 .footer-layer.info-links a:hover {
-  color: var(--light-color); /* Changes color on hover for visual feedback */
+  color: var(--primary-color); /* Cobalt blue on hover */
 }
 
 .footer-layer.legal-info {
@@ -52,27 +74,37 @@
   background-color: var(--primary-color); /* Dark background for contrast */
   color: var(--font-color);
   font-size: 12px; /* Smaller font size for the legal links */
+  flex-wrap: nowrap; /* Prevents wrapping to keep everything on one line */
+  gap: 20px; /* Space between copyright and links */
+}
+
+.footer-copyright {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between logo and copyright text */
+  white-space: nowrap; /* Prevents text from wrapping */
+  flex-shrink: 0; /* Prevents copyright section from shrinking */
 }
 
 .footer-layer.legal-info .footer-logo {
   width: 80px; /* Smaller logo size */
   height: auto; /* Maintain aspect ratio */
-  margin-right: 20px; /* Ensures some space between logo and legal links */
-  align-self: flex-start; /* Aligns logo to the top if there's more vertical space */
+  flex-shrink: 0; /* Prevents logo from shrinking */
 }
 
 .legal-links {
   display: flex;
-  justify-content: space-evenly; /* Evenly spaces the links within the container */
+  justify-content: flex-end; /* Aligns links to the right */
   align-items: center;
-  width: 100%; /* Takes up remaining space to justify content evenly */
-  flex-wrap: wrap; /* Allows links to wrap on smaller screens */
+  flex-wrap: nowrap; /* Prevents links from wrapping */
+  gap: 15px; /* Space between links */
+  flex: 1; /* Takes up remaining space */
 }
 
 .legal-links a {
   color: var(--font-color);
   text-decoration: none; /* Removes underline */
-  margin: 0 10px; /* Evenly spaces the links */
+  white-space: nowrap; /* Prevents link text from wrapping */
   transition: color 0.3s; /* Smooth transition for hover effect */
 }
 
@@ -85,15 +117,21 @@
   .footer-layer.legal-info {
     flex-direction: column;
     text-align: center;
+    gap: 15px;
+  }
+
+  .footer-copyright {
+    justify-content: center;
   }
 
   .footer-layer.legal-info .footer-logo {
-    margin-bottom: 10px; /* Adds some space between logo and links on smaller screens */
+    margin-bottom: 0;
   }
 
   .legal-links {
-    justify-content: center; /* Centers links when stacked vertically */
-    margin-top: 10px; /* Adds some space above links */
+    justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping on very small screens */
+    gap: 10px;
   }
 }
 
@@ -115,6 +153,25 @@
 @media (max-width: 768px) {
   .footer-layer.info-links {
     grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    gap: 30px; /* Reduced gap on mobile */
+    padding: 30px 20px; /* Reduced padding on mobile */
+  }
+
+  .footer-layer.info-links .info-section,
+  .footer-layer.info-links .help-section {
+    grid-column: 1; /* Both sections in first column on mobile */
+  }
+
+  .footer-layer.info-links > div {
+    min-width: 100%; /* Full width on mobile */
+  }
+
+  .footer-layer.info-links h2 {
+    margin-bottom: 12px; /* Slightly reduced spacing on mobile */
+  }
+
+  .footer-layer.info-links a {
+    margin-bottom: 10px; /* Slightly reduced spacing on mobile */
   }
 
   .app-promotion-layer {
@@ -125,7 +182,7 @@
 
 /* Additional styling for the newsletter section if needed */
 .newsletter-section {
-  background-color: #f2f2f2; /* Light grey background */
+  background-color: var(--secondary-dark); /* Cream background */
   color: #000; /* Text color */
   text-align: center;
   padding: 20px;
@@ -135,11 +192,11 @@
 .newsletter-section button {
   padding: 10px;
   margin: 5px;
-  border-radius: 5px; /* Adds rounded corners */
+  border-radius: 12px; /* Adds rounded corners */
 }
 
 .newsletter-section button {
-  background-color: #007bff; /* Bootstrap primary blue */
+  background-color: var(--primary-color); /* Cobalt blue */
   color: white;
   border: none;
   cursor: pointer;

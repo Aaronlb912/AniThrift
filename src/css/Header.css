@@ -7,6 +7,18 @@
   top: 0;
   left: 0;
   z-index: 1000; /* Ensures the header stays on top of other content */
+  overflow: visible;
+}
+
+/* Prevent Material-UI Menu from affecting page layout */
+.MuiMenu-root {
+  position: fixed !important;
+}
+
+.MuiMenu-paper {
+  position: fixed !important;
+  max-width: 200px !important;
+  overflow: hidden !important;
 }
 
 topbar {
@@ -14,7 +26,7 @@ topbar {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  background-color: var(--primary-color); /* Customize the background color */
+  background: linear-gradient(to right, var(--primary-light), var(--primary-dark)); /* Light to dark gradient */
   color: var(--font-color);
   height: 1em;
 }
@@ -24,18 +36,21 @@ topbar {
   display: flex;
   justify-content: center;
   margin: 1em 0;
+  background-color: var(--secondary-color); /* Cream white background */
 }
 
 .searchBar {
   color: inherit;
-  background-color: rgba(236, 236, 236, 0.938);
+  background-color: var(--secondary-color); /* Cream white background */
   padding: 0 10px;
   border-radius: 5px;
+  border: 2px solid #36454F; /* Charcoal grey border */
   width: 90%; /* Adjust the width as needed */
 }
 
 .searchBar ::placeholder {
-  color: black;
+  color: var(--secondary-light);
+  opacity: 0.8;
 }
 
 .navbar {
@@ -43,19 +58,28 @@ topbar {
   justify-content: space-around;
   align-items: center; /* Adjusted to center */
   height: 60px; /* Example height */
-  background-color: var(--primary-color); /* Background color */
+  background: linear-gradient(to right, var(--primary-light), var(--primary-dark)); /* Light to dark gradient */
+  position: relative; /* Ensure shadow is visible */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important; /* More prominent shadow at the bottom */
+  z-index: 999; /* Ensure it's above content below */
 }
 
 .nav-link {
   text-decoration: none;
-  color: var(--font-color);
+  color: #fff !important; /* White color for links */
   padding: 10px; /* Adjusted padding */
   white-space: nowrap; /* Prevents the text from wrapping */
   transition: color 0.3s; /* Smooth transition for hover effect */
 }
 
-.nav-link:hover {
-  color: var(--light-color); /* Darker shade on hover */
+.navbar .nav-link,
+.navbar .nav-link.MuiButton-root {
+  color: #fff !important; /* Force white color for Material-UI buttons */
+}
+
+.nav-link:hover,
+.navbar .nav-link:hover {
+  color: var(--accent-color) !important; /* Light blue-gray on hover */
 }
 
 /* Responsive design adjustments */
@@ -108,7 +132,7 @@ topbar {
 
 /* Additional styling */
 .Menu {
-  background-color: #444; /* Slightly darker than topbar for contrast */
+  background-color: var(--primary-dark); /* Darker cobalt for menu */
   color: #fff; /* White color text for menu items */
 }
 
@@ -119,5 +143,5 @@ topbar {
 .MenuItem:hover,
 .topbar Button:hover,
 .topbar IconButton:hover {
-  background-color: #555; /* Slightly lighter on hover for feedback */
+  background-color: var(--primary-light); /* Lighter cobalt on hover */
 }

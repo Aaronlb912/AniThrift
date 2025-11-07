@@ -3,9 +3,9 @@
   margin: 40px auto;
   padding: 20px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  background-color: var(--secondary-light);
 }
 
 .account-settings h2 {
@@ -33,12 +33,12 @@
   padding: 10px;
   margin-top: 5px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 16px;
 }
 
 .account-settings-form button {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: #ffffff;
   cursor: pointer;
   font-weight: bold;
@@ -48,7 +48,7 @@
 }
 
 .account-settings-form button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-dark);
 }
 
 /* Ensure the form elements are not too wide on larger screens */

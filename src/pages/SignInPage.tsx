@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import moment from "moment/moment";
-import { debounce } from "lodash";
+import { debounce } from "../hooks/useDebounce";
 
 import {
   signInWithEmailAndPassword,
@@ -10,7 +9,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import "../css/Signin.css"; // Ensure the path is correct
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import BadWordsNext from "bad-words-next";
 const en = require("bad-words-next/data/en.json");
 
@@ -93,7 +92,7 @@ const SignInPage: React.FC = () => {
         email: newEmail,
         username: username, // Include username
         signUpPromo: signUpPromo,
-        creationDate: moment().format("MMM Do YY"), // Log the account creation date
+        creationDate: new Date().toISOString(), // Log the account creation date
         bio: "",
       });
 
@@ -191,9 +190,9 @@ const SignInPage: React.FC = () => {
             />
             <button type="submit">Login</button>
             <a> </a>
-            <a href="#" className="forgot-password">
+            <Link to="/forgot-password" className="forgot-password">
               Forgot password?
-            </a>
+            </Link>
           </form>
           {loginError && <p className="error-message">{loginError}</p>}{" "}
           {/* Display login error */}

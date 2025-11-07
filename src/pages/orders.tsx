@@ -136,7 +136,22 @@ const YourOrdersPage = () => {
                   </button>
                 </div>
                 <div className="item-actions">
-                  <button>Message seller</button>
+                  {item.sellerId && (
+                    <button
+                      onClick={() => {
+                        // Navigate to messages with sellerId and include item info in state
+                        navigate(`/messages/${item.sellerId}`, {
+                          state: {
+                            itemTitle: item.title,
+                            itemId: item.itemId,
+                            orderId: order.id,
+                          },
+                        });
+                      }}
+                    >
+                      Message seller
+                    </button>
+                  )}
                   <button>Rate/Review</button>
                 </div>
               </div>

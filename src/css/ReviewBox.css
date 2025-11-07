@@ -1,6 +1,6 @@
 .review-box {
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
     cursor: pointer;
@@ -16,9 +16,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
+    background-color: var(--secondary-light);
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 16px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     z-index: 1000; /* Ensure it's above other content */
     width: 80%;
@@ -30,14 +30,14 @@
     margin: auto;
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     cursor: pointer;
   }
   
   .lightbox button:hover {
-    background-color: #0056b3;
+    background-color: var(--primary-dark);
   }
   

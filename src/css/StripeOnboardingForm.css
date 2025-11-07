@@ -4,8 +4,8 @@
     max-width: 600px;
     margin: auto;
     padding: 20px;
-    background-color: #f7f7f7;
-    border-radius: 8px;
+    background-color: var(--background-color);
+    border-radius: 16px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -24,14 +24,14 @@
 .form-container select,
 .StripeElement {
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 10px;
     border: 1px solid #ccc;
     font-size: 16px;
 }
 
 .StripeElement {
     padding: 12px;
-    background-color: white;
+    background-color: var(--secondary-light);
 }
 
 .form-container input[type="checkbox"] {
@@ -46,24 +46,24 @@
 }
 
 .form-container button[type="submit"] {
-    background-color: #007bff;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 10px 15px;
     font-size: 16px;
-    border-radius: 5px;
+    border-radius: 12px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .form-container button[type="submit"]:hover {
-    background-color: #0056b3;
+    background-color: var(--primary-dark);
 }
 
 /* Custom styling for the CardElement if needed */
 .card-element-custom {
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 10px;
     border: 1px solid #ccc;
     background-color: #fff;
 }

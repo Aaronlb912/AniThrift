@@ -1,4 +1,17 @@
 /* ebaySearch.css */
+.ebay-results-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.ebay-results-content {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+}
+
 .loadingText {
   /* Your loading text styles */
 }
@@ -8,6 +21,18 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-top: 20px;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive Grid */
@@ -33,6 +58,13 @@
   padding-bottom: 50px;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.resultItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .resultItem h3 {
@@ -49,13 +81,17 @@
   max-width: 100%;
   max-height: 60%;
   object-fit: contain;
+  border-radius: 8px;
 }
 
 .buttonsContainer {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 30px;
+  padding: 20px;
+  flex-wrap: wrap;
 }
 
 .resultLink {
@@ -70,7 +106,6 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
   justify-content: center;
   align-items: center;
   color: white;
@@ -78,18 +113,59 @@
   z-index: 1000;
   display: none; /* Initially hidden */
 }
-.buttonsContainer button.selectedPage {
-  background-color: #4caf50; /* Green background for selected page */
-  color: white; /* White text for visibility */
+
+.loadingOverlay.show {
+  display: flex;
 }
 
 .buttonsContainer button {
-  background-color: #5c67a3; /* Custom background color */
-  color: white; /* Text color */
-  padding: 8px 16px; /* Padding around text */
-  border-radius: 4px; /* Rounded corners */
+  background-color: var(--secondary-light);
+  color: var(--primary-color);
+  padding: 10px 16px;
+  border: 2px solid var(--primary-color);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-family: "Nunito", sans-serif;
 }
 
-.buttonsContainer button:hover {
-  background-color: navy; /* Darker background on hover */
+.buttonsContainer button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 71, 171, 0.3);
+}
+
+.buttonsContainer button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.buttonsContainer button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: var(--secondary-dark);
+  border-color: #ccc;
+  color: #999;
+}
+
+.buttonsContainer button.selectedPage {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(0, 71, 171, 0.4);
+  font-weight: 700;
+}
+
+.buttonsContainer button.selectedPage:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 71, 171, 0.5);
 }

@@ -1,21 +1,44 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { db } from "../firebase-config"; // Adjust this import based on your file structure
-import { collection, getDocs, query, where } from "firebase/firestore";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import { db } from "../firebase-config";
+import { collection, getDocs, query, where, Query } from "firebase/firestore";
 
-// Create a context for the search functionality
-const SearchContext = createContext();
+interface SearchResult {
+  id: string;
+  [key: string]: unknown;
+}
 
-// Custom hook to use the search context
-export const useSearch = () => useContext(SearchContext);
+interface SearchContextType {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  results: SearchResult[];
+}
 
-// Component to provide search context to children
-export const SearchProvider = ({ children }) => {
+const SearchContext = createContext<SearchContextType | undefined>(undefined);
+
+export const useSearch = (): SearchContextType => {
+  const context = useContext(SearchContext);
+  if (!context) {
+    throw new Error("useSearch must be used within SearchProvider");
+  }
+  return context;
+};
+
+interface SearchProviderProps {
+  children: React.ReactNode;
+}
+
+export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
 
   useEffect(() => {
     const fetchItems = async () => {
-      let q;
+      if (!searchQuery) {
+        setResults([]);
+        return;
+      }
+
+      let q: Query;
       if (searchQuery === "ours") {
         q = query(collection(db, "items"));
       } else {
@@ -24,7 +47,7 @@ export const SearchProvider = ({ children }) => {
 
       try {
         const querySnapshot = await getDocs(q);
-        const items = querySnapshot.docs.map((doc) => ({
+        const items: SearchResult[] = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -35,13 +58,16 @@ export const SearchProvider = ({ children }) => {
       }
     };
 
-    if (searchQuery) {
-      fetchItems();
-    }
+    fetchItems();
   }, [searchQuery]);
 
+  const contextValue = useMemo(
+    () => ({ searchQuery, setSearchQuery, results }),
+    [searchQuery, results]
+  );
+
   return (
-    <SearchContext.Provider value={{ searchQuery, setSearchQuery, results }}>
+    <SearchContext.Provider value={contextValue}>
       {children}
     </SearchContext.Provider>
   );

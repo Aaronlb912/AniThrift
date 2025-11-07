@@ -1,77 +1,107 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import "../css/Carousel.css"; // Make sure to create this CSS file
+import "../css/Carousel.css";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 
-function NextArrow(props: any) {
-  const { className, style, onClick } = props;
-  return (
-    <KeyboardArrowRightIcon
-      className={className}
-      style={{ ...style, display: "block", color: "black" }}
-      onClick={onClick}
-    />
-  );
+interface CarouselItem {
+  id?: string;
+  imageUrl?: string;
+  title?: string;
+  name?: string;
+  price?: string | number;
 }
 
-function PrevArrow(props: any) {
-  const { className, style, onClick } = props;
-  return (
-    <KeyboardArrowLeftIcon
-      className={className}
-      style={{ ...style, display: "block", color: "black" }}
-      onClick={onClick}
-    />
-  );
+interface ArrowProps {
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: () => void;
 }
 
-export const Carousel = ({ items }: { items: any }) => {
-  const isMultipleItems = items.length > 1; // Check if there's more than one item
+const NextArrow: React.FC<ArrowProps> = ({ className, style, onClick }) => (
+  <KeyboardArrowRightIcon
+    className={className}
+    style={{ ...style, display: "block", color: "black" }}
+    onClick={onClick}
+  />
+);
 
-  const settings = {
-    dots: true,
-    centerMode: true,
-    infinite: isMultipleItems, // Set based on item count
-    centerPadding: "60px",
-    slidesToShow: 3,
-    speed: 500,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
+const PrevArrow: React.FC<ArrowProps> = ({ className, style, onClick }) => (
+  <KeyboardArrowLeftIcon
+    className={className}
+    style={{ ...style, display: "block", color: "black" }}
+    onClick={onClick}
+  />
+);
+
+interface CarouselProps {
+  items: CarouselItem[];
+}
+
+export const Carousel: React.FC<CarouselProps> = React.memo(({ items }) => {
+  const isMultipleItems = items.length > 1;
+
+  const settings = useMemo(
+    () => ({
+      dots: true,
+      centerMode: true,
+      infinite: isMultipleItems,
+      centerPadding: "60px",
+      slidesToShow: 3,
+      slidesToScroll: 1,
+      speed: 1200,
+      cssEase: "ease-in-out",
+      swipe: true,
+      touchMove: true,
+      swipeToSlide: true,
+      autoplay: false,
+      nextArrow: <NextArrow />,
+      prevArrow: <PrevArrow />,
+      responsive: [
+        {
+          breakpoint: 1024,
+          settings: {
+            slidesToShow: 2,
+            slidesToScroll: 1,
+            infinite: items.length > 2,
+            centerMode: items.length > 2,
+          },
         },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
+        {
+          breakpoint: 600,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            infinite: items.length > 1,
+            centerMode: items.length > 1,
+            centerPadding: "40px",
+          },
         },
-      },
-    ],
-  };
+      ],
+    }),
+    [isMultipleItems, items.length]
+  );
+
+  if (!items || items.length === 0) {
+    return null;
+  }
 
   return (
     <div className="carousel-container">
       <Slider {...settings}>
-        {items.map((item: any, index: any) => (
-          <div key={index} className="carousel-item">
-            <Link to={`/item/${item?.id}`} className="carousel-item-link">
-              <img src={item?.imageUrl} alt={`Item ${index + 1}`} />
-              <p>{item?.title}</p>
-              <p>${item?.price}</p>
+        {items.map((item, index) => (
+          <div key={item.id || index} className="carousel-item">
+            <Link to={`/item/${item.id || index}`} className="carousel-item-link">
+              <img src={item.imageUrl} alt={item.title || item.name || `Item ${index + 1}`} />
+              <p>{item.title || item.name}</p>
+              <p>${item.price}</p>
             </Link>
           </div>
         ))}
       </Slider>
     </div>
   );
-};
+});

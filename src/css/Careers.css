@@ -9,7 +9,7 @@
 
 .careers-container h1,
 .careers-container h2 {
-  color: #0077b6; /* Adjust to match your site's theme */
+  color: var(--primary-color); /* Cobalt blue */
 }
 
 .careers-container p {
@@ -18,7 +18,7 @@
 }
 
 .contact-info a {
-  color: #0056b3;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
