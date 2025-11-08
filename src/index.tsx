@@ -25,7 +25,9 @@ const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const PersonalInfoPage = lazy(() => import("./components/PersonalInfo"));
 const AddressesPage = lazy(() => import("./components/Addresses"));
 const PurchaseSuccess = lazy(() => import("./components/PurchaseSuccess"));
-const StripeOnboardingForm = lazy(() => import("./components/StripeOnboardingForm"));
+const StripeOnboardingForm = lazy(
+  () => import("./components/StripeOnboardingForm")
+);
 const Orders = lazy(() => import("./pages/orders"));
 const Archives = lazy(() => import("./pages/ArchivedOrders"));
 const AboutUsPage = lazy(() => import("./pages/AboutUs"));
@@ -35,15 +37,18 @@ const AccountSettings = lazy(() => import("./pages/AccountSettings"));
 const FBResults = lazy(() => import("./components/FBResults"));
 const FeedbackForm = lazy(() => import("./components/Feedback"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
 const LoadingFallback = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    minHeight: '50vh' 
-  }}>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "50vh",
+    }}
+  >
     <div>Loading...</div>
   </div>
 );
@@ -100,6 +105,7 @@ root.render(
               <Route path="/help-support" element={<HelpAndSupportPage />} />
               <Route path="/fbresults" element={<FBResults />} />
               <Route path="/feedback" element={<FeedbackForm />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
           <Footer />

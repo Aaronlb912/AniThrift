@@ -83,6 +83,16 @@ topbar {
 }
 
 /* Responsive design adjustments */
+@media (max-width: 1024px) {
+  .searchBar {
+    width: 85%;
+  }
+
+  .topbar {
+    padding: 8px 15px;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
     display: none; /* Hide navbar links on smaller screens */
@@ -101,6 +111,48 @@ topbar {
   .drawer-item {
     padding: 8px 16px;
     color: #fff; /* Adjust based on your color scheme */
+  }
+
+  .searchContainer {
+    margin: 0.5em 0;
+  }
+
+  .searchBar {
+    width: 95%;
+    padding: 0 8px;
+  }
+
+  .topbar {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+
+  .right-side Button,
+  .right-side IconButton {
+    margin-left: 8px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchBar {
+    width: 98%;
+    font-size: 0.9rem;
+  }
+
+  .topbar {
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+
+  .right-side {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .right-side Button {
+    font-size: 0.75rem;
+    padding: 4px 6px;
   }
 }
 

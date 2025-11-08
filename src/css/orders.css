@@ -239,3 +239,102 @@
 .order-action-button:hover {
   background-color: var(--primary-dark);
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .your-orders-page {
+    padding: 20px;
+  }
+
+  .order-card {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .your-orders-page {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  .your-orders-page h1 {
+    font-size: 1.5rem;
+  }
+
+  .order-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .order-info {
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+  }
+
+  .order-middle {
+    padding: 15px;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .item-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .item-details {
+    width: 100%;
+  }
+
+  .item-actions {
+    width: 100%;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .item-actions button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .your-orders-page {
+    padding: 10px;
+  }
+
+  .your-orders-page h1 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+
+  .order-card {
+    margin-bottom: 15px;
+  }
+
+  .order-top,
+  .order-middle,
+  .order-bottom {
+    padding: 15px;
+  }
+
+  .item-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .item-actions {
+    flex-direction: column;
+  }
+
+  .item-actions button {
+    width: 100%;
+    min-width: 100%;
+  }
+}

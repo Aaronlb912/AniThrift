@@ -86,3 +86,43 @@
 .button-container:last-child {
   margin-right: 0;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .checkout-container {
+    max-width: 95%;
+    padding: 15px;
+    margin: 10px auto;
+  }
+
+  .checkout-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .item-image {
+    width: 60px;
+    height: 60px;
+    margin-right: 0;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  .checkout-btn,
+  .back-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-container {
+    padding: 10px;
+  }
+
+  .checkout-container h2 {
+    font-size: 1.5rem;
+  }
+}

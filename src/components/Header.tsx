@@ -60,14 +60,14 @@ const Header: React.FC = React.memo(() => {
 
   const drawerItems = useMemo(
     () => [
-      "Digital Media",
-      "Manga & Novels",
-      "Merchandise",
-      "Figures & Trinkets",
-      "Apparel",
-      "Audio",
-      "Games",
-      "All Categories",
+      { name: "Digital Media", query: "anime" },
+      { name: "Manga & Novels", query: "manga" },
+      { name: "Merchandise", query: "merch" },
+      { name: "Figures & Trinkets", query: "figures" },
+      { name: "Apparel", query: "apparel" },
+      { name: "Audio", query: "audio" },
+      { name: "Games", query: "games" },
+      { name: "All Categories", query: "" },
     ],
     []
   );
@@ -136,22 +136,29 @@ const Header: React.FC = React.memo(() => {
     [setSearchQuery, navigate]
   );
 
+  const handleDrawerItemClick = useCallback(
+    (query: string) => {
+      handleDrawerToggle(); // Close the drawer
+      handleCategoryClick(query); // Use the same handler as desktop
+    },
+    [handleDrawerToggle, handleCategoryClick]
+  );
+
   const drawer = useMemo(
     () => (
       <List>
-        {drawerItems.map((text) => (
+        {drawerItems.map((item) => (
           <ListItem
             button
-            key={text}
-            component={Link}
-            to={`/${text.toLowerCase().replace(/ & /g, "-").replace(/ /g, "")}`}
+            key={item.name}
+            onClick={() => handleDrawerItemClick(item.query)}
           >
-            <ListItemText primary={text} />
+            <ListItemText primary={item.name} />
           </ListItem>
         ))}
       </List>
     ),
-    [drawerItems]
+    [drawerItems, handleDrawerItemClick]
   );
 
   return (

@@ -269,3 +269,82 @@
   font-size: 1rem;
   padding: 6px 10px;
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .messages-page {
+    flex-direction: column;
+    height: auto;
+    min-height: 500px;
+  }
+
+  .conversations-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .messages-page {
+    margin: 10px;
+    border-radius: 12px;
+  }
+
+  .conversations-sidebar {
+    max-height: 250px;
+  }
+
+  .conversations-sidebar h2 {
+    font-size: 1.2rem;
+    padding: 15px;
+  }
+
+  .conversation-item {
+    padding: 12px 15px;
+  }
+
+  .conversation-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .conversation-username {
+    font-size: 0.9rem;
+  }
+
+  .conversation-preview {
+    font-size: 0.8rem;
+  }
+
+  .conversation-actions {
+    flex-direction: column;
+    gap: 5px;
+    top: 5px;
+    right: 10px;
+  }
+
+  .delete-conversation-btn,
+  .block-user-btn,
+  .unblock-user-btn {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .messages-page {
+    margin: 5px;
+  }
+
+  .conversations-sidebar h2 {
+    font-size: 1rem;
+    padding: 10px;
+  }
+
+  .conversation-item {
+    padding: 10px;
+    gap: 8px;
+  }
+}

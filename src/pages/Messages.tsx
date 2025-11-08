@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import "../css/Messages.css";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -53,6 +53,13 @@ const Messages: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+
+  // Ensure messages is always an array
+  useEffect(() => {
+    if (!Array.isArray(messages)) {
+      setMessages([]);
+    }
+  }, [messages]);
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<any>(null);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
@@ -293,12 +300,20 @@ const Messages: React.FC = () => {
     const q = query(messagesRef, orderBy("timestamp", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs: Message[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        text: doc.data().text || "",
-        senderId: doc.data().senderId || "",
-        timestamp: doc.data().timestamp,
-      }));
+      const msgs: Message[] = snapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          if (!doc.id || !data) {
+            return null;
+          }
+          return {
+            id: doc.id,
+            text: data.text || "",
+            senderId: data.senderId || "",
+            timestamp: data.timestamp,
+          };
+        })
+        .filter((msg): msg is Message => msg !== null); // Filter out null messages
       setMessages(msgs);
     });
 
@@ -414,14 +429,44 @@ const Messages: React.FC = () => {
   }, [selectedConversation, user, messages.length, location.state, blockedUsers]);
 
   // Format messages for MinChat
-  const formatMessagesForMinChat = (msgs: Message[]) => {
-    return msgs.map((msg) => ({
-      id: msg.id,
-      text: msg.text,
-      senderId: msg.senderId,
-      timestamp: msg.timestamp?.toMillis?.() || msg.timestamp?.seconds * 1000 || Date.now(),
-    }));
-  };
+  const formatMessagesForMinChat = useCallback((msgs: Message[] | undefined | null): any[] => {
+    if (!msgs || !Array.isArray(msgs)) {
+      return [];
+    }
+    try {
+      return msgs
+        .filter((msg) => {
+          // Strict validation: ensure msg exists and has required properties
+          return msg && 
+                 typeof msg === 'object' && 
+                 msg.id && 
+                 typeof msg.id === 'string' &&
+                 msg.senderId &&
+                 typeof msg.senderId === 'string';
+        })
+        .map((msg) => {
+          // Ensure all required fields are present
+          const timestamp = msg.timestamp?.toMillis?.() || 
+                           (msg.timestamp?.seconds ? msg.timestamp.seconds * 1000 : null) || 
+                           Date.now();
+          
+          return {
+            id: String(msg.id),
+            text: String(msg.text || ""),
+            senderId: String(msg.senderId || ""),
+            timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
+          };
+        });
+    } catch (error) {
+      console.error("Error formatting messages for MinChat:", error);
+      return [];
+    }
+  }, []);
+
+  // Memoize formatted messages to prevent unnecessary re-renders
+  const formattedMessages = useMemo(() => {
+    return formatMessagesForMinChat(messages);
+  }, [messages, formatMessagesForMinChat]);
 
   if (!user) {
     return <div>Please sign in to view messages.</div>;
@@ -518,7 +563,7 @@ const Messages: React.FC = () => {
                   </div>
                 </div>
                 <MessageList
-                  messages={formatMessagesForMinChat(messages)}
+                  messages={formattedMessages}
                   currentUserId={user.uid}
                 />
                 <MessageInput

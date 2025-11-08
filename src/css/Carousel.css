@@ -134,5 +134,87 @@
   .carousel-container .slick-list {
     overflow: visible; /* Allow smooth transitions */
   }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .carousel-container {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .carousel-item {
+    flex: 0 0 35%;
+  }
+
+  .carousel-item-link {
+    width: 9em;
+    height: 9em;
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-container {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .carousel-item {
+    flex: 0 0 50%;
+    margin: 0 5px;
+  }
+
+  .carousel-item-link {
+    width: 8em;
+    height: 8em;
+  }
+
+  .carousel-item-link p:first-of-type {
+    font-size: 12px;
+    bottom: 35px;
+  }
+
+  .carousel-item-link p:last-of-type {
+    font-size: 16px;
+    bottom: 6px;
+  }
+
+  .arrow {
+    font-size: 1.5rem;
+  }
+
+  .left {
+    left: 5px;
+  }
+
+  .right {
+    right: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-container {
+    padding: 5px;
+  }
+
+  .carousel-item {
+    flex: 0 0 100%;
+    margin: 0;
+  }
+
+  .carousel-item-link {
+    width: 7em;
+    height: 7em;
+  }
+
+  .carousel-item-link p:first-of-type {
+    font-size: 11px;
+    bottom: 30px;
+  }
+
+  .carousel-item-link p:last-of-type {
+    font-size: 14px;
+    bottom: 5px;
+  }
+}
   
   

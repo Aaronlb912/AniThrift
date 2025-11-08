@@ -98,3 +98,69 @@
   color: #666;
   margin-top: 20px;
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-info {
+    gap: 80px;
+  }
+
+  .bio {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  .profile-info {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .bio {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .selling-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .info-box {
+    margin: 0;
+    width: 100%;
+  }
+
+  .reviews-section button {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 10px;
+  }
+
+  .profile-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .profile-info img,
+  .profile-info .MuiSvgIcon-root {
+    width: 80px;
+    height: 80px;
+  }
+
+  .bio {
+    height: auto;
+    min-height: 80px;
+  }
+}

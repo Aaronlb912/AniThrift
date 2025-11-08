@@ -59,15 +59,59 @@
 }
 
 /* Only reduce columns on very small screens */
+@media (max-width: 1200px) {
+  .ebay-results-wrapper {
+    flex-direction: column;
+  }
+
+  .ebay-results-content {
+    max-height: none;
+  }
+}
+
 @media (max-width: 768px) {
+  .ebay-results-wrapper {
+    flex-direction: column;
+  }
+
   .ebay-results-content .search-results-container {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+    max-height: none;
+  }
+
+  .buttonsContainer {
+    padding: 15px;
+    gap: 6px;
+  }
+
+  .buttonsContainer button {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
   }
 }
 
 @media (max-width: 480px) {
   .ebay-results-content .search-results-container {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .buttonsContainer {
+    padding: 10px;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .buttonsContainer button {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
   }
 }
 
