@@ -9,26 +9,24 @@ import "../css/PersonalInfo.css";
 interface UserData {
   username: string;
   email: string;
-  phoneNumber: string;
   firstName: string;
   lastName: string;
-  address: string;
-}
-
-interface EditModeState {
-  [key: string]: boolean;
 }
 
 const PersonalInfoPage: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
-  const [editMode, setEditMode] = useState<EditModeState>({});
+  const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     username: "",
     email: "",
-    phoneNumber: "",
     firstName: "",
     lastName: "",
-    address: "",
+  });
+  const [originalData, setOriginalData] = useState<UserData>({
+    username: "",
+    email: "",
+    firstName: "",
+    lastName: "",
   });
 
   useEffect(() => {
@@ -37,7 +35,6 @@ const PersonalInfoPage: React.FC = () => {
         setUserId(user.uid);
         fetchData(user.uid);
       } else {
-        // Optionally, navigate to login page or show a message
         console.log("User not logged in");
       }
     });
@@ -51,32 +48,39 @@ const PersonalInfoPage: React.FC = () => {
 
     if (docSnap.exists()) {
       const data = docSnap.data() as UserData;
-      setUserData({
+      const fetchedData = {
         username: data.username || "",
         email: data.email || "",
-        phoneNumber: data.phoneNumber || "",
         firstName: data.firstName || "",
         lastName: data.lastName || "",
-        address: data.address || "",
-      });
+      };
+      setUserData(fetchedData);
+      setOriginalData(fetchedData);
     } else {
       console.log("No such document!");
     }
   };
 
-  const handleEdit = (field: keyof UserData) => {
-    setEditMode({ ...editMode, [field]: true });
+  const handleEdit = () => {
+    setIsEditing(true);
   };
 
-  const handleSave = async (field: keyof UserData) => {
+  const handleSave = async () => {
     if (!userId) return;
-    const docRef = doc(db, "users", userId);
-    await updateDoc(docRef, { [field]: userData[field] });
-    setEditMode({ ...editMode, [field]: false });
+    try {
+      const docRef = doc(db, "users", userId);
+      await updateDoc(docRef, userData);
+      setOriginalData(userData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      alert("Failed to update information. Please try again.");
+    }
   };
 
-  const handleCancel = (field: keyof UserData) => {
-    setEditMode({ ...editMode, [field]: false });
+  const handleCancel = () => {
+    setUserData(originalData);
+    setIsEditing(false);
   };
 
   const handleChange = (
@@ -86,76 +90,73 @@ const PersonalInfoPage: React.FC = () => {
     setUserData({ ...userData, [field]: event.target.value });
   };
 
-  const editableFields = [
-    "username",
-    "email",
-    "phoneNumber",
-    "firstName",
-    "lastName",
-    "address",
+  const fields: Array<{ key: keyof UserData; label: string }> = [
+    { key: "username", label: "Username" },
+    { key: "email", label: "Email" },
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
   ];
-
-  const formatTitle = (str: string): string => {
-    // Split string at each capital letter
-    const words = str.replace(/([A-Z])/g, " $1");
-    // Capitalize the first letter of each word
-    const capitalizedWords = words.replace(/\b\w/g, (char) =>
-      char.toUpperCase()
-    );
-    return capitalizedWords.trim();
-  };
 
   return (
     <MainLayout>
       <div className="personal-info-container">
-        <h2>Personal Info</h2>
-        {Object.entries(userData).map(([key, value]) =>
-          editableFields.includes(key) ? (
+        <div className="personal-info-header">
+          <h2>Personal Information</h2>
+          {!isEditing && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleEdit}
+              className="edit-all-button"
+            >
+              Edit Information
+            </Button>
+          )}
+        </div>
+
+        <div className="personal-info-content">
+          {fields.map(({ key, label }) => (
             <div key={key} className="info-field">
-              <div className="info-content">
-                <b>{formatTitle(key)}:</b> {value}
-              </div>
-              {!editMode[key] ? (
-                <div className="action-buttons">
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => handleEdit(key as keyof UserData)}
-                  >
-                    Edit
-                  </Button>
-                </div>
+              <label className="info-label">{label}</label>
+              {isEditing ? (
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  value={userData[key]}
+                  onChange={(event) =>
+                    handleChange(event as React.ChangeEvent<HTMLInputElement>, key)
+                  }
+                  className="info-input"
+                />
               ) : (
-                <div className="edit-field">
-                  <TextField
-                    label={key}
-                    variant="outlined"
-                    value={value}
-                    onChange={(event) =>
-                      handleChange(event, key as keyof UserData)
-                    }
-                  />
-                  <div className="action-buttons">
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleSave(key as keyof UserData)}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleCancel(key as keyof UserData)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+                <div className="info-value">
+                  {userData[key] || <span className="empty-value">Not set</span>}
                 </div>
               )}
             </div>
-          ) : null
-        )}
+          ))}
+
+          {isEditing && (
+            <div className="edit-actions">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSave}
+                className="save-button"
+              >
+                Save Changes
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleCancel}
+                className="cancel-button"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </MainLayout>
   );

@@ -78,7 +78,6 @@ const Footer: React.FC = () => {
           <Link href="/help-support">Help & Support</Link>
           <Link href="/feedback">Submit Feedback</Link>
           <Link href="/forum">Forum</Link>
-          <Link href="/keyboard-shortcuts">Keyboard Shortcuts</Link>
           <Link href="/database-guidelines">Database Guidelines</Link>
           <Link href="/shipping">AniThrift Shipping</Link>
         </div>

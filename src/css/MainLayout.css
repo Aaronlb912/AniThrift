@@ -1,30 +1,86 @@
-.main-layout {
-  display: flex;
-  min-height: 100vh; /* Full height of the viewport */
-}
+@import "../ui/colors.css";
 
-.content {
-  flex-grow: 1; /* Allows the content area to take up the remaining space */
-  padding: 20px; /* Adds some padding around the content */
-  background-color: #f0f0f0; /* Light grey background for the content area */
-}
-
-/* MainLayout.css */
 .main-layout-container {
   display: flex;
   flex-direction: row;
-  min-height: 100vh; /* Ensure full height */
+  min-height: calc(100vh - 160px);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  font-family: "Nunito", sans-serif;
+  width: 100%;
+  position: relative;
+  overflow: visible;
+  align-items: stretch;
 }
 
 .sidebar-navigation {
-  flex: 0 0 15%; /* Assign 20% width to the sidebar, flex-basis of 20% */
-  background-color: #f0f0f0; /* Example background color for the sidebar */
-  padding: 20px;
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  flex: 0 0 280px;
+  min-width: 280px;
+  width: 280px;
+  position: sticky;
+  top: 0;
+  align-self: stretch;
+  height: 100%;
+  min-height: calc(100vh - 160px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--secondary-light);
+  border-right: 2px solid var(--primary-color);
+  padding: 20px 0;
+  box-sizing: border-box;
+  z-index: 100;
+  -webkit-overflow-scrolling: touch;
 }
 
 .main-content {
-  flex: 1; /* Takes up the remaining space */
-  padding: 20px;
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  flex: 1;
+  min-width: 0;
+  background-color: transparent;
+  padding: 30px 40px;
+  box-sizing: border-box;
+  min-height: calc(100vh - 160px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-layout-container {
+    flex-direction: column;
+    gap: 0;
+    min-height: auto;
+  }
+
+  .sidebar-navigation {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    position: relative;
+    top: 0;
+    left: 0;
+    border-right: none;
+    border-bottom: 2px solid var(--primary-color);
+    padding: 15px;
+  }
+
+  .main-content {
+    margin-left: 0;
+        padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout-container {
+    padding: 0;
+  }
+
+  .sidebar-navigation {
+    min-width: 100%;
+    padding: 15px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
 }

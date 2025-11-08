@@ -257,7 +257,7 @@ const Header: React.FC = React.memo(() => {
         </div>
       </topbar>
       <header className="header">
-        <AppBar position="static" sx={{ bgcolor: `#FFFDD0`, color: `#333` }}>
+        <AppBar position="static" sx={{ bgcolor: `#F5E6D3`, color: `#333` }}>
           <Toolbar>
             {/* Logo and Name */}
             <IconButton

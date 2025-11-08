@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { List, ListItem, ListItemText, Collapse, Divider } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import "../css/SettingNav.css";
@@ -17,8 +17,7 @@ const sections: Section[] = [
     title: "Personal Info",
     items: [
       { text: "Personal Information", path: "/settings/personal-information" },
-      { text: "Sign-in and Security", path: "/settings/sign-in-security" },
-      { text: "Addresses", path: "/settings/addresses" },
+      { text: "Sign-in and Security", path: "/settings/account-settings" },
       { text: "Feedback", path: "/settings/feedback" },
       { text: "Request Your Data", path: "/settings/request-data" },
     ],
@@ -56,44 +55,60 @@ const sections: Section[] = [
     title: "History & Favorites",
     items: [
       { text: "Favorites", path: "/settings/favorites" },
-      { text: "Settings", path: "/settings/settings" },
     ],
   },
 ];
 
 const SidebarNavigation: React.FC = () => {
-  const [open, setOpen] = useState<string | null>(null);
+  const location = useLocation();
+  const [open, setOpen] = useState<string | null>(() => {
+    // Open the section that contains the current page
+    const currentPath = location.pathname;
+    for (const section of sections) {
+      if (section.items.some((item) => item.path === currentPath)) {
+        return section.title;
+      }
+    }
+    return "Personal Info"; // Default to first section
+  });
 
   const handleClick = (title: string) => {
     setOpen(open === title ? null : title);
   };
 
   return (
-    <List component="nav" aria-label="profile settings">
-      {sections.map((section, index) => (
-        <React.Fragment key={index}>
-          <ListItem button onClick={() => handleClick(section.title)}>
-            <ListItemText primary={section.title} />
-            {open === section.title ? <ExpandLess /> : <ExpandMore />}
-          </ListItem>
-          <Collapse in={open === section.title} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              {section.items.map((item, itemIndex) => (
-                <ListItem
-                  button
-                  component={Link}
-                  to={item.path}
-                  key={itemIndex}
-                >
-                  <ListItemText primary={item.text} />
-                </ListItem>
-              ))}
-            </List>
-          </Collapse>
-          {index < sections.length - 1 && <Divider />}
-        </React.Fragment>
-      ))}
-    </List>
+    <div className="settings-nav-container">
+      <List component="nav" aria-label="profile settings">
+        {sections.map((section, index) => (
+          <React.Fragment key={index}>
+            <ListItem button onClick={() => handleClick(section.title)}>
+              <ListItemText primary={section.title} />
+              {open === section.title ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={open === section.title} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {section.items.map((item, itemIndex) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <ListItem
+                      button
+                      component={Link}
+                      to={item.path}
+                      key={itemIndex}
+                      className={isActive ? "active" : ""}
+                      selected={isActive}
+                    >
+                      <ListItemText primary={item.text} />
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Collapse>
+            {index < sections.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
+      </List>
+    </div>
   );
 };
 

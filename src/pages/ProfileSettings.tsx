@@ -18,9 +18,6 @@ const ProfileSettings = () => {
         <ListItem button component={Link} to="/settings/account-settings">
           <ListItemText primary="Sign-in and Security" />
         </ListItem>
-        <ListItem button component={Link} to="/settings/addresses">
-          <ListItemText primary="Addresses" />
-        </ListItem>
         <ListItem button component={Link} to="/settings/feedback">
           <ListItemText primary="Feedback" />
         </ListItem>
@@ -82,9 +79,6 @@ const ProfileSettings = () => {
         <h3>History & Favorites</h3>
         <ListItem button component={Link} to="/settings/favorites">
           <ListItemText primary="Favorites" />
-        </ListItem>
-        <ListItem button component={Link} to="/settings/settings">
-          <ListItemText primary="Settings" />
         </ListItem>
       </List>
     </div>

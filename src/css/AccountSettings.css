@@ -1,62 +1,186 @@
-.account-settings {
-  max-width: 500px;
+@import "../ui/colors.css";
+
+.account-settings-container {
+  max-width: 800px;
   margin: 40px auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 40px;
   background-color: var(--secondary-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: "Nunito", sans-serif;
 }
 
-.account-settings h2 {
-  text-align: center;
-  margin-bottom: 20px;
+.account-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.account-settings-header h2 {
+  color: var(--primary-color);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: "Nunito", sans-serif;
+}
+
+.edit-all-button {
+  background-color: var(--primary-color) !important;
+  color: #fff !important;
+  padding: 10px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  font-family: "Nunito", sans-serif !important;
+  transition: all 0.3s ease !important;
+}
+
+.edit-all-button:hover {
+  background-color: var(--primary-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 71, 171, 0.3) !important;
+}
+
+.account-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  font-family: "Nunito", sans-serif;
+}
+
+.info-value {
+  font-size: 1.1rem;
   color: #333;
+  padding: 12px 16px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  min-height: 24px;
+  font-family: "Nunito", sans-serif;
 }
 
-.account-settings-form {
+.empty-value {
+  color: #999;
+  font-style: italic;
+}
+
+.info-input {
+  background-color: var(--background-color);
+}
+
+.info-input .MuiOutlinedInput-root {
+  border-radius: 8px;
+  font-family: "Nunito", sans-serif;
+}
+
+.info-input .MuiOutlinedInput-root:hover {
+  border-color: var(--primary-color);
+}
+
+.info-input .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--primary-color);
+}
+
+.edit-actions {
   display: flex;
-  flex-direction: column;
-  gap: 15px; /* Ensures even spacing between form fields */
-}
-
-.account-settings-form label {
-  display: flex;
-  flex-direction: column;
-  font-weight: bold;
-  color: #555;
-}
-
-.account-settings-form input[type="password"],
-.account-settings-form input[type="email"],
-.account-settings-form button {
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.account-settings-form button {
-  background-color: var(--primary-color);
-  color: #ffffff;
-  cursor: pointer;
-  font-weight: bold;
-  border: none;
+  gap: 12px;
   margin-top: 20px;
-  transition: background-color 0.3s ease;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+  justify-content: flex-end;
 }
 
-.account-settings-form button:hover {
-  background-color: var(--primary-dark);
+.save-button {
+  background-color: var(--primary-color) !important;
+  color: #fff !important;
+  padding: 12px 32px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  font-family: "Nunito", sans-serif !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Ensure the form elements are not too wide on larger screens */
-@media (min-width: 768px) {
-  .account-settings-form input[type="password"],
-  .account-settings-form input[type="email"],
-  .account-settings-form button {
-    width: 70%;
-    align-self: center; /* Center the form elements */
+.save-button:hover {
+  background-color: var(--primary-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 71, 171, 0.3) !important;
+}
+
+.cancel-button {
+  background-color: transparent !important;
+  color: var(--primary-color) !important;
+  border: 2px solid var(--primary-color) !important;
+  padding: 12px 32px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  font-family: "Nunito", sans-serif !important;
+  transition: all 0.3s ease !important;
+}
+
+.cancel-button:hover {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: var(--primary-dark) !important;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .account-settings-container {
+    margin: 20px;
+    padding: 24px;
+  }
+
+  .account-settings-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .account-settings-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .edit-all-button {
+    width: 100%;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .save-button,
+  .cancel-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-settings-container {
+    margin: 10px;
+    padding: 20px;
+  }
+
+  .account-settings-header h2 {
+    font-size: 1.3rem;
   }
 }

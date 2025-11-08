@@ -1,0 +1,96 @@
+@import "../ui/colors.css";
+
+.settings-nav-container {
+  background-color: transparent;
+  padding: 0;
+  height: 100%;
+  font-family: "Nunito", sans-serif;
+}
+
+.settings-nav-container .MuiList-root {
+  padding: 10px 0;
+}
+
+.settings-nav-container .MuiListItem-root {
+  border-radius: 0;
+  margin: 0;
+  padding: 12px 20px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.settings-nav-container .MuiListItem-root:hover {
+  background-color: var(--secondary-dark);
+}
+
+.settings-nav-container .MuiListItemText-primary {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--primary-color);
+  font-family: "Nunito", sans-serif;
+}
+
+.settings-nav-container .MuiListItem-button {
+  padding: 12px 16px;
+}
+
+.settings-nav-container .MuiCollapse-root .MuiListItem-root {
+  padding-left: 40px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin: 0;
+  border-left: 3px solid transparent;
+}
+
+.settings-nav-container .MuiCollapse-root .MuiListItemText-primary {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.settings-nav-container .MuiCollapse-root .MuiListItem-root:hover {
+  background-color: var(--secondary-dark);
+}
+
+.settings-nav-container .MuiCollapse-root .MuiListItem-root.Mui-selected,
+.settings-nav-container .MuiCollapse-root .MuiListItem-root.active {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-left-color: var(--primary-dark);
+}
+
+.settings-nav-container .MuiCollapse-root .MuiListItem-root.Mui-selected .MuiListItemText-primary,
+.settings-nav-container .MuiCollapse-root .MuiListItem-root.active .MuiListItemText-primary {
+  color: #fff;
+  font-weight: 600;
+}
+
+.settings-nav-container .MuiDivider-root {
+  margin: 8px 0;
+  background-color: #e0e0e0;
+}
+
+.settings-nav-container .MuiSvgIcon-root {
+  color: var(--primary-color);
+  transition: transform 0.2s ease;
+}
+
+.settings-nav-container .MuiListItem-root:hover .MuiSvgIcon-root {
+  color: var(--primary-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-nav-container {
+    padding: 15px;
+  }
+
+  .settings-nav-container .MuiListItemText-primary {
+    font-size: 0.85rem;
+  }
+
+  .settings-nav-container .MuiCollapse-root .MuiListItemText-primary {
+    font-size: 0.8rem;
+  }
+}
+

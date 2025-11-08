@@ -23,7 +23,6 @@ const Messages = lazy(() => import("./pages/Messages"));
 const Checkout = lazy(() => import("./pages/CheckOut"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const PersonalInfoPage = lazy(() => import("./components/PersonalInfo"));
-const AddressesPage = lazy(() => import("./components/Addresses"));
 const PurchaseSuccess = lazy(() => import("./components/PurchaseSuccess"));
 const StripeOnboardingForm = lazy(
   () => import("./components/StripeOnboardingForm")
@@ -38,7 +37,55 @@ const FBResults = lazy(() => import("./components/FBResults"));
 const FeedbackForm = lazy(() => import("./components/Feedback"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
+// Footer pages
+const Forum = lazy(() => import("./pages/Forum"));
+const DatabaseGuidelines = lazy(() => import("./pages/DatabaseGuidelines"));
+const Shipping = lazy(() => import("./pages/Shipping"));
+const CookieSettings = lazy(() => import("./pages/CookieSettings"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const CaliforniaPrivacyNotice = lazy(
+  () => import("./pages/CaliforniaPrivacyNotice")
+);
+const AccessibilityStatement = lazy(
+  () => import("./pages/AccessibilityStatement")
+);
+// Help pages
+const FAQ = lazy(() => import("./pages/FAQ"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
+const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
+// Settings pages
+const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
+const SettingsRequestData = lazy(() => import("./pages/SettingsRequestData"));
+const SettingsPayments = lazy(() => import("./pages/SettingsPayments"));
+const SettingsStripeAccount = lazy(
+  () => import("./pages/SettingsStripeAccount")
+);
+const SettingsPermissions = lazy(() => import("./pages/SettingsPermissions"));
+const SettingsAdPreferences = lazy(
+  () => import("./pages/SettingsAdPreferences")
+);
+const SettingsCommunicationPreferences = lazy(
+  () => import("./pages/SettingsCommunicationPreferences")
+);
+const SettingsCloseAccount = lazy(() => import("./pages/SettingsCloseAccount"));
+const SettingsSellerDashboard = lazy(
+  () => import("./pages/SettingsSellerDashboard")
+);
+const SettingsSubscriptions = lazy(
+  () => import("./pages/SettingsSubscriptions")
+);
+const SettingsDonationPreferences = lazy(
+  () => import("./pages/SettingsDonationPreferences")
+);
+const SettingsPendingDonations = lazy(
+  () => import("./pages/SettingsPendingDonations")
+);
+const SettingsInvoicedDonations = lazy(
+  () => import("./pages/SettingsInvoicedDonations")
+);
+const SettingsFavorites = lazy(() => import("./pages/SettingsFavorites"));
 // Loading fallback component
 const LoadingFallback = () => (
   <div
@@ -88,7 +135,6 @@ root.render(
                 path="/settings/personal-information"
                 element={<PersonalInfoPage />}
               />
-              <Route path="/settings/addresses" element={<AddressesPage />} />
               <Route
                 path="/settings/account-settings"
                 element={<AccountSettings />}
@@ -105,6 +151,83 @@ root.render(
               <Route path="/help-support" element={<HelpAndSupportPage />} />
               <Route path="/fbresults" element={<FBResults />} />
               <Route path="/feedback" element={<FeedbackForm />} />
+              {/* Footer pages */}
+              <Route path="/forum" element={<Forum />} />
+              <Route
+                path="/database-guidelines"
+                element={<DatabaseGuidelines />}
+              />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/cookie-settings" element={<CookieSettings />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route
+                path="/california-privacy-notice"
+                element={<CaliforniaPrivacyNotice />}
+              />
+              <Route
+                path="/accessibility-statement"
+                element={<AccessibilityStatement />}
+              />
+              {/* Help pages */}
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/contact-us" element={<ContactUs />} />
+              <Route
+                path="/terms-and-conditions"
+                element={<TermsAndConditions />}
+              />
+              {/* Settings pages */}
+              <Route path="/settings/feedback" element={<SettingsFeedback />} />
+              <Route
+                path="/settings/request-data"
+                element={<SettingsRequestData />}
+              />
+              <Route path="/settings/payments" element={<SettingsPayments />} />
+              <Route
+                path="/settings/stripe-account"
+                element={<SettingsStripeAccount />}
+              />
+              <Route
+                path="/settings/permissions"
+                element={<SettingsPermissions />}
+              />
+              <Route
+                path="/settings/ad-preferences"
+                element={<SettingsAdPreferences />}
+              />
+              <Route
+                path="/settings/communication-preferences"
+                element={<SettingsCommunicationPreferences />}
+              />
+              <Route
+                path="/settings/close-account"
+                element={<SettingsCloseAccount />}
+              />
+              <Route
+                path="/settings/seller-dashboard"
+                element={<SettingsSellerDashboard />}
+              />
+              <Route
+                path="/settings/subscriptions"
+                element={<SettingsSubscriptions />}
+              />
+              <Route
+                path="/settings/donation-preferences"
+                element={<SettingsDonationPreferences />}
+              />
+              <Route
+                path="/settings/pending-donations"
+                element={<SettingsPendingDonations />}
+              />
+              <Route
+                path="/settings/invoiced-donations"
+                element={<SettingsInvoicedDonations />}
+              />
+              <Route
+                path="/settings/favorites"
+                element={<SettingsFavorites />}
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
