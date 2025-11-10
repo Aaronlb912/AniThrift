@@ -57,9 +57,7 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
 // Settings pages
-const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
 const SettingsRequestData = lazy(() => import("./pages/SettingsRequestData"));
-const SettingsPayments = lazy(() => import("./pages/SettingsPayments"));
 const SettingsStripeAccount = lazy(
   () => import("./pages/SettingsStripeAccount")
 );
@@ -86,7 +84,9 @@ const SettingsPendingDonations = lazy(
 const SettingsInvoicedDonations = lazy(
   () => import("./pages/SettingsInvoicedDonations")
 );
-const SettingsFavorites = lazy(() => import("./pages/SettingsFavorites"));
+const SettingsBlockedUsers = lazy(
+  () => import("./pages/SettingsBlockedUsers")
+);
 // Loading fallback component
 const LoadingFallback = () => (
   <div
@@ -179,12 +179,10 @@ root.render(
                 element={<TermsAndConditions />}
               />
               {/* Settings pages */}
-              <Route path="/settings/feedback" element={<SettingsFeedback />} />
               <Route
                 path="/settings/request-data"
                 element={<SettingsRequestData />}
               />
-              <Route path="/settings/payments" element={<SettingsPayments />} />
               <Route
                 path="/settings/stripe-account"
                 element={<SettingsStripeAccount />}
@@ -226,8 +224,8 @@ root.render(
                 element={<SettingsInvoicedDonations />}
               />
               <Route
-                path="/settings/favorites"
-                element={<SettingsFavorites />}
+                path="/settings/blocked-users"
+                element={<SettingsBlockedUsers />}
               />
               <Route path="/seller-not-found" element={<SellerNotFound />} />
               <Route path="*" element={<NotFound />} />

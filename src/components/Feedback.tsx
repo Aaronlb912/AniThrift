@@ -1,129 +1,136 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
+import { Rating } from "@mui/material";
 import { getAuth } from "firebase/auth";
 import {
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Snackbar,
-  Alert,
-  AlertColor,
-} from "@mui/material";
-
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import { db } from "../firebase-config";
 import "../css/Feedback.css";
 
-interface SnackbarState {
-  open: boolean;
-  message: string;
-  severity: AlertColor;
-}
-
 const FeedbackForm: React.FC = React.memo(() => {
-  const [category, setCategory] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [snackbar, setSnackbar] = useState<SnackbarState>({
-    open: false,
-    message: "",
-    severity: "success",
-  });
-
   const auth = getAuth();
-  const user = auth.currentUser;
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      alert("You must be logged in to submit feedback");
+  const [rating, setRating] = useState<number | null>(0);
+  const [category, setCategory] = useState<string>("general");
+  const [email, setEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!message.trim()) {
+      setStatusMessage("Please share a bit of feedback before submitting.");
       return;
     }
 
-    const response = await fetch(
-      "https://your-cloud-function-url/submitFeedback",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.uid,
-          category,
-          feedback,
-        }),
-      }
-    );
+    try {
+      setSubmitting(true);
+      setStatusMessage(null);
+      const currentUser = auth.currentUser;
 
-    if (response.ok) {
-      setSnackbar({
-        open: true,
-        message: "Feedback submitted successfully",
-        severity: "success",
+      const feedbackRef = doc(collection(db, "feedback"));
+      await setDoc(feedbackRef, {
+        createdAt: serverTimestamp(),
+        uid: currentUser?.uid || null,
+        email: email.trim() || currentUser?.email || "",
+        category,
+        message: message.trim(),
+        rating: rating || 0,
+        source: "public-feedback",
       });
-      setCategory("");
-      setFeedback("");
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Failed to submit feedback",
-        severity: "error",
-      });
+
+      setMessage("");
+      setRating(0);
+      setStatusMessage("Thank you! Your feedback has been submitted.");
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setStatusMessage(
+        "We couldn't submit your feedback right now. Please try again later."
+      );
+    } finally {
+      setSubmitting(false);
     }
-  }, [user, category, feedback]);
-
-  const handleCloseSnackbar = useCallback(() => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  }, []);
+  };
 
   return (
-    <div className="feedback-form-container">
-      <div className="feedback-form-box">
-        <h2>Feedback</h2>
-        <form onSubmit={handleSubmit}>
-          <FormControl fullWidth variant="outlined" margin="normal">
-            <InputLabel id="category-label">Category</InputLabel>
-            <Select
-              labelId="category-label"
+    <div className="feedback-page">
+      <div className="feedback-card">
+        <h1>Share Your Feedback</h1>
+        <p>
+          Let us know how we’re doing. Your feedback helps us improve the
+          AniThrift experience for buyers and sellers alike.
+        </p>
+
+        <form className="feedback-form" onSubmit={handleSubmit}>
+          <div className="feedback-rating-row">
+            <label htmlFor="feedback-rating">Overall experience</label>
+            <Rating
+              id="feedback-rating"
+              name="feedback-rating"
+              value={rating}
+              precision={0.5}
+              onChange={(_event, newValue) => setRating(newValue)}
+            />
+          </div>
+
+          <div className="feedback-form-row">
+            <label htmlFor="feedback-category">What is this about?</label>
+            <select
+              id="feedback-category"
+              className="feedback-select"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              label="Category"
             >
-              <MenuItem value="website">Website</MenuItem>
-              <MenuItem value="usability">Usability</MenuItem>
-              <MenuItem value="design">Design</MenuItem>
-              <MenuItem value="content">Content</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="Feedback"
-            multiline
-            rows={4}
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-          />
-          <Button type="submit" variant="contained" color="primary">
-            Submit Feedback
-          </Button>
-        </form>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
+              <option value="general">General feedback</option>
+              <option value="bug">Bug report</option>
+              <option value="feature">Feature request</option>
+              <option value="seller-experience">Selling experience</option>
+              <option value="buyer-experience">Buying experience</option>
+              <option value="shipping">Shipping & fulfillment</option>
+            </select>
+          </div>
+
+          <div className="feedback-form-row">
+            <label htmlFor="feedback-email">Email (optional)</label>
+            <input
+              id="feedback-email"
+              type="email"
+              className="feedback-input"
+              placeholder="We’ll follow up if you’d like."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="feedback-form-row">
+            <label htmlFor="feedback-message">Share your thoughts</label>
+            <textarea
+              id="feedback-message"
+              className="feedback-textarea"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={6}
+              placeholder="Tell us what you love or what we can do better..."
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="feedback-submit-button"
+            disabled={submitting}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+            {submitting ? "Sending..." : "Submit Feedback"}
+          </button>
+        </form>
+
+        {statusMessage && (
+          <p className="feedback-status-message">{statusMessage}</p>
+        )}
       </div>
     </div>
   );

@@ -18,9 +18,6 @@ const ProfileSettings = () => {
         <ListItem button component={Link} to="/settings/account-settings">
           <ListItemText primary="Sign-in and Security" />
         </ListItem>
-        <ListItem button component={Link} to="/settings/feedback">
-          <ListItemText primary="Feedback" />
-        </ListItem>
         <ListItem button component={Link} to="/settings/request-data">
           <ListItemText primary="Request Your Data" />
         </ListItem>
@@ -28,9 +25,6 @@ const ProfileSettings = () => {
         <Divider />
 
         <h3>Payment Information</h3>
-        <ListItem button component={Link} to="/settings/payments">
-          <ListItemText primary="Payments" />
-        </ListItem>
         <ListItem button component={Link} to="/settings/stripe-account">
           <ListItemText primary="Stripe Account" />
         </ListItem>
@@ -50,6 +44,9 @@ const ProfileSettings = () => {
           to="/settings/communication-preferences"
         >
           <ListItemText primary="Communication Preferences" />
+        </ListItem>
+        <ListItem button component={Link} to="/settings/blocked-users">
+          <ListItemText primary="Blocked Users" />
         </ListItem>
         <ListItem button component={Link} to="/settings/close-account">
           <ListItemText primary="Close Account" />
@@ -76,10 +73,6 @@ const ProfileSettings = () => {
 
         <Divider />
 
-        <h3>History & Favorites</h3>
-        <ListItem button component={Link} to="/settings/favorites">
-          <ListItemText primary="Favorites" />
-        </ListItem>
       </List>
     </div>
   );

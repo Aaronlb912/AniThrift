@@ -18,14 +18,12 @@ const sections: Section[] = [
     items: [
       { text: "Personal Information", path: "/settings/personal-information" },
       { text: "Sign-in and Security", path: "/settings/account-settings" },
-      { text: "Feedback", path: "/settings/feedback" },
       { text: "Request Your Data", path: "/settings/request-data" },
     ],
   },
   {
     title: "Payment Information",
     items: [
-      { text: "Payments", path: "/settings/payments" },
       { text: "Stripe Account", path: "/settings/stripe-account" },
     ],
   },
@@ -38,6 +36,7 @@ const sections: Section[] = [
         text: "Communication Preferences",
         path: "/settings/communication-preferences",
       },
+      { text: "Blocked Users", path: "/settings/blocked-users" },
       { text: "Close Account", path: "/settings/close-account" },
     ],
   },
@@ -49,12 +48,6 @@ const sections: Section[] = [
       { text: "Donation Preferences", path: "/settings/donation-preferences" },
       { text: "Pending Donations", path: "/settings/pending-donations" },
       { text: "Invoiced Donations", path: "/settings/invoiced-donations" },
-    ],
-  },
-  {
-    title: "History & Favorites",
-    items: [
-      { text: "Favorites", path: "/settings/favorites" },
     ],
   },
 ];

@@ -206,6 +206,7 @@ const Messages: React.FC = () => {
       try {
         const userRef = doc(db, "users", user.uid);
         const blockedUserRef = doc(db, "users", userIdToBlock);
+        const activeConversation = selectedConversation;
 
         await updateDoc(userRef, {
           blockedUsers: arrayUnion(userIdToBlock),
@@ -220,29 +221,46 @@ const Messages: React.FC = () => {
         );
         setBlockedByUsers((prev) => prev);
 
-        if (selectedConversation?.userId === userIdToBlock) {
+        if (activeConversation?.userId === userIdToBlock) {
           await deleteConversation(
-            selectedConversation.id,
-            selectedConversation.messageThreadId
+            activeConversation.id,
+            activeConversation.messageThreadId
           );
         }
 
-        if (selectedConversation?.messageThreadId) {
+        if (activeConversation?.messageThreadId) {
           await deleteDoc(
             doc(
               db,
               "users",
               userIdToBlock,
               "conversations",
-              selectedConversation.messageThreadId
+              activeConversation.messageThreadId
             )
+          );
+
+          // Mark typing status false for both users to stop indicators
+          await updateTypingStatus(
+            activeConversation.messageThreadId,
+            user.uid,
+            false
+          );
+          await updateTypingStatus(
+            activeConversation.messageThreadId,
+            userIdToBlock,
+            false
+          );
+
+          // Delete thread for both parties to remove messages
+          await deleteDoc(
+            doc(db, "message_threads", activeConversation.messageThreadId)
           );
         }
       } catch (error) {
         console.error("Error blocking user:", error);
       }
     },
-    [user, selectedConversation, deleteConversation]
+    [user, selectedConversation, deleteConversation, updateTypingStatus]
   );
 
   // Unblock a user

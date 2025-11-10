@@ -11,7 +11,9 @@ import {
 } from "firebase/firestore";
 import "../css/Profile.css"; // You might want to reuse or create a new stylesheet
 import StarRating from "../components/StarRating";
+import { Carousel } from "../components/Carousel";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -20,7 +22,17 @@ const PublicProfile: React.FC = () => {
   const [soldItems, setSoldItems] = useState<any[]>([]);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setCurrentUserId(authUser ? authUser.uid : null);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (username) {
@@ -28,7 +40,7 @@ const PublicProfile: React.FC = () => {
       setUserProfile(null);
       fetchUserProfile(username);
     }
-  }, [username]);
+  }, [username, currentUserId]);
 
   const fetchUserProfile = async (username: string) => {
     try {
@@ -52,8 +64,18 @@ const PublicProfile: React.FC = () => {
       }
 
       const userData = userSnap.data();
-      const rating =
-        typeof userData.rating === "number" ? userData.rating : 0;
+      const rating = typeof userData.rating === "number" ? userData.rating : 0;
+
+      if (
+        currentUserId &&
+        currentUserId !== userId &&
+        Array.isArray(userData.blockedUsers) &&
+        userData.blockedUsers.includes(currentUserId)
+      ) {
+        setIsLoading(false);
+        navigate("/seller-not-found", { replace: true });
+        return;
+      }
 
       setUserProfile({
         ...userData,
@@ -103,7 +125,8 @@ const PublicProfile: React.FC = () => {
     return null;
   }
 
-  const FALLBACK_IMAGE = "https://via.placeholder.com/400x400.png?text=No+Image";
+  const FALLBACK_IMAGE =
+    "https://via.placeholder.com/400x400.png?text=No+Image";
 
   const formatPrice = (price?: number | string) => {
     if (price === undefined || price === null) return "Price unavailable";
@@ -195,7 +218,10 @@ const PublicProfile: React.FC = () => {
               )}
             </div>
             {profileUserId && (
-              <Link to={`/messages/${profileUserId}`} className="profile-secondary-btn">
+              <Link
+                to={`/messages/${profileUserId}`}
+                className="profile-secondary-btn"
+              >
                 Message seller
               </Link>
             )}

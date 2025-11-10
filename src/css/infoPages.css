@@ -526,6 +526,13 @@ input:checked + .slider:before {
   box-shadow: 0 4px 8px rgba(0, 71, 171, 0.3);
 }
 
+.primary-button[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .secondary-button {
   background-color: var(--secondary-light);
   color: var(--primary-color);
@@ -742,6 +749,134 @@ input:checked + .slider:before {
   background-color: var(--background-color);
   border-radius: 12px;
   text-align: center;
+}
+
+/* Blocked Users */
+.blocked-users-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.blocked-user-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background-color: var(--background-color);
+  border: 1px solid rgba(33, 74, 147, 0.12);
+  border-radius: 16px;
+  gap: 16px;
+}
+
+.blocked-user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.blocked-user-info img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blocked-user-fallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.blocked-user-name {
+  margin: 0;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.blocked-user-username {
+  margin: 0;
+  color: rgba(31, 39, 63, 0.6);
+  font-size: 0.95rem;
+}
+
+.secondary-button {
+  background: #fff;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.secondary-button:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+/* Feedback form */
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.feedback-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-form-row label,
+.feedback-rating-row label {
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.feedback-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feedback-select {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(33, 74, 147, 0.2);
+  background-color: #fff;
+  font-size: 1rem;
+}
+
+.feedback-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(33, 74, 147, 0.18);
+}
+
+.feedback-status-message {
+  margin-top: 18px;
+  font-weight: 600;
+  color: rgba(31, 39, 63, 0.75);
+}
+
+@media (max-width: 600px) {
+  .feedback-rating-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* Responsive Design */
