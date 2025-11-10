@@ -146,12 +146,13 @@ const Header: React.FC = React.memo(() => {
 
   const drawer = useMemo(
     () => (
-      <List>
+      <List className="drawer-list">
         {drawerItems.map((item) => (
           <ListItem
             button
             key={item.name}
             onClick={() => handleDrawerItemClick(item.query)}
+            className="drawer-item"
           >
             <ListItemText primary={item.name} />
           </ListItem>
@@ -163,175 +164,184 @@ const Header: React.FC = React.memo(() => {
 
   return (
     <>
-      <topbar>
-        {/* Left Side - Welcome Message */}
-        {user ? (
-          <>
-            <Typography
-              variant="body1"
-              sx={{
-                marginRight: 2,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-              }}
-              onClick={handleMenu}
-            >
-              Welcome, {user.username || "User"}
-              {/* Conditionally render the arrow icon based on menu open state */}
-              {Boolean(anchorEl) ? <ArrowDropDownIcon /> : <ArrowRightIcon />}
-            </Typography>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              disableScrollLock={true}
-              disableAutoFocusItem={true}
-              MenuListProps={{
-                'aria-labelledby': 'user-menu-button',
-              }}
-              slotProps={{
-                paper: {
-                  style: {
-                    maxWidth: '200px',
-                    width: '200px',
-                  },
-                },
-              }}
-            >
-              <MenuItem
-                onClick={() => {
-                  handleClose(); // This will close the menu
-                  navigate("/profile"); // Navigate to the profile page
-                }}
+      <AppBar
+        position="static"
+        elevation={0}
+        className="header-appbar"
+        sx={{ bgcolor: "var(--secondary-light)", color: "var(--primary-dark)" }}
+      >
+        <div className="header-shell">
+          <div className="header-main">
+            <div className="header-logo-search">
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="home"
+                component={Link}
+                to="/"
+                className="header-logo"
               >
-                My Profile
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  navigate("/orders");
-                }}
-              >
-                My Orders
-              </MenuItem>
-              {/* Add a menu item for Profile Settings */}
-              <MenuItem
-                onClick={() => {
-                  handleClose(); // Close the menu
-                  navigate("/profsettings"); // Navigate to the profile settings page
-                }}
-              >
-                Profile Settings
-              </MenuItem>
-              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
-            </Menu>
-          </>
-        ) : (
-          <Button
-            color="inherit"
-            startIcon={<AccountCircleIcon />}
-            component={Link}
-            to="/signin"
-          >
-            Sign In
-          </Button>
-        )}
-
-        {/* Right Side - Sell and Cart */}
-        <div className="right-side">
-          <Button color="inherit" component={Link} to="/messages">
-            <MessageIcon />
-          </Button>
-          <Button color="inherit" component={Link} to="/listing">
-            Sell
-          </Button>
-          <IconButton
-            color="inherit"
-            aria-label="cart"
-            component={Link}
-            to="/cart"
-          >
-            <ShoppingCartIcon />
-          </IconButton>
-        </div>
-      </topbar>
-      <header className="header">
-        <AppBar position="static" sx={{ bgcolor: `#F5E6D3`, color: `#333` }}>
-          <Toolbar>
-            {/* Logo and Name */}
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="home"
-              component={Link}
-              to="/"
-            >
-              {/* Your Logo Here */}
-              {!isMobile && (
-                <Typography variant="h6" noWrap>
-                  AniThrift
-                </Typography>
-              )}
-            </IconButton>
-
-            {/* Search Bar */}
-            <div className="searchContainer">
-              <InputBase
-                placeholder="Search…"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
-                className="searchBar"
-                endAdornment={
-                  <IconButton
-                    type="submit"
-                    aria-label="search"
-                    onClick={(e) => handleSearch(e)}
-                  >
-                    <SearchIcon />
-                  </IconButton>
-                }
-              />
+                {!isMobile && (
+                  <Typography variant="h6" noWrap>
+                    AniThrift
+                  </Typography>
+                )}
+              </IconButton>
+              <div className="searchContainer">
+                <InputBase
+                  placeholder="Search…"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+                  className="searchBar"
+                  endAdornment={
+                    <IconButton
+                      type="submit"
+                      aria-label="search"
+                      onClick={(e) => handleSearch(e)}
+                    >
+                      <SearchIcon />
+                    </IconButton>
+                  }
+                />
+              </div>
             </div>
-          </Toolbar>
-        </AppBar>
-      </header>
-      {isMobile ? (
-        <>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
-          >
-            {drawer}
-          </Drawer>
-        </>
-      ) : (
-        <nav className="navbar">
-          {categories.map((category, index) => (
-            <Button
-              key={index}
-              className="nav-link"
-              onClick={() => handleCategoryClick(category.query)}
-              style={{ textTransform: "none" }}
-            >
-              {category.name}
-            </Button>
-          ))}
-        </nav>
-      )}
+            {!isMobile ? (
+              <div className="header-utilities">
+                <div className="header-welcome">
+                  {user ? (
+                    <>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          marginRight: 2,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                        onClick={handleMenu}
+                      >
+                        Welcome, {user.username || "User"}
+                        {Boolean(anchorEl) ? <ArrowDropDownIcon /> : <ArrowRightIcon />}
+                      </Typography>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                        disableScrollLock={true}
+                        disableAutoFocusItem={true}
+                        MenuListProps={{
+                          'aria-labelledby': 'user-menu-button',
+                        }}
+                        PaperProps={{
+                          elevation: 0,
+                          className: "user-menu-paper",
+                        }}
+                      >
+                        <MenuItem
+                          className="user-menu-item"
+                          onClick={() => {
+                            handleClose();
+                            navigate("/profile");
+                          }}
+                        >
+                          My Profile
+                        </MenuItem>
+                        <MenuItem
+                          className="user-menu-item"
+                          onClick={() => {
+                            handleClose();
+                            navigate("/orders");
+                          }}
+                        >
+                          My Orders
+                        </MenuItem>
+                        <MenuItem
+                          className="user-menu-item"
+                          onClick={() => {
+                            handleClose();
+                            navigate("/profsettings");
+                          }}
+                        >
+                          Profile Settings
+                        </MenuItem>
+                        <MenuItem className="user-menu-item" onClick={handleSignOut}>
+                          Sign Out
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
+                    <Button
+                      color="inherit"
+                      startIcon={<AccountCircleIcon />}
+                      component={Link}
+                      to="/signin"
+                      className="header-signin"
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                </div>
+                <div className="header-actions">
+                  <Button color="inherit" component={Link} to="/messages">
+                    <MessageIcon />
+                  </Button>
+                  <Button color="inherit" component={Link} to="/listing">
+                    Sell
+                  </Button>
+                  <IconButton
+                    color="inherit"
+                    aria-label="cart"
+                    component={Link}
+                    to="/cart"
+                  >
+                    <ShoppingCartIcon />
+                  </IconButton>
+                </div>
+              </div>
+            ) : (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleDrawerToggle}
+                className="mobile-menu-button"
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+          </div>
+          {!isMobile && (
+            <div className="header-nav">
+              {categories.map((category, index) => (
+                <Button
+                  key={index}
+                  className="nav-link"
+                  onClick={() => handleCategoryClick(category.query)}
+                  style={{ textTransform: "none" }}
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </AppBar>
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: "var(--secondary-light)",
+            paddingY: 2,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
     </>
   );
 });

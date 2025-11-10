@@ -40,36 +40,54 @@ const PublicProfile: React.FC = () => {
   const [userItems, setUserItems] = useState<any[]>([]);
   const [soldItems, setSoldItems] = useState<any[]>([]);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (username) {
+      setIsLoading(true);
+      setUserProfile(null);
       fetchUserProfile(username);
     }
   }, [username]);
 
   const fetchUserProfile = async (username: string) => {
-    const docRef = doc(db, "usernames", username);
+    try {
+      const usernameRef = doc(db, "usernames", username);
+      const usernameSnap = await getDoc(usernameRef);
 
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      let userId = docSnap.data().userId;
-      setProfileUserId(userId); // Store the userId for messaging
-      const userRef = doc(db, "users", userId);
-      let userSnap = await getDoc(userRef);
-      fetchUserItems(userId); // Fetch items the user is selling
-      fetchSoldItems(userId); // Fetch items the user has sold
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        // Ensure rating is a number (default to 0 if not set)
-        const rating = typeof userData.rating === 'number' ? userData.rating : 0;
-        setUserProfile({
-          ...userData,
-          rating: rating,
-        });
+      if (!usernameSnap.exists()) {
+        navigate("/seller-not-found", { replace: true });
+        return;
       }
-    } else {
-      console.log("No such document!");
+
+      const userId = usernameSnap.data().userId;
+      setProfileUserId(userId); // Store the userId for messaging
+
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        navigate("/seller-not-found", { replace: true });
+        return;
+      }
+
+      const userData = userSnap.data();
+      const rating =
+        typeof userData.rating === "number" ? userData.rating : 0;
+
+      setUserProfile({
+        ...userData,
+        rating,
+      });
+
+      await fetchUserItems(userId); // Fetch items the user is selling
+      await fetchSoldItems(userId); // Fetch items the user has sold
+    } catch (error) {
+      console.error("Error loading seller profile:", error);
+      navigate("/seller-not-found", { replace: true });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,10 +113,17 @@ const PublicProfile: React.FC = () => {
   };
 
   const fetchSoldItems = async (uid: string) => {
-    // Fetch items that the user has sold
+    // Placeholder for sold items fetch
+    setSoldItems([]);
   };
 
-  if (!userProfile) return <div>Loading...</div>;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!userProfile) {
+    return null;
+  }
 
   return (
     <div className="profile-container">

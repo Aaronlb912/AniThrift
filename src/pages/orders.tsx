@@ -226,15 +226,42 @@ const YourOrdersPage = () => {
           })
         );
 
+        const validItems = itemsDetails.filter((item) => item !== null);
+        const orderTotal = validItems.reduce((sum, item) => {
+          const price = parseFloat(item.price || "0");
+          const quantity = item.quantity || 1;
+          return sum + price * quantity;
+        }, 0);
+
+        const sellersMap: Record<string, { sellerName: string; total: number; items: any[] }> = {};
+        validItems.forEach((item) => {
+          const sellerKey = item.sellerId || "unknown";
+          const sellerName = item.sellerName || "Seller";
+          if (!sellersMap[sellerKey]) {
+            sellersMap[sellerKey] = { sellerName, total: 0, items: [] };
+          }
+          const price = parseFloat(item.price || "0");
+          const quantity = item.quantity || 1;
+          sellersMap[sellerKey].total += price * quantity;
+          sellersMap[sellerKey].items.push(item);
+        });
+
         ordersWithItems.push({
           id: orderDoc.id,
-          items: itemsDetails.filter((item) => item !== null),
+          items: validItems,
+          sellers: sellersMap,
+          computedTotal: orderTotal,
           ...orderData,
         });
       }
 
       setExistingRatings(ratingsMap);
-      setOrders(ordersWithItems);
+      const sortedOrders = ordersWithItems.sort((a, b) => {
+        const aTime = a.date?.seconds || 0;
+        const bTime = b.date?.seconds || 0;
+        return bTime - aTime;
+      });
+      setOrders(sortedOrders);
     };
 
     fetchOrdersAndItems();
@@ -255,7 +282,9 @@ const YourOrdersPage = () => {
               </div>
               <div>
                 <p>TOTAL</p>
-                <p className="order-total-amount">${order.total}</p>
+                <p className="order-total-amount">${
+                  order.computedTotal?.toFixed?.(2) || parseFloat(order.total || 0).toFixed(2)
+                }</p>
               </div>
             </div>
             <div>
@@ -263,6 +292,27 @@ const YourOrdersPage = () => {
               <p className="order-number">${order.id}</p>
             </div>
           </div>
+          {order.sellers && (
+            <div className="order-sellers-summary">
+              {Object.entries(order.sellers).map(([sellerId, summary]) => (
+                <div key={sellerId} className="seller-summary-card">
+                  <div className="seller-summary-header">
+                    <span className="seller-name">{summary.sellerName}</span>
+                    <span className="seller-total">${summary.total.toFixed(2)}</span>
+                  </div>
+                  <ul className="seller-items-list">
+                    {summary.items.map((item, idx) => (
+                      <li key={`${item.itemId}-${idx}`}>
+                        <span className="item-name">{item.title}</span>
+                        <span className="item-quantity">Qty: {item.quantity || 1}</span>
+                        <span className="item-price">${parseFloat(item.price || 0).toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="order-middle">
             {order.items.map((item, index) => (
               <div key={index} className="item">

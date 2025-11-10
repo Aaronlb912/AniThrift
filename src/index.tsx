@@ -37,6 +37,7 @@ const FBResults = lazy(() => import("./components/FBResults"));
 const FeedbackForm = lazy(() => import("./components/Feedback"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SellerNotFound = lazy(() => import("./pages/SellerNotFound"));
 // Footer pages
 const Forum = lazy(() => import("./pages/Forum"));
 const DatabaseGuidelines = lazy(() => import("./pages/DatabaseGuidelines"));
@@ -228,6 +229,7 @@ root.render(
                 path="/settings/favorites"
                 element={<SettingsFavorites />}
               />
+              <Route path="/seller-not-found" element={<SellerNotFound />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

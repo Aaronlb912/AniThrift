@@ -1,199 +1,234 @@
-@import "../ui/colors.css"; /* header.css */
-
-/* header.css */
+@import "../ui/colors.css";
 
 .header {
   width: 100%;
   top: 0;
   left: 0;
-  z-index: 1000; /* Ensures the header stays on top of other content */
+  z-index: 1000;
   overflow: visible;
 }
 
-/* Prevent Material-UI Menu from affecting page layout */
-.MuiMenu-root {
-  position: fixed !important;
+.header-appbar {
+  box-shadow: 0 12px 28px rgba(0, 71, 171, 0.08) !important;
+  border-bottom: 1px solid rgba(0, 71, 171, 0.08);
 }
 
-.MuiMenu-paper {
-  position: fixed !important;
-  max-width: 200px !important;
-  overflow: hidden !important;
-}
-
-topbar {
+.header-shell {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header-welcome {
+  display: flex;
   align-items: center;
-  padding: 10px 20px;
-  background: linear-gradient(to right, var(--primary-light), var(--primary-dark)); /* Light to dark gradient */
-  color: var(--font-color);
-  height: 1em;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.header-welcome .MuiTypography-root,
+.header-signin {
+  color: #fff !important;
+  text-transform: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-actions .MuiButton-root,
+.header-actions .MuiIconButton-root {
+  color: #fff !important;
+}
+
+.header-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px clamp(16px, 4vw, 48px);
+  background: linear-gradient(90deg, var(--primary-light), var(--primary-dark));
+  color: #fff;
+}
+
+.header-logo-search {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1 1 320px;
+}
+
+.header-logo .MuiTypography-root {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .searchContainer {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin: 1em 0;
-  background-color: var(--secondary-color); /* Cream white background */
 }
 
 .searchBar {
-  color: inherit;
-  background-color: var(--secondary-color); /* Cream white background */
-  padding: 0 10px;
-  border-radius: 5px;
-  border: 2px solid #36454F; /* Charcoal grey border */
-  width: 90%; /* Adjust the width as needed */
+  width: 100%;
+  color: var(--primary-dark);
+  background-color: var(--light-color);
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 6px 16px rgba(0, 71, 171, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .searchBar ::placeholder {
-  color: var(--secondary-light);
-  opacity: 0.8;
+  color: rgba(26, 26, 46, 0.4);
+  opacity: 1;
 }
 
-.navbar {
+.searchBar:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 12px 28px rgba(0, 71, 171, 0.18);
+}
+
+.header-utilities {
   display: flex;
-  justify-content: space-around;
-  align-items: center; /* Adjusted to center */
-  height: 60px; /* Example height */
-  background: linear-gradient(to right, var(--primary-light), var(--primary-dark)); /* Light to dark gradient */
-  position: relative; /* Ensure shadow is visible */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important; /* More prominent shadow at the bottom */
-  z-index: 999; /* Ensure it's above content below */
+  align-items: center;
+  gap: clamp(16px, 3vw, 32px);
 }
 
-.nav-link {
+.header-utilities .header-welcome,
+.header-utilities .header-actions .MuiButton-root,
+.header-utilities .header-actions .MuiIconButton-root {
+  color: #fff !important;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 28px);
+  padding: 12px clamp(16px, 4vw, 48px);
+  background-color: var(--secondary-light);
+}
+
+.header-nav .nav-link {
   text-decoration: none;
-  color: #fff !important; /* White color for links */
-  padding: 10px; /* Adjusted padding */
-  white-space: nowrap; /* Prevents the text from wrapping */
-  transition: color 0.3s; /* Smooth transition for hover effect */
+  color: var(--primary-dark) !important;
+  padding: 10px 18px;
+  white-space: nowrap;
+  border-radius: 999px;
+  font-weight: 600 !important;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.navbar .nav-link,
-.navbar .nav-link.MuiButton-root {
-  color: #fff !important; /* Force white color for Material-UI buttons */
+.header-nav .nav-link:hover {
+  color: var(--light-color) !important;
+  background-color: var(--primary-color);
+  box-shadow: 0 10px 22px rgba(0, 71, 171, 0.2);
 }
 
-.nav-link:hover,
-.navbar .nav-link:hover {
-  color: var(--accent-color) !important; /* Light blue-gray on hover */
+.mobile-menu-button {
+  display: none;
+  color: var(--primary-dark) !important;
 }
 
-/* Responsive design adjustments */
+.drawer-list {
+  width: 260px;
+  padding: 24px 16px;
+  background-color: var(--secondary-light);
+}
+
+.drawer-item {
+  padding: 10px 18px;
+  border-radius: 12px;
+  color: var(--primary-dark);
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.drawer-item:hover {
+  background-color: rgba(0, 71, 171, 0.1);
+}
+
+.user-menu-paper {
+  border-radius: 18px;
+  background-color: var(--light-color);
+}
+
+.user-menu-item {
+  padding: 12px 18px;
+  border-radius: 14px;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.user-menu-item:hover {
+  background-color: rgba(0, 71, 171, 0.12);
+}
+
+.header-actions .MuiButton-root:hover,
+.header-actions .MuiIconButton-root:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
 @media (max-width: 1024px) {
-  .searchBar {
-    width: 85%;
+  .header-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
-
-  .topbar {
-    padding: 8px 15px;
+  
+  .header-utilities {
+    justify-content: space-between;
+  }
+  
+  .header-nav {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    display: none; /* Hide navbar links on smaller screens */
+  .header-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
-  .menu-icon {
-    display: block; /* Show menu icon on smaller screens */
-    cursor: pointer;
+  .header-nav {
+    display: none;
   }
 
-  /* Ensure the drawer (hamburger menu) style matches your theme */
-  .drawer-list {
-    width: 250px;
+  .mobile-menu-button {
+    display: inline-flex;
+    align-self: flex-end;
   }
 
-  .drawer-item {
-    padding: 8px 16px;
-    color: #fff; /* Adjust based on your color scheme */
-  }
-
-  .searchContainer {
-    margin: 0.5em 0;
-  }
-
-  .searchBar {
-    width: 95%;
-    padding: 0 8px;
-  }
-
-  .topbar {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-  }
-
-  .right-side Button,
-  .right-side IconButton {
-    margin-left: 8px;
-    padding: 4px 8px;
+  .header-utilities {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
+  .header-main {
+    padding: 14px 16px;
+  }
+
   .searchBar {
-    width: 98%;
-    font-size: 0.9rem;
+    padding: 10px 16px;
   }
-
-  .topbar {
-    padding: 5px 8px;
-    font-size: 0.8rem;
-  }
-
-  .right-side {
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .right-side Button {
-    font-size: 0.75rem;
-    padding: 4px 6px;
-  }
-}
-
-/* Adjustments for larger screens */
-@media (min-width: 769px) {
-  .menu-icon {
-    display: none; /* Hide menu icon on larger screens */
-  }
-}
-
-/* Typography and Button on the left side */
-.topbar Button,
-.topbar Typography {
-  color: #fff; /* White color for better visibility */
-  margin-right: 15px; /* Space between welcome message and sign-in button */
-}
-
-/* Container for right side items */
-.right-side {
-  display: flex;
-  align-items: center;
-}
-
-/* Style for the Sell button and Cart icon on the right side */
-.right-side Button,
-.right-side IconButton {
-  margin-left: 15px; /* Space between sell button and cart icon */
-}
-
-/* Additional styling */
-.Menu {
-  background-color: var(--primary-dark); /* Darker cobalt for menu */
-  color: #fff; /* White color text for menu items */
-}
-
-.MenuItem {
-  color: #fff; /* Ensuring menu items text is white for visibility */
-}
-
-.MenuItem:hover,
-.topbar Button:hover,
-.topbar IconButton:hover {
-  background-color: var(--primary-light); /* Lighter cobalt on hover */
 }
