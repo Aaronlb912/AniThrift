@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@algolia/autocomplete-js": "^1.17.0",
-    "@algolia/autocomplete-theme-classic": "^1.17.0",
-    "@algolia/client-search": "^4.22.1",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@minchat/react-chat-ui": "^0.16.2",
@@ -22,7 +19,6 @@
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.58",
     "@types/react-dom": "^18.2.19",
-    "algoliasearch": "^4.22.1",
     "axios": "^1.6.7",
     "bad-words": "^3.0.4",
     "bad-words-next": "^2.2.1",

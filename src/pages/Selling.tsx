@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -10,9 +10,6 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import algoliasearch from "algoliasearch/lite";
-import "@algolia/autocomplete-theme-classic";
-import { autocomplete } from "@algolia/autocomplete-js";
 import "../css/Selling.css";
 import {
   TextField,
@@ -29,9 +26,6 @@ import {
 } from "@mui/material";
 import MalSearch from "../components/MalSearch";
 import axios from "axios";
-
-const client = algoliasearch("UDKPDLE9YO", "0eaa91b0f52cf49f20d168216adbad37");
-const index = client.initIndex("items");
 
 interface MarketplaceItemType {
   title: string;
@@ -79,12 +73,12 @@ const Selling = () => {
     listingStatus: "selling",
   });
   const [tags, setTags] = useState<{ label: string }[]>([]);
+  const [tagInput, setTagInput] = useState<string>("");
   const [animeTags, setAnimeTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<PhotoType[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const autocompleteContainerRef = useRef(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -205,59 +199,15 @@ const Selling = () => {
     return () => photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
   }, [photos]);
 
-  useEffect(() => {
-    if (!autocompleteContainerRef.current) return;
-
-    const autocompleteInstance = autocomplete({
-      container: autocompleteContainerRef.current,
-      placeholder: "Type and select tags",
-      getSources({ query }) {
-        return [
-          {
-            sourceId: "tags-facet",
-            getItems() {
-              return client
-                .initIndex("items")
-                .searchForFacetValues("tags", query, { maxFacetHits: 10 })
-                .then(({ facetHits }) => {
-                  return facetHits.map((facetHit) => ({
-                    label: facetHit.value,
-                  }));
-                });
-            },
-            templates: {
-              item({ item }) {
-                return `${item.label}`;
-              },
-            },
-            onSelect({ item }: any) {
-              const tagToAdd = (item?.label || "").trim();
-              if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
-                setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
-              }
-            },
-          },
-        ];
-      },
-      onSubmit({ state }) {
-        const tagToAdd = state.query.trim();
-        if (tagToAdd && !tags.find((tag) => tag.label === tagToAdd)) {
-          setTags((prevTags) => [...prevTags, { label: tagToAdd }]);
-        }
-      },
-    });
-
-    return () => {
-      if (autocompleteInstance) {
-        autocompleteInstance.destroy();
-      }
-    };
-  }, [tags]);
-
-  const addTag = (newTag: string) => {
-    if (newTag && !tags.find((tag) => tag.label === newTag)) {
-      setTags((currentTags) => [...currentTags, { label: newTag }]);
+  const handleAddTag = (label: string) => {
+    const normalized = label.trim();
+    if (
+      normalized &&
+      !tags.some((tag) => tag.label.toLowerCase() === normalized.toLowerCase())
+    ) {
+      setTags((prev) => [...prev, { label: normalized }]);
     }
+    setTagInput("");
   };
 
   const handleRemoveTag = (labelToRemove: string) => {
@@ -364,7 +314,7 @@ const Selling = () => {
         ref: globalItemDocRef,
       });
 
-      const response = await axios.post(
+      await axios.post(
         "https://us-central1-anithrift-e77a9.cloudfunctions.net/createStripeAccountOnFirstItem",
         { item: newItemData }
       );
@@ -510,19 +460,30 @@ const Selling = () => {
           />
           <h3>Tags</h3>
           <div className="tags-section">
-            <div
-              id="autocomplete"
-              ref={autocompleteContainerRef}
-              className="autocomplete-container"
-            ></div>
-            {tags.map((tag, index) => (
-              <Chip
-                key={index}
-                label={tag.label}
-                onDelete={() => handleRemoveTag(tag.label)}
-                className="tag-chip"
-              />
-            ))}
+            <TextField
+              fullWidth
+              label="Type a tag and press Enter"
+              variant="outlined"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddTag(tagInput);
+                }
+              }}
+              className="form-field"
+            />
+            <div className="tags-chip-group">
+              {tags.map((tag, index) => (
+                <Chip
+                  key={`${tag.label}-${index}`}
+                  label={tag.label}
+                  onDelete={() => handleRemoveTag(tag.label)}
+                  className="tag-chip"
+                />
+              ))}
+            </div>
           </div>
           <h3>Anime Relation</h3>
           <div className="animeTags-section">

@@ -330,8 +330,11 @@
   margin: 5px;
 }
 
-.autocomplete-container {
-  position: relative;
+.tags-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 /* For responsive adjustments */
