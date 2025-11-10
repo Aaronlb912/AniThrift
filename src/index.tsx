@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SearchProvider from "./components/SearchHandler";
 import { AuthProvider } from "./components/userAuth";
+import CookieConsent from "./components/CookieConsent";
 
 // Lazy load components for code splitting
 const App = lazy(() => import("./App"));
@@ -229,6 +230,7 @@ root.render(
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          <CookieConsent />
           <Footer />
         </BrowserRouter>
       </SearchProvider>

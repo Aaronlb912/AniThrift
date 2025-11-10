@@ -158,6 +158,12 @@
   cursor: pointer;
 }
 
+.cookie-settings-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .save-cookie-settings {
   background-color: var(--primary-color);
   color: #fff;

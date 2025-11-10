@@ -1,286 +1,373 @@
-.selling-form {
-  margin: 20px auto;
-  padding: 30px;
-  max-width: 900px; /* Slightly wider for better layout */
-  background: var(--secondary-light);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center; /* Center the h1 box */
+.selling-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 64px) clamp(20px, 6vw, 48px) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vw, 56px);
+  font-family: "Nunito", sans-serif;
 }
 
-/* Align titles to the left */
-.selling-form h1 {
-  text-align: center;
-  margin: 0 auto 30px auto;
-  padding: 20px 40px;
-  color: #333;
-  font-size: 2rem;
-  background-color: var(--secondary-light);
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: block;
-  width: 85%;
-  max-width: 100%;
+.selling-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(24px, 5vw, 40px);
+  padding: clamp(32px, 6vw, 52px);
+  border-radius: 32px;
+  background: linear-gradient(135deg, rgba(33, 74, 147, 0.14), rgba(255, 125, 212, 0.22));
+  box-shadow: 0 26px 52px rgba(16, 43, 109, 0.16);
+}
+
+.selling-eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(33, 74, 147, 0.7);
+  margin-bottom: 8px;
+}
+
+.selling-hero h1 {
+  margin: 0 0 16px;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2.4rem, 4vw, 3rem);
+  color: var(--dark-color);
+}
+
+.selling-hero p {
+  margin: 0 0 18px;
+  line-height: 1.7;
+  color: rgba(31, 39, 63, 0.78);
+}
+
+.selling-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.selling-hero-actions .MuiButton-root {
+  border-radius: 999px;
+  padding: 10px 22px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.selling-hero-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 28px;
+  padding: clamp(24px, 4vw, 32px);
+  border: 1px solid rgba(33, 74, 147, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.14);
+}
+
+.selling-hero-card h3 {
+  margin: 0 0 12px;
+  font-family: "Playfair Display", serif;
+  color: var(--primary-color);
+}
+
+.selling-hero-card ul {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+  color: rgba(31, 39, 63, 0.78);
+}
+
+.selling-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: clamp(24px, 4vw, 40px);
+}
+
+.selling-form-card {
+  background: var(--secondary-light);
+  border-radius: 28px;
+  padding: clamp(28px, 5vw, 44px);
+  box-shadow: 0 32px 60px rgba(16, 43, 109, 0.12);
+}
+
+.selling-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 4vw, 28px);
+  text-align: left;
 }
 
 .selling-form h2 {
-  text-align: left;
-  margin: 25px 0 15px 0;
-  color: #444;
-  font-size: 1.5rem;
-  text-decoration: none;
-  padding-bottom: 8px;
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  color: var(--dark-color);
   border-bottom: 2px solid var(--primary-color);
-  display: inline-block;
-  width: 100%;
-}
-
-/* Reset text-align for form content after h1 */
-.selling-form form {
-  text-align: left;
+  padding-bottom: 8px;
 }
 
 .selling-form h3 {
-  text-align: left;
-  margin: 20px 0 10px 0;
-  color: #555;
-  font-size: 1.2rem;
-  text-decoration: none;
+  margin: 12px 0 6px;
+  font-size: 1.1rem;
+  color: rgba(35, 45, 72, 0.85);
+  border-bottom: 1.5px solid rgba(33, 74, 147, 0.16);
   padding-bottom: 6px;
-  border-bottom: 1.5px solid #6c757d;
-  display: inline-block;
-  width: 100%;
 }
 
 .section {
-  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.form-actions {
-  margin-top: 40px;
-  margin-bottom: 20px;
-  padding-top: 20px;
-}
-
-/* Style for inputs and textareas */
-.selling-form input[type="text"],
-.selling-form input[type="number"],
-.selling-form textarea,
-.selling-form select {
-  width: calc(100% - 20px);
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 10px;
-  border: none; /* Remove border since TextField already has one */
-  outline: none; /* Remove outline */
-}
-
-/* Style Material-UI TextField borders */
-.selling-form .MuiOutlinedInput-root {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-.selling-form .MuiOutlinedInput-notchedOutline {
-  border: none !important;
-}
-
-.selling-form .MuiInputBase-root {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-.selling-form .MuiInputBase-input {
-  border: none;
-}
-
-/* Add border on focus */
-.selling-form .MuiOutlinedInput-root:hover {
-  border-color: #999;
-}
-
-.selling-form .MuiOutlinedInput-root.Mui-focused {
-  border-color: var(--primary-color);
-}
-
-/* Hide TextField labels */
-.selling-form .MuiInputLabel-root {
-  display: none !important;
-}
-
-.selling-form .MuiInputLabel-outlined {
-  display: none !important;
-}
-
-.form-field {
-  z-index: 0;
-}
-
-/* Style for the dropzone */
 .dropzone {
   border: 2px dashed var(--primary-color);
-  padding: 30px;
-  text-align: center;
-  margin-bottom: 20px;
-  cursor: pointer;
-  border-radius: 12px;
-  background-color: #f8f9fa;
-  transition: all 0.3s ease;
-  min-height: 150px;
+  border-radius: 18px;
+  padding: clamp(30px, 5vw, 48px);
+  background: rgba(255, 255, 255, 0.92);
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  min-height: 160px;
 }
 
 .dropzone:hover {
   border-color: var(--primary-light);
-  background-color: #e7f3ff;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 24px rgba(33, 74, 147, 0.12);
 }
 
 .dropzone p {
-  color: #666;
-  font-size: 16px;
+  flex-basis: 100%;
   margin: 0;
+  color: rgba(35, 45, 72, 0.7);
+  font-weight: 600;
 }
 
 .photo-preview {
   position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 5px;
+  width: 122px;
+  height: 122px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 28px rgba(16, 43, 109, 0.16);
 }
 
 .preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px;
 }
 
 .remove-photo {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: #dc3545;
-  color: white;
-  border: 2px solid white;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  background: var(--danger-color);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(220, 53, 69, 0.28);
+  transition: transform 0.2s ease;
 }
 
 .remove-photo:hover {
-  background-color: #c82333;
-  transform: scale(1.1);
+  transform: translateY(-1px) scale(1.05);
 }
 
-/* Condition selector adjustments */
+.selling-form .MuiOutlinedInput-root {
+  border: 1px solid rgba(33, 74, 147, 0.2);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.selling-form .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.selling-form .MuiOutlinedInput-root:hover {
+  border-color: rgba(33, 74, 147, 0.4);
+}
+
+.selling-form .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(33, 74, 147, 0.12);
+}
+
+.selling-form .MuiInputLabel-root,
+.selling-form .MuiInputLabel-outlined {
+  display: none !important;
+}
+
+.tags-section,
+.animeTags-section {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(33, 74, 147, 0.16);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tags-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-chip {
+  background: rgba(33, 74, 147, 0.12);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
 .condition-selector {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around; /* This will distribute the space evenly */
-  gap: 1mm; /* Maintain minimal gap */
+  justify-content: flex-start;
+  gap: 16px;
 }
 
-/* Style adjustments for FormControlLabel to reposition the radio button and fit the text */
 .condition-selector .MuiFormControlLabel-root {
+  width: clamp(220px, 28vw, 260px);
+  border: 1px solid rgba(33, 74, 147, 0.16);
+  border-radius: 18px;
+  padding: 16px 14px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 14px 28px rgba(16, 43, 109, 0.12);
   display: flex;
-  flex-direction: column; /* Changed to column to control order better */
-  align-items: center; /* Centers items horizontally */
-  text-align: center; /* Ensures label text is centered */
-  width: 140px; /* Increased width for better text readability */
-  min-height: 120px; /* Minimum height to accommodate text */
-  height: auto; /* Allows the height to adjust based on content */
-  padding: 12px 8px; /* More padding for better spacing */
-  box-sizing: border-box; /* Includes padding in the element's total width and height */
-  border: 1px solid #ccc; /* Optional: adds a border */
-  border-radius: 12px; /* Rounds the corners */
-  gap: 6px; /* Space between radio button and label text */
-  margin-bottom: 8px; /* Space below each box */
-  justify-content: flex-start; /* Align content to top */
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
 }
 
-/* Ensure the radio button is at the top */
 .condition-selector .MuiRadio-root {
-  order: 0; /* Radio button first in order */
-  margin-bottom: 8px; /* Space between the radio button and the label */
-  flex-shrink: 0; /* Prevent radio button from shrinking */
+  margin-top: 2px;
 }
 
-/* Ensure the label text fits and is centered within the box */
-.condition-selector .MuiTypography-body1 {
-  font-size: 0.875rem; /* Adjust font size for better fit */
-  word-break: break-word; /* Allows long words to wrap and fit within the box */
-  line-height: 1.4; /* Better line height for readability */
-  width: 100%; /* Ensure text uses full width of container */
-}
-
-/* Pricing and quantity input adjustments to span almost the entirety of the form */
-.pricing-section input,
-.quantity-section input {
-  width: calc(100% - 20px); /* Adjusts width */
-}
-
-/* Button styles */
-.form-actions {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.form-actions button {
-  text-align: center;
-  min-width: 180px;
-  padding: 12px 30px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  text-transform: none;
-}
-
-.form-actions button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Tags and Anime Tags sections */
-.tags-section,
-.animeTags-section {
-  margin: 10px 0 20px 0;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background-color: #fafafa;
-}
-
-/* Form field improvements */
-.form-field {
-  margin-bottom: 15px;
-}
-
-/* Product info section */
-.product-info-section {
+.condition-label-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  align-items: flex-start;
+  gap: 4px;
 }
 
-/* Loading overlay */
+.condition-label-title {
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1.3;
+}
+
+.condition-label-description {
+  font-size: 0.85rem;
+  color: rgba(35, 45, 72, 0.7);
+  line-height: 1.4;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.form-actions .MuiButton-root {
+  min-width: 180px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 600;
+  box-shadow: 0 18px 32px rgba(16, 43, 109, 0.16);
+}
+
+.form-actions .MuiButton-containedPrimary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.form-actions .MuiButton-containedPrimary:hover {
+  box-shadow: 0 22px 40px rgba(16, 43, 109, 0.22);
+}
+
+.form-actions .MuiButton-containedSecondary {
+  background: linear-gradient(135deg, var(--tertiary-color), var(--tertiary-dark));
+}
+
+.form-actions .MuiButton-containedSecondary:hover {
+  box-shadow: 0 22px 40px rgba(180, 64, 64, 0.18);
+}
+
+.form-actions .MuiButton-outlinedPrimary {
+  border-width: 2px;
+  border-color: rgba(33, 74, 147, 0.4);
+  color: var(--primary-color);
+}
+
+.form-actions .MuiButton-outlinedPrimary:hover {
+  border-color: var(--primary-color);
+  background: rgba(33, 74, 147, 0.08);
+}
+
+.selling-sidebar {
+  background: linear-gradient(135deg, rgba(33, 74, 147, 0.12), rgba(255, 125, 212, 0.2));
+  border-radius: 28px;
+  padding: clamp(24px, 4vw, 32px);
+  box-shadow: 0 26px 48px rgba(16, 43, 109, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: rgba(31, 39, 63, 0.82);
+}
+
+.selling-sidebar h2 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  color: var(--dark-color);
+}
+
+.selling-sidebar ul {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.selling-sidebar-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid rgba(33, 74, 147, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selling-sidebar-card h3 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  color: var(--primary-color);
+}
+
+.selling-sidebar-card .MuiButton-root {
+  align-self: flex-start;
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 600;
+}
+
 .loading-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -290,7 +377,7 @@
 
 .loading-overlay-content {
   text-align: center;
-  color: white;
+  color: #fff;
 }
 
 .loading-overlay-content p {
@@ -298,67 +385,290 @@
 }
 
 .loading-overlay-spinner {
-  color: white;
+  color: #fff;
 }
 
-/* Condition label container */
-.condition-label-container {
-  padding: 4px 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+@media (max-width: 1024px) {
+  .selling-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .selling-sidebar {
+    order: -1;
+  }
 }
 
-.condition-label-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-  min-height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+@media (max-width: 640px) {
+  .selling-page {
+    padding: 28px 20px 72px;
+  }
 
-.condition-label-description {
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.4;
-  margin-top: auto;
-}
+  .selling-hero {
+    padding: 28px;
+  }
 
-/* Tag and chip styles */
-.tag-chip {
-  margin: 5px;
-}
+  .selling-form-card {
+    padding: 24px;
+  }
 
-.tags-chip-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
+  .selling-hero-actions {
+    flex-direction: column;
+  }
 
-/* For responsive adjustments */
-@media screen and (max-width: 768px) {
-  .selling-form {
-    padding: 20px;
-    margin: 10px;
+  .condition-selector {
+    justify-content: flex-start;
   }
 
   .condition-selector .MuiFormControlLabel-root {
-    width: 100px;
-    font-size: 0.75rem;
+    width: 100%;
   }
 
   .form-actions {
     flex-direction: column;
   }
 
-  .form-actions button {
+  .form-actions .MuiButton-root {
     width: 100%;
-    max-width: none;
+  }
+}
+
+.tag-input-wrapper,
+.color-input-wrapper {
+  position: relative;
+}
+
+.tag-suggestions,
+.color-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(33, 74, 147, 0.14);
+  box-shadow: 0 24px 50px rgba(16, 43, 109, 0.16);
+  list-style: none;
+  margin: 0;
+  padding: 10px 0;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.tag-suggestions li,
+.color-suggestions li {
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  color: rgba(35, 45, 72, 0.85);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.tag-suggestions li:hover,
+.color-suggestions li:hover {
+  background: rgba(33, 74, 147, 0.1);
+  transform: translateX(2px);
+}
+
+.tag-suggestions li:active,
+.color-suggestions li:active {
+  background: rgba(33, 74, 147, 0.16);
+}
+
+.shipping-note {
+  margin-top: -4px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(33, 74, 147, 0.08);
+  color: rgba(31, 39, 63, 0.76);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.shipping-section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 3vw, 28px);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  border: 1px solid rgba(33, 74, 147, 0.12);
+  padding: clamp(20px, 4vw, 28px);
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.06);
+}
+
+.shipping-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: clamp(16px, 3vw, 24px);
+  align-items: stretch;
+}
+
+.shipping-section-header h2 {
+  margin-bottom: 6px;
+}
+
+.shipping-section-header p {
+  margin: 0;
+  color: rgba(35, 45, 72, 0.72);
+  line-height: 1.6;
+}
+
+.shipping-summary-card {
+  min-width: 220px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(33, 74, 147, 0.12), rgba(255, 125, 212, 0.18));
+  border-radius: 18px;
+  box-shadow: 0 18px 36px rgba(16, 43, 109, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: rgba(31, 39, 63, 0.85);
+}
+
+.shipping-summary-card .summary-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(31, 39, 63, 0.6);
+}
+
+.shipping-summary-card .summary-service {
+  font-weight: 700;
+}
+
+.shipping-summary-card .summary-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.shipping-summary-card .summary-speed {
+  font-size: 0.9rem;
+  color: rgba(31, 39, 63, 0.7);
+}
+
+.shipping-payer,
+.shipping-weight,
+.shipping-services {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.weight-card {
+  border-radius: 16px;
+  border: 1px solid rgba(33, 74, 147, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 14px 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  color: rgba(31, 39, 63, 0.8);
+}
+
+.weight-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 16px 32px rgba(16, 43, 109, 0.14);
+}
+
+.weight-card.active {
+  border-color: var(--primary-color);
+  background: rgba(33, 74, 147, 0.12);
+  color: var(--primary-color);
+  box-shadow: 0 18px 32px rgba(16, 43, 109, 0.18);
+}
+
+.weight-card .weight-label {
+  font-size: 1rem;
+}
+
+.weight-card .weight-description {
+  font-size: 0.85rem;
+  color: rgba(31, 39, 63, 0.6);
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.service-card {
+  border-radius: 20px;
+  border: 1px solid rgba(33, 74, 147, 0.14);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 18px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(31, 39, 63, 0.85);
+}
+
+.service-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 20px 36px rgba(16, 43, 109, 0.16);
+}
+
+.service-card.active {
+  border-color: var(--primary-color);
+  background: rgba(33, 74, 147, 0.13);
+  box-shadow: 0 22px 40px rgba(16, 43, 109, 0.2);
+}
+
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.service-name {
+  font-weight: 700;
+}
+
+.service-carrier {
+  font-size: 0.85rem;
+  color: rgba(31, 39, 63, 0.6);
+}
+
+.service-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.service-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.service-speed,
+.service-limit {
+  font-size: 0.85rem;
+  color: rgba(31, 39, 63, 0.65);
+}
+
+@media (max-width: 640px) {
+  .shipping-section-header {
+    flex-direction: column;
   }
 
-  .section {
-    padding: 15px;
+  .shipping-summary-card {
+    width: 100%;
   }
 }

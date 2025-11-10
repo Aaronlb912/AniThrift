@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import {
   getStorage,
@@ -23,9 +23,15 @@ import {
   RadioGroup,
   Chip,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import MalSearch from "../components/MalSearch";
 import axios from "axios";
+import {
+  shippingServices,
+  shippingWeightTiers,
+  ShippingPayer,
+} from "../data/shippingOptions";
 
 interface MarketplaceItemType {
   title: string;
@@ -36,12 +42,20 @@ interface MarketplaceItemType {
   packageCondition: string;
   color?: string;
   deliveryOption: string;
+  shippingPayer: ShippingPayer;
+  shippingWeightTierId: string;
+  shippingServiceId: string;
   price: string;
   quantity: number;
   photos?: PhotoType[];
   creationDate: string;
   sellerId?: string;
   listingStatus: MarketplaceItemStatus;
+  shippingSummary?: {
+    payer: ShippingPayer;
+    weightTierId: string;
+    serviceId: string;
+  };
 }
 
 type PhotoType = {
@@ -66,7 +80,11 @@ const Selling = () => {
     category: "",
     condition: "",
     packageCondition: "",
-    deliveryOption: "",
+    color: "",
+    deliveryOption: "Buyer Selects at Checkout",
+    shippingPayer: "buyer",
+    shippingWeightTierId: "up-to-8oz",
+    shippingServiceId: "usps-first-class",
     price: "",
     quantity: 0,
     creationDate: "",
@@ -74,6 +92,10 @@ const Selling = () => {
   });
   const [tags, setTags] = useState<{ label: string }[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  const [showColorSuggestions, setShowColorSuggestions] = useState(false);
   const [animeTags, setAnimeTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<PhotoType[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -90,6 +112,77 @@ const Selling = () => {
       }
     });
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchExistingTags = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "items"));
+        const tagSet = new Set<string>();
+        const colorSet = new Set<string>();
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const itemTags = data?.tags || [];
+          if (Array.isArray(itemTags)) {
+            itemTags.forEach((tag: string) => {
+              if (typeof tag === "string" && tag.trim()) {
+                tagSet.add(tag.trim());
+              }
+            });
+          }
+          const itemColor = data?.color;
+          if (typeof itemColor === "string" && itemColor.trim()) {
+            colorSet.add(itemColor.trim());
+          }
+        });
+        setAvailableTags(Array.from(tagSet).sort((a, b) => a.localeCompare(b)));
+        setAvailableColors(
+          Array.from(colorSet).sort((a, b) => a.localeCompare(b))
+        );
+      } catch (error) {
+        console.error("Error fetching existing tags:", error);
+      }
+    };
+
+    fetchExistingTags();
+  }, []);
+
+  const selectedWeightTier = useMemo(
+    () =>
+      shippingWeightTiers.find(
+        (tier) => tier.id === item.shippingWeightTierId
+      ) || shippingWeightTiers[0],
+    [item.shippingWeightTierId]
+  );
+
+  const availableServices = useMemo(() => {
+    if (!selectedWeightTier) return shippingServices;
+    return shippingServices.filter(
+      (service) => service.maxWeightOz >= selectedWeightTier.maxWeightOz
+    );
+  }, [selectedWeightTier]);
+
+  const selectedService = useMemo(
+    () =>
+      shippingServices.find(
+        (service) => service.id === item.shippingServiceId
+      ) || shippingServices[0],
+    [item.shippingServiceId]
+  );
+
+  useEffect(() => {
+    if (!availableServices.length) return;
+    const isValid = availableServices.some(
+      (service) => service.id === item.shippingServiceId
+    );
+    if (!isValid) {
+      const fallback = availableServices[0];
+      setItem((prev) => ({
+        ...prev,
+        shippingServiceId: fallback.id,
+        deliveryOption: fallback.name,
+      }));
+    }
+  }, [availableServices, item.shippingServiceId]);
 
   const onDrop = useCallback(
     (acceptedFiles: any) => {
@@ -201,11 +294,30 @@ const Selling = () => {
 
   const handleAddTag = (label: string) => {
     const normalized = label.trim();
+    if (!normalized) {
+      setTagInput("");
+      return;
+    }
+
+    const canonicalTag =
+      availableTags.find(
+        (existing) => existing.toLowerCase() === normalized.toLowerCase()
+      ) || normalized;
+
     if (
-      normalized &&
-      !tags.some((tag) => tag.label.toLowerCase() === normalized.toLowerCase())
+      !tags.some(
+        (tag) => tag.label.toLowerCase() === canonicalTag.toLowerCase()
+      )
     ) {
-      setTags((prev) => [...prev, { label: normalized }]);
+      setTags((prev) => [...prev, { label: canonicalTag }]);
+      setAvailableTags((prev) => {
+        if (
+          prev.some((tag) => tag.toLowerCase() === canonicalTag.toLowerCase())
+        ) {
+          return prev;
+        }
+        return [...prev, canonicalTag].sort((a, b) => a.localeCompare(b));
+      });
     }
     setTagInput("");
   };
@@ -275,8 +387,20 @@ const Selling = () => {
         return;
       }
 
-      if (!item.deliveryOption) {
-        alert("Please select a delivery option.");
+      if (!item.shippingPayer) {
+        alert("Please choose who pays for shipping.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.shippingWeightTierId) {
+        alert("Please select a weight range for shipping.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!item.shippingServiceId) {
+        alert("Please select a shipping service.");
         setIsLoading(false);
         return;
       }
@@ -293,6 +417,9 @@ const Selling = () => {
         return;
       }
 
+      const normalizedDeliveryOption =
+        item.deliveryOption?.trim() || "Buyer Selects at Checkout";
+
       const newItemData = {
         ...item,
         price: parseFloat(item.price), // Convert price to number
@@ -301,6 +428,12 @@ const Selling = () => {
         photos: photoUrls,
         creationDate: new Date().toISOString(),
         sellerId: userId,
+        deliveryOption: normalizedDeliveryOption,
+        shippingSummary: {
+          payer: item.shippingPayer,
+          weightTierId: item.shippingWeightTierId,
+          serviceId: item.shippingServiceId,
+        },
       };
 
       console.log(newItemData);
@@ -346,6 +479,9 @@ const Selling = () => {
       return;
     }
 
+    const normalizedDeliveryOption =
+      item.deliveryOption?.trim() || "Buyer Selects at Checkout";
+
     const draftItemData = {
       ...item,
       price: item.price ? parseFloat(item.price) : 0, // Convert price to number
@@ -357,6 +493,12 @@ const Selling = () => {
         .filter((url) => url !== null),
       creationDate: new Date().toISOString(),
       sellerId: userId,
+      deliveryOption: normalizedDeliveryOption,
+      shippingSummary: {
+        payer: item.shippingPayer,
+        weightTierId: item.shippingWeightTierId,
+        serviceId: item.shippingServiceId,
+      },
     };
 
     try {
@@ -390,8 +532,36 @@ const Selling = () => {
         }
       : {};
 
+  const matchingTagSuggestions = useMemo(() => {
+    const normalizedInput = tagInput.trim().toLowerCase();
+    if (!normalizedInput) return [] as string[];
+
+    return availableTags
+      .filter(
+        (tag) =>
+          tag.toLowerCase().includes(normalizedInput) &&
+          !tags.some(
+            (selected) => selected.label.toLowerCase() === tag.toLowerCase()
+          )
+      )
+      .slice(0, 8);
+  }, [availableTags, tagInput, tags]);
+
+  const matchingColorSuggestions = useMemo(() => {
+    const normalizedInput = (item?.color || "").trim().toLowerCase();
+    if (!normalizedInput) return [] as string[];
+
+    return availableColors
+      .filter(
+        (color) =>
+          color.toLowerCase().includes(normalizedInput) &&
+          color.toLowerCase() !== normalizedInput
+      )
+      .slice(0, 8);
+  }, [availableColors, item?.color]);
+
   return (
-    <div className="selling-form">
+    <div className="selling-page">
       {isLoading && (
         <div className="loading-overlay">
           <div className="loading-overlay-content">
@@ -400,339 +570,624 @@ const Selling = () => {
           </div>
         </div>
       )}
-      <h1>List an Item</h1>
-      <form onSubmit={handleSubmit}>
-        <h2>Photos</h2>
-        <div {...getRootProps({ className: "dropzone", style: dropzoneStyle })}>
-          <input {...getInputProps()} />
-          {!photos.length ? (
-            <p>
-              Drag 'n' drop some files here, or click to select files (Up to 10
-              photos)
-            </p>
-          ) : null}
-          {photos.length && photos[photos.length - 1]
-            ? photos.map((photo) => {
-                if (!photo) return null;
-                return (
-                  <div key={photo.preview} className="photo-preview">
-                    <img
-                      src={photo.preview}
-                      alt="Preview"
-                      className="preview-image"
-                    />
-                    <button
-                      onClick={(event) => removePhoto(event, photo.preview)}
-                      className="remove-photo"
-                    >
-                      x
-                    </button>
-                  </div>
-                );
-              })
-            : null}
-        </div>
-        <div className="section product-info-section">
-          <h2>Product Info</h2>
-          <h3>Title</h3>
-          <TextField
-            fullWidth
-            label="Title"
-            variant="outlined"
-            value={item?.title}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, title: e.target.value }))
-            }
-            className="form-field"
-          />
-          <h3>Description</h3>
-          <TextField
-            fullWidth
-            label="Description"
-            variant="outlined"
-            multiline
-            rows={4}
-            value={item?.description}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, description: e.target.value }))
-            }
-            className="form-field"
-          />
-          <h3>Tags</h3>
-          <div className="tags-section">
-            <TextField
-              fullWidth
-              label="Type a tag and press Enter"
-              variant="outlined"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTag(tagInput);
-                }
-              }}
-              className="form-field"
-            />
-            <div className="tags-chip-group">
-              {tags.map((tag, index) => (
-                <Chip
-                  key={`${tag.label}-${index}`}
-                  label={tag.label}
-                  onDelete={() => handleRemoveTag(tag.label)}
-                  className="tag-chip"
-                />
-              ))}
-            </div>
-          </div>
-          <h3>Anime Relation</h3>
-          <div className="animeTags-section">
-            <MalSearch onItemSelected={handleMalItemSelected} />
-            {animeTags.map((title, index) => (
-              <Chip
-                key={index}
-                label={title}
-                onDelete={() =>
-                  setAnimeTags(animeTags.filter((t) => t !== title))
-                }
-                className="tag-chip"
-              />
-            ))}
-          </div>
-          <h3>Category</h3>
-          <FormControl fullWidth className="form-field">
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={item?.category}
-              onChange={(e) =>
-                setItem((prev) => ({ ...prev, category: e.target.value }))
-              }
-              label="Category"
+
+      <section className="selling-hero">
+        <div className="selling-hero-copy">
+          <p className="selling-eyebrow">Seller Workspace</p>
+          <h1>List an Item</h1>
+          <p>
+            Showcase your collectibles with rich detail, polished photography,
+            and tags that help fans discover them faster. Draft now and publish
+            when you’re ready.
+          </p>
+          <div className="selling-hero-actions">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/listing")}
             >
-              <MenuItem value="Digital Media">Digital Media</MenuItem>
-              <MenuItem value="Manga">Manga</MenuItem>
-              <MenuItem value="Novels">Novels</MenuItem>
-              <MenuItem value="Merchandise">Merchandise</MenuItem>
-              <MenuItem value="Figures">Figures</MenuItem>
-              <MenuItem value="Trinkets">Trinkets</MenuItem>
-              <MenuItem value="Apparel">Apparel</MenuItem>
-              <MenuItem value="Audio">Audio</MenuItem>
-              <MenuItem value="Games">Games</MenuItem>
-            </Select>
-          </FormControl>
-          <h3>Color</h3>
-          <TextField
-            fullWidth
-            label="Color (optional)"
-            variant="outlined"
-            value={item?.color}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, color: e.target.value }))
-            }
-            className="form-field"
-          />
+              Listing Overview
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => navigate("/database-guidelines")}
+            >
+              Review Guidelines
+            </Button>
+          </div>
         </div>
-        <div className="section condition-section">
-          <h2>Item Condition</h2>
-          <RadioGroup
-            row
-            aria-label="condition"
-            name="condition"
-            value={item?.condition}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, condition: e.target.value }))
-            }
-            className="condition-selector"
-          >
-            <FormControlLabel
-              value="New"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">New</div>
-                  <div className="condition-label-description">
-                    Item is brand new, with no signs of use.
-                  </div>
-                </div>
-              }
-            />
-            <FormControlLabel
-              value="Like New"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Like New</div>
-                  <div className="condition-label-description">
-                    Item is brand new, with no signs of use.
-                  </div>
-                </div>
-              }
-            />
-            <FormControlLabel
-              value="Good"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Good</div>
-                  <div className="condition-label-description">
-                    Item has minor wear, but still fully functional.
-                  </div>
-                </div>
-              }
-            />
-            <FormControlLabel
-              value="Fair"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Fair</div>
-                  <div className="condition-label-description">
-                    Item shows wear from consistent use, but remains in good
-                    condition.
-                  </div>
-                </div>
-              }
-            />
-            <FormControlLabel
-              value="Poor"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Poor</div>
-                  <div className="condition-label-description">
-                    Item has significant wear and tear but is still functional.
-                  </div>
-                </div>
-              }
-            />
-          </RadioGroup>
+        <div className="selling-hero-card">
+          <h3>What You’ll Need</h3>
+          <ul>
+            <li>Up to 10 clear photos showcasing key details</li>
+            <li>Series tags and anime references for discovery</li>
+            <li>Accurate condition and packaging notes</li>
+            <li>A price of at least $0.01 and available quantity</li>
+          </ul>
         </div>
-        <div className="section condition-section">
-          <h2>Packaging Condition</h2>
-          <RadioGroup
-            row
-            aria-label="packagingCondition"
-            name="packagingCondition"
-            value={item?.packageCondition}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, packageCondition: e.target.value }))
-            }
-            className="condition-selector"
-          >
-            <FormControlLabel
-              value="Original"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Original</div>
-                  <div className="condition-label-description">Unopened</div>
+      </section>
+
+      <div className="selling-layout">
+        <div className="selling-form-card">
+          <form className="selling-form" onSubmit={handleSubmit}>
+            <h2>Photos</h2>
+            <div
+              {...getRootProps({
+                className: "dropzone",
+                style: dropzoneStyle,
+              })}
+            >
+              <input {...getInputProps()} />
+              {!photos.length ? (
+                <p>
+                  Drag 'n' drop some files here, or click to select files (Up to
+                  10 photos)
+                </p>
+              ) : null}
+              {photos.length && photos[photos.length - 1]
+                ? photos.map((photo) => {
+                    if (!photo) return null;
+                    return (
+                      <div key={photo.preview} className="photo-preview">
+                        <img
+                          src={photo.preview}
+                          alt="Preview"
+                          className="preview-image"
+                        />
+                        <button
+                          onClick={(event) => removePhoto(event, photo.preview)}
+                          className="remove-photo"
+                        >
+                          x
+                        </button>
+                      </div>
+                    );
+                  })
+                : null}
+            </div>
+            <div className="section product-info-section">
+              <h2>Product Info</h2>
+              <h3>Title</h3>
+              <TextField
+                fullWidth
+                label="Title"
+                variant="outlined"
+                value={item?.title}
+                onChange={(e) =>
+                  setItem((prev) => ({ ...prev, title: e.target.value }))
+                }
+                className="form-field"
+              />
+              <h3>Description</h3>
+              <TextField
+                fullWidth
+                label="Description"
+                variant="outlined"
+                multiline
+                rows={4}
+                value={item?.description}
+                onChange={(e) =>
+                  setItem((prev) => ({ ...prev, description: e.target.value }))
+                }
+                className="form-field"
+              />
+              <h3>Tags</h3>
+              <div className="tags-section">
+                <div className="tag-input-wrapper">
+                  <TextField
+                    fullWidth
+                    label="Type a tag and press Enter"
+                    variant="outlined"
+                    value={tagInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setTagInput(value);
+                      setShowTagSuggestions(!!value.trim());
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTag(tagInput);
+                        setShowTagSuggestions(false);
+                      } else if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setShowTagSuggestions(true);
+                      }
+                    }}
+                    onFocus={() => {
+                      if (matchingTagSuggestions.length) {
+                        setShowTagSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowTagSuggestions(false), 120);
+                    }}
+                    inputProps={{ autoComplete: "off" }}
+                    className="form-field"
+                  />
+                  {showTagSuggestions && matchingTagSuggestions.length > 0 && (
+                    <ul className="tag-suggestions" role="listbox">
+                      {matchingTagSuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          role="option"
+                          aria-selected="false"
+                          tabIndex={-1}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleAddTag(suggestion);
+                            setShowTagSuggestions(false);
+                          }}
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              }
-            />
-            <FormControlLabel
-              value="Repackaged"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Repackaged</div>
-                  <div className="condition-label-description">
-                    Opened but repackaged
-                  </div>
+                <div className="tags-chip-group">
+                  {tags.map((tag, index) => (
+                    <Chip
+                      key={`${tag.label}-${index}`}
+                      label={tag.label}
+                      onDelete={() => handleRemoveTag(tag.label)}
+                      className="tag-chip"
+                    />
+                  ))}
                 </div>
-              }
-            />
-            <FormControlLabel
-              value="Damaged"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">Damaged</div>
-                  <div className="condition-label-description">
-                    Packaging is damaged but item is intact
-                  </div>
+              </div>
+              <h3>Anime Relation</h3>
+              <div className="animeTags-section">
+                <MalSearch onItemSelected={handleMalItemSelected} />
+                {animeTags.map((title, index) => (
+                  <Chip
+                    key={index}
+                    label={title}
+                    onDelete={() =>
+                      setAnimeTags(animeTags.filter((t) => t !== title))
+                    }
+                    className="tag-chip"
+                  />
+                ))}
+              </div>
+              <h3>Category</h3>
+              <FormControl fullWidth className="form-field">
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={item?.category}
+                  onChange={(e) =>
+                    setItem((prev) => ({ ...prev, category: e.target.value }))
+                  }
+                  label="Category"
+                >
+                  <MenuItem value="Digital Media">Digital Media</MenuItem>
+                  <MenuItem value="Manga">Manga</MenuItem>
+                  <MenuItem value="Novels">Novels</MenuItem>
+                  <MenuItem value="Merchandise">Merchandise</MenuItem>
+                  <MenuItem value="Figures">Figures</MenuItem>
+                  <MenuItem value="Trinkets">Trinkets</MenuItem>
+                  <MenuItem value="Apparel">Apparel</MenuItem>
+                  <MenuItem value="Audio">Audio</MenuItem>
+                  <MenuItem value="Games">Games</MenuItem>
+                </Select>
+              </FormControl>
+              <h3>Color</h3>
+              <div className="color-input-wrapper">
+                <TextField
+                  fullWidth
+                  label="Color (optional)"
+                  variant="outlined"
+                  value={item?.color || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setItem((prev) => ({ ...prev, color: value }));
+                    setShowColorSuggestions(!!value.trim());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setShowColorSuggestions(false);
+                    } else if (e.key === "ArrowDown") {
+                      setShowColorSuggestions(true);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (matchingColorSuggestions.length) {
+                      setShowColorSuggestions(true);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const currentValue = e.target.value.trim();
+                    setTimeout(() => setShowColorSuggestions(false), 120);
+                    if (currentValue) {
+                      setAvailableColors((prev) => {
+                        if (
+                          prev.some(
+                            (color) =>
+                              color.toLowerCase() === currentValue.toLowerCase()
+                          )
+                        ) {
+                          return prev;
+                        }
+                        return [...prev, currentValue].sort((a, b) =>
+                          a.localeCompare(b)
+                        );
+                      });
+                    }
+                  }}
+                  inputProps={{ autoComplete: "off" }}
+                  className="form-field"
+                />
+                {showColorSuggestions &&
+                  matchingColorSuggestions.length > 0 && (
+                    <ul className="color-suggestions" role="listbox">
+                      {matchingColorSuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          role="option"
+                          aria-selected={
+                            (item?.color || "").toLowerCase() ===
+                            suggestion.toLowerCase()
+                              ? "true"
+                              : "false"
+                          }
+                          tabIndex={-1}
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            setItem((prev) => ({ ...prev, color: suggestion }));
+                            setShowColorSuggestions(false);
+                          }}
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+              </div>
+            </div>
+            <div className="section condition-section">
+              <h2>Item Condition</h2>
+              <RadioGroup
+                row
+                aria-label="condition"
+                name="condition"
+                value={item?.condition}
+                onChange={(e) =>
+                  setItem((prev) => ({ ...prev, condition: e.target.value }))
+                }
+                className="condition-selector"
+              >
+                <FormControlLabel
+                  value="New"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">New</div>
+                      <div className="condition-label-description">
+                        Item is brand new, with no signs of use.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Like New"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Like New</div>
+                      <div className="condition-label-description">
+                        Gently used with minimal, if any, signs of wear.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Very Good"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Very Good</div>
+                      <div className="condition-label-description">
+                        Well cared for with light, cosmetic imperfections.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Good"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Good</div>
+                      <div className="condition-label-description">
+                        Shows moderate wear but functions perfectly.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Fair"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Fair</div>
+                      <div className="condition-label-description">
+                        Noticeable wear or cosmetic issues. Priced accordingly.
+                      </div>
+                    </div>
+                  }
+                />
+              </RadioGroup>
+            </div>
+            <div className="section packaging-condition-section">
+              <h2>Packaging Condition</h2>
+              <RadioGroup
+                row
+                aria-label="packageCondition"
+                name="packageCondition"
+                value={item?.packageCondition}
+                onChange={(e) =>
+                  setItem((prev) => ({
+                    ...prev,
+                    packageCondition: e.target.value,
+                  }))
+                }
+                className="condition-selector"
+              >
+                <FormControlLabel
+                  value="Mint"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Mint</div>
+                      <div className="condition-label-description">
+                        Original packaging untouched and pristine.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Good"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Good</div>
+                      <div className="condition-label-description">
+                        Minor shelf wear or small blemishes present.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="Worn"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">Worn</div>
+                      <div className="condition-label-description">
+                        Noticeable wear, creases, or imperfections.
+                      </div>
+                    </div>
+                  }
+                />
+                <FormControlLabel
+                  value="No Packaging"
+                  control={<Radio />}
+                  label={
+                    <div className="condition-label-container">
+                      <div className="condition-label-title">No Packaging</div>
+                      <div className="condition-label-description">
+                        Item ships safely but without original packaging.
+                      </div>
+                    </div>
+                  }
+                />
+              </RadioGroup>
+            </div>
+            <div className="section shipping-section">
+              <div className="shipping-section-header">
+                <div>
+                  <h2>Shipping</h2>
+                  <p>
+                    Choose who covers shipping, your package weight, and a
+                    service. We’ll recommend options similar to Mercari’s
+                    shipping labels.
+                  </p>
                 </div>
-              }
-            />
-            <FormControlLabel
-              value="None"
-              control={<Radio />}
-              label={
-                <div className="condition-label-container">
-                  <div className="condition-label-title">None</div>
-                  <div className="condition-label-description">
-                    There is not any packaging for this item
-                  </div>
+                <div className="shipping-summary-card">
+                  <p className="summary-title">Selected Service</p>
+                  <p className="summary-service">
+                    {selectedService?.name} ({selectedService?.carrier})
+                  </p>
+                  <p className="summary-price">
+                    {item.shippingServiceId === "ship-yourself"
+                      ? "Set your own rate"
+                      : `$${selectedService?.price.toFixed(2)}`}
+                  </p>
+                  <p className="summary-speed">{selectedService?.speed}</p>
                 </div>
-              }
+              </div>
+
+              <div className="shipping-payer">
+                <h3>Who pays for shipping?</h3>
+                <RadioGroup
+                  row
+                  value={item.shippingPayer}
+                  onChange={(e) =>
+                    setItem((prev) => ({
+                      ...prev,
+                      shippingPayer: e.target.value as ShippingPayer,
+                    }))
+                  }
+                >
+                  <FormControlLabel
+                    value="buyer"
+                    control={<Radio />}
+                    label="Buyer pays"
+                  />
+                  <FormControlLabel
+                    value="seller"
+                    control={<Radio />}
+                    label="Seller pays"
+                  />
+                </RadioGroup>
+              </div>
+
+              <div className="shipping-weight">
+                <h3>Package weight (including packaging)</h3>
+                <div className="weight-grid">
+                  {shippingWeightTiers.map((tier) => (
+                    <button
+                      type="button"
+                      key={tier.id}
+                      className={`weight-card ${
+                        item.shippingWeightTierId === tier.id ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        const tierServices = shippingServices.filter(
+                          (service) => service.maxWeightOz >= tier.maxWeightOz
+                        );
+                        const fallbackService =
+                          tierServices.find(
+                            (service) => service.id === item.shippingServiceId
+                          ) ||
+                          tierServices[0] ||
+                          shippingServices[0];
+
+                        setItem((prev) => ({
+                          ...prev,
+                          shippingWeightTierId: tier.id,
+                          shippingServiceId: fallbackService.id,
+                          deliveryOption: fallbackService.name,
+                        }));
+                      }}
+                    >
+                      <span className="weight-label">{tier.label}</span>
+                      <span className="weight-description">
+                        {tier.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="shipping-services">
+                <h3>Shipping services</h3>
+                <div className="service-grid">
+                  {availableServices.map((service) => {
+                    const isActive = item.shippingServiceId === service.id;
+                    return (
+                      <Tooltip
+                        title={service.notes || ""}
+                        arrow
+                        key={service.id}
+                      >
+                        <button
+                          type="button"
+                          className={`service-card ${isActive ? "active" : ""}`}
+                          onClick={() =>
+                            setItem((prev) => ({
+                              ...prev,
+                              shippingServiceId: service.id,
+                              deliveryOption: service.name,
+                            }))
+                          }
+                        >
+                          <div className="service-header">
+                            <span className="service-name">{service.name}</span>
+                            <span className="service-carrier">
+                              {service.carrier}
+                            </span>
+                          </div>
+                          <div className="service-body">
+                            <span className="service-price">
+                              {service.id === "ship-yourself"
+                                ? "Custom rate"
+                                : `$${service.price.toFixed(2)}`}
+                            </span>
+                            <span className="service-speed">
+                              {service.speed}
+                            </span>
+                            <span className="service-limit">
+                              Up to {Math.round(service.maxWeightOz / 16)} lb
+                            </span>
+                          </div>
+                        </button>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <h3>Quantity</h3>
+            <TextField
+              label="Quantity"
+              type="number"
+              InputProps={{ inputProps: { min: 0 } }}
+              value={item?.quantity}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                setItem((prev) => ({
+                  ...prev,
+                  quantity: isNaN(value) ? 0 : Math.max(0, value),
+                }));
+              }}
             />
-          </RadioGroup>
+            <h3>Price</h3>
+            <div className="section pricing-section">
+              <TextField
+                label="Price"
+                type="number"
+                InputProps={{ inputProps: { min: 0.01, step: 0.01 } }}
+                value={item?.price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow empty string or valid number input (including decimals like 0.50)
+                  if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                    setItem((prev) => ({ ...prev, price: value }));
+                  }
+                }}
+              />
+            </div>
+            <div className="form-actions">
+              <Button
+                variant="contained"
+                color="secondary"
+                type="button"
+                onClick={handleSaveDraft}
+              >
+                Save as Draft
+              </Button>
+              <Button variant="contained" color="primary" type="submit">
+                List Item
+              </Button>
+            </div>
+          </form>
         </div>
-        <div className="section delivery-section">
-          <h2>Delivery</h2>
-          <RadioGroup
-            aria-label="shipping"
-            value={item?.deliveryOption}
-            onChange={(e) =>
-              setItem((prev) => ({ ...prev, deliveryOption: e.target.value }))
-            }
-            className="form-field"
-          >
-            <FormControlLabel
-              value="seller"
-              control={<Radio />}
-              label="I will handle the shipping"
-            />
-            <FormControlLabel
-              value="buyer"
-              control={<Radio />}
-              label="Buyer will handle the shipping"
-            />
-          </RadioGroup>
-        </div>
-        <h3>Quantity</h3>
-        <TextField
-          label="Quantity"
-          type="number"
-          InputProps={{ inputProps: { min: 1 } }}
-          value={item?.quantity}
-          onChange={(e) => {
-            const value = parseInt(e.target.value, 10);
-            setItem((prev) => ({
-              ...prev,
-              quantity: isNaN(value) ? 0 : Math.max(0, value),
-            }));
-          }}
-        />
-        <h3>Price</h3>
-        <div className="section pricing-section">
-          <TextField
-            label="Price"
-            type="number"
-            InputProps={{ inputProps: { min: 0.01, step: 0.01 } }}
-            value={item?.price}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Allow empty string or valid number input (including decimals like 0.50)
-              if (value === "" || /^\d*\.?\d*$/.test(value)) {
-                setItem((prev) => ({ ...prev, price: value }));
-              }
-            }}
-          />
-        </div>
-        <div className="form-actions">
-          <Button
-            variant="contained"
-            color="primary"
-            type="button"
-            onClick={handleSaveDraft}
-          >
-            Save as Draft
-          </Button>
-          <Button variant="contained" color="secondary" type="submit">
-            List Item
-          </Button>
-        </div>
-      </form>
+        <aside className="selling-sidebar">
+          <h2>Quick Tips</h2>
+          <ul>
+            <li>Natural, indirect light keeps colors accurate in photos.</li>
+            <li>Call out limited editions, first prints, or bonus items.</li>
+            <li>Double-check spelling for character and series names.</li>
+            <li>Ship within 2 business days to maintain seller ratings.</li>
+          </ul>
+          <div className="selling-sidebar-card">
+            <h3>Need Support?</h3>
+            <p>
+              Visit Help & Support for packing guides, dispute resolution, and
+              contact options if you hit a snag.
+            </p>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => navigate("/help-support")}
+            >
+              Open Help Center
+            </Button>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 };
