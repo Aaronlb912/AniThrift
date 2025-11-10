@@ -97,10 +97,10 @@ const Header: React.FC = React.memo(() => {
 
   const handleSearch = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent) => {
-      if (searchInput.trim()) {
-        setSearchQuery(searchInput.trim());
-        navigate(`/search?query=${encodeURIComponent(searchInput.trim())}`);
-      }
+      const trimmedQuery = searchInput.trim();
+      const queryParam = trimmedQuery ? trimmedQuery : "";
+      setSearchQuery(queryParam);
+      navigate(`/search?query=${encodeURIComponent(queryParam)}`);
     },
     [searchInput, setSearchQuery, navigate]
   );
