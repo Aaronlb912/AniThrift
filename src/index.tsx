@@ -54,7 +54,6 @@ const AccessibilityStatement = lazy(
 );
 // Help pages
 const FAQ = lazy(() => import("./pages/FAQ"));
-const ContactUs = lazy(() => import("./pages/ContactUs"));
 const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
 // Settings pages
 const SettingsRequestData = lazy(() => import("./pages/SettingsRequestData"));
@@ -173,7 +172,6 @@ root.render(
               />
               {/* Help pages */}
               <Route path="/faq" element={<FAQ />} />
-              <Route path="/contact-us" element={<ContactUs />} />
               <Route
                 path="/terms-and-conditions"
                 element={<TermsAndConditions />}

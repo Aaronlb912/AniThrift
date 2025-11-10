@@ -52,32 +52,51 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <div className="info-page-container">
-      <h1>Frequently Asked Questions</h1>
-      <div className="info-content">
-        <div className="faq-list">
-          {faqs.map((faq, index) => (
-            <div key={index} className="faq-item">
-              <button
-                className="faq-question"
-                onClick={() => toggleFAQ(index)}
-              >
-                {faq.question}
-                <span className="faq-icon">
-                  {openIndex === index ? "−" : "+"}
-                </span>
-              </button>
-              {openIndex === index && (
-                <div className="faq-answer">{faq.answer}</div>
-              )}
-            </div>
-          ))}
+    <div className="faq-page">
+      <section className="faq-hero">
+        <div>
+          <p className="faq-eyebrow">Support & Knowledge</p>
+          <h1>Frequently Asked Questions</h1>
+          <p>
+            Get quick answers about AniThrift. If you don’t see what you need,
+            our support team is only a message away.
+          </p>
         </div>
-        <p className="faq-footer">
-          Still have questions?{" "}
-          <a href="/contact-us">Contact our support team</a> for assistance.
-        </p>
-      </div>
+        <div className="faq-hero-badge" aria-hidden="true" />
+      </section>
+
+      <section className="faq-list">
+        {faqs.map((faq, index) => (
+          <div key={index} className="faq-item">
+            <button
+              className="faq-question"
+              onClick={() => toggleFAQ(index)}
+              aria-expanded={openIndex === index}
+            >
+              <span>{faq.question}</span>
+              <span className="faq-icon">
+                {openIndex === index ? "−" : "+"}
+              </span>
+            </button>
+            {openIndex === index && (
+              <div className="faq-answer">{faq.answer}</div>
+            )}
+          </div>
+        ))}
+      </section>
+
+      <section className="faq-contact-banner">
+        <div>
+          <h2>Still have questions?</h2>
+          <p>
+            Share feedback or describe the problem and our support team will help
+            you out.
+          </p>
+        </div>
+        <a href="/feedback" className="primary-link">
+          Submit Feedback
+        </a>
+      </section>
     </div>
   );
 };

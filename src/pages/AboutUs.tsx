@@ -1,76 +1,84 @@
-// AboutUsPage.tsx
 import React from "react";
-import "../css/AboutUs.css"; // Assume you have an accompanying CSS file for styling
+import "../css/AboutUs.css";
 
 const AboutUsPage: React.FC = () => {
-  // Example function to simulate navigation (replace with your actual navigation logic)
-  const navigateToItem = (itemId: string) => {
-    console.log(`Navigating to item ${itemId}`);
-    // navigate(`/item/${itemId}`); // Uncomment and use your actual navigation method
-  };
-
   return (
-    <div className="about-us-container">
-      <h1>About Us</h1>
-
-      {/* Our History Section */}
-      <section>
-        <h2>Our History</h2>
-        <p>
-          Describe the journey of your company. Highlight milestones and
-          achievements.
-        </p>
+    <div className="about-us-page">
+      <section className="about-hero">
+        <div className="about-hero-content">
+          <p className="about-eyebrow">Our Story</p>
+          <h1>Celebrating the Art of Fandom</h1>
+          <p>
+            AniThrift connects collectors, cosplayers, and creators across the globe.
+            Born from a love of anime culture, we built a marketplace that makes it easy
+            to sell treasures from your closet and discover new favorites from fellow fans.
+          </p>
+        </div>
+        <div className="about-hero-image" aria-hidden="true" />
       </section>
 
-      {/* Our Mission and Goals Section */}
-      <section>
-        <h2>Our Mission and Goals</h2>
-        <p>
-          Explain your company's mission and the goals you are striving towards.
-        </p>
-      </section>
-
-      {/* Our Values Section */}
-      <section>
-        <h2>Our Values</h2>
-        <ul>
-          <li>Value 1: Description</li>
-          <li>Value 2: Description</li>
-          {/* Add more values as needed */}
-        </ul>
-      </section>
-
-      {/* Meet the Team Section */}
-      <section>
-        <h2>Meet the Team</h2>
-        <div className="team-profiles">
-          {/* Iterate over team member data */}
-          <div className="team-member">
-            <img src="/path-to-image.jpg" alt="Team Member Name" />
-            <h3>Team Member Name</h3>
-            <p>Role and a fun fact or personal tidbit.</p>
-          </div>
-          {/* Add more team members as needed */}
+      <section className="about-values-section">
+        <div className="about-section-header">
+          <h2>What Drives Us</h2>
+          <p>Every feature we ship is rooted in the pillars that define AniThrift.</p>
+        </div>
+        <div className="about-values-grid">
+          <article>
+            <h3>Community First</h3>
+            <p>
+              We’re powered by the people who collect, trade, and celebrate anime every day.
+              Safety, transparency, and inclusivity are built into every interaction.
+            </p>
+          </article>
+          <article>
+            <h3>Sustainable Fandom</h3>
+            <p>
+              Secondhand doesn’t mean second best. Extending the life of figures, manga,
+              apparel, and merch keeps the magic alive while reducing waste.
+            </p>
+          </article>
+          <article>
+            <h3>Crafted for Collectors</h3>
+            <p>
+              From curated search to rich listings, we obsess over the details that matter
+              to serious fans and first-time buyers alike.
+            </p>
+          </article>
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section>
-        <h2>Why Choose Us?</h2>
-        <p>
-          Explain what sets your company apart and why customers should choose
-          you.
-        </p>
+      <section className="about-numbers-section">
+        <div className="about-stat-card">
+          <span className="stat-value">Coming soon</span>
+          <span className="stat-label">Marketplace stories & milestones</span>
+        </div>
+        <div className="about-stat-card">
+          <span className="stat-value">Coming soon</span>
+          <span className="stat-label">Community impact highlights</span>
+        </div>
+        <div className="about-stat-card">
+          <span className="stat-value">Coming soon</span>
+          <span className="stat-label">Buyer and seller success metrics</span>
+        </div>
       </section>
 
-      {/* Call to Action */}
-      <section>
-        <h2>Get Involved</h2>
-        <p>
-          Encourage visitors to engage with your brand further, whether by
-          signing up for a newsletter, exploring products, or following on
-          social media.
-        </p>
+      <section className="about-cta-section">
+        <div>
+          <p className="about-eyebrow">Join the Marketplace</p>
+          <h2>Turn fandom into community and creativity.</h2>
+          <p>
+            List your first item, build a storefront, or discover your next obsession.
+            AniThrift makes it effortless to share the stories behind every collectible.
+          </p>
+        </div>
+        <div className="about-cta-actions">
+          <a href="/listing" className="primary-link">
+            Start Selling
+          </a>
+          <a href="/search" className="secondary-link">
+            Explore Listings
+          </a>
+        </div>
       </section>
     </div>
   );
