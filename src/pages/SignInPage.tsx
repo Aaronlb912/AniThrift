@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { auth, db } from "../firebase-config";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { debounce } from "../hooks/useDebounce";
@@ -41,6 +41,7 @@ const SignInPage: React.FC = () => {
   const [loginError, setLoginError] = useState(""); // State for login error
   const [isUsernameUnique, setIsUniqueUsername] = useState(false);
   const [usernameIsValid, setUsernameIsValid] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   const reserveUsername = (user: any, username: string) => {
     const usernameRef = doc(db, "usernames", username.toLowerCase());
@@ -66,12 +67,42 @@ const SignInPage: React.FC = () => {
     }
   };
 
+  const getPasswordValidationErrors = (password: string) => {
+    const errors: string[] = [];
+    if (password.length < 8) {
+      errors.push("Must be at least 8 characters long.");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Must include at least one uppercase letter.");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Must include at least one lowercase letter.");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("Must include at least one number.");
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>_+-=\[\]\/'`~]/.test(password)) {
+      errors.push("Must include at least one special character.");
+    }
+    return errors;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setRegisterError("Passwords do not match.");
       return;
     }
+
+    const validationErrors = getPasswordValidationErrors(newPassword);
+    if (validationErrors.length > 0) {
+      setPasswordErrors(validationErrors);
+      setRegisterError("Please meet all password requirements.");
+      return;
+    }
+
+    setPasswordErrors([]);
+
     if (!isValidUsername && !isUsernameUnique) {
       setRegisterError("Username is not valid");
       return;
@@ -84,19 +115,42 @@ const SignInPage: React.FC = () => {
       );
       console.log("User registered", userCredential.user);
 
-      // const creationDate = new Date().toISOString();
+      const createdAt = new Date().toISOString();
+      const usernameSlug = username.toLowerCase();
+
+      try {
+        await updateProfile(userCredential.user, {
+          displayName: username,
+        });
+      } catch (profileError) {
+        console.warn("Unable to set auth profile display name:", profileError);
+      }
 
       // Add user details to Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid, // Unique identifier for the user
+        uid: userCredential.user.uid,
         email: newEmail,
-        username: username, // Include username
-        signUpPromo: signUpPromo,
-        creationDate: new Date().toISOString(), // Log the account creation date
+        username,
+        usernameSlug,
+        name: username,
+        signUpPromo,
+        creationDate: createdAt,
         bio: "",
+        photoURL: "",
+        rating: 0,
+        reviews: 0,
+        favoriteTags: [],
+        links: {
+          website: "",
+          instagram: "",
+          twitter: "",
+          tiktok: "",
+        },
+        profileVisibility: "public",
+        lastUpdated: createdAt,
       });
 
-      reserveUsername({ uid: userCredential.user.uid }, username);
+      reserveUsername({ uid: userCredential.user.uid }, usernameSlug);
 
       navigate("/"); // This will navigate the user to the homepage after successful registration
     } catch (error) {
@@ -111,17 +165,30 @@ const SignInPage: React.FC = () => {
     }
   };
 
-  const renderUsernameExists = () => {
-    return <p>Username is taken</p>;
-  };
-
-  const renderUsernameValid = () => {
-    return <p>Username is valid</p>;
-  };
-
-  const renderUsernameNotValid = () => {
-    return <p>Username is not valid</p>;
-  };
+  const getUsernameValidationRules = useCallback((name: string) => {
+    const rules = [
+      {
+        key: "length",
+        label: "6-16 characters",
+        test: /^[0-9A-Za-z]{6,16}$/.test(name),
+      },
+      {
+        key: "alphanumeric",
+        label: "Letters and numbers only",
+        test: /^[0-9A-Za-z]*$/.test(name),
+      },
+      {
+        key: "profanity",
+        label: "No profanity",
+        test: (() => {
+          if (!name) return false;
+          const badwords = new BadWordsNext({ data: en });
+          return !badwords.check(name);
+        })(),
+      },
+    ];
+    return rules;
+  }, []);
 
   const isValidUsername = (name: string) => {
     const badwords = new BadWordsNext({ data: en });
@@ -134,7 +201,7 @@ const SignInPage: React.FC = () => {
       return false;
     }
 
-    setUsernameIsValid(false);
+    setUsernameIsValid(true);
     return true;
   };
 
@@ -163,94 +230,159 @@ const SignInPage: React.FC = () => {
     setUsername(newUsername);
     if (isValidUsername(e.target.value)) {
       debouncedCheckUsername(newUsername);
+    } else {
+      setIsUniqueUsername(false);
     }
   };
 
+  const handlePasswordChange = (value: string) => {
+    setNewPassword(value);
+    const errors = getPasswordValidationErrors(value);
+    setPasswordErrors(errors);
+    if (registerError && errors.length === 0) {
+      setRegisterError("");
+    }
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    if (registerError && value === newPassword) {
+      setRegisterError("");
+    }
+  };
+
+  const PASSWORD_SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>_+\-=\[\]\\/'`~]/;
+
   return (
     <div className="login-register">
-      <h1>Log In | Register</h1>
-      <div className="container">
-        <div className="returning-user">
-          <h2>Returning Customer</h2>
-          <p>Login below to check-in with an existing account</p>
-          <form onSubmit={handleLogin}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email Address"
-              required
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-            />
-            <button type="submit">Login</button>
-            <a> </a>
-            <Link to="/forgot-password" className="forgot-password">
-              Forgot password?
-            </Link>
-          </form>
-          {loginError && <p className="error-message">{loginError}</p>}{" "}
-          {/* Display login error */}
+      <div className="login-register-inner">
+        <div className="login-register-header">
+          <h1>Log In | Register</h1>
+          <p>Sign in to continue or create an account to start selling and collecting.</p>
         </div>
-        <div className="new-user">
-          <h2>New Customer</h2>
-          <p>Create an account for free</p>
-          <form onSubmit={handleRegister}>
-            <input
-              type="text"
-              value={username}
-              onChange={handleChange}
-              placeholder="Username"
-              required
-            />
-            {isUsernameUnique && usernameIsValid && username.length > 5
-              ? renderUsernameValid()
-              : null}
-            {!isUsernameUnique && username.length > 5
-              ? renderUsernameExists()
-              : null}
-            {!usernameIsValid && username.length > 1
-              ? renderUsernameNotValid()
-              : null}
-            <input
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="Email Address"
-              required
-            />
-
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Password"
-              required
-            />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter Password"
-              required
-            />
-            <label>
+        <div className="container">
+          <div className="auth-card">
+            <h2>Returning Customer</h2>
+            <p>Log in to check-in with your existing AniThrift account.</p>
+            <form onSubmit={handleLogin}>
               <input
-                type="checkbox"
-                checked={signUpPromo}
-                onChange={(e) => setSignUpPromo(e.target.checked)}
-              />{" "}
-              Yes, please sign me up for exclusive offers and promotions
-            </label>
-            <button type="submit">Create Account</button>
-          </form>
-          {registerError && <p className="error-message">{registerError}</p>}{" "}
-          {/* Display registration error */}
+                className="auth-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                required
+              />
+              <input
+                className="auth-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+              />
+              <button type="submit" className="auth-button">
+                Login
+              </button>
+              <Link to="/forgot-password" className="forgot-password">
+                Forgot password?
+              </Link>
+            </form>
+            {loginError && <p className="error-message">{loginError}</p>}
+          </div>
+
+          <div className="auth-card">
+            <h2>New Customer</h2>
+            <p>Create a free account to list items, message sellers, and track your orders.</p>
+            <form onSubmit={handleRegister}>
+              <input
+                className="auth-input"
+                type="text"
+                value={username}
+                onChange={handleChange}
+                placeholder="Username"
+                required
+              />
+              {username && (
+                <ul className="validation-list">
+                  {getUsernameValidationRules(username).map((rule) => (
+                    <li key={rule.key} className={rule.test ? "met" : "unmet"}>
+                      {rule.label}
+                    </li>
+                  ))}
+                  <li
+                    className={
+                      username.length >= 6 && isUsernameUnique ? "met" : "unmet"
+                    }
+                  >
+                    Username is available
+                  </li>
+                </ul>
+              )}
+              <input
+                className="auth-input"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Email Address"
+                required
+              />
+
+              <input
+                className="auth-input"
+                type="password"
+                value={newPassword}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                placeholder="Password"
+                required
+              />
+              {newPassword && (
+                <ul className="validation-list">
+                  <li className={newPassword.length >= 8 ? "met" : "unmet"}>
+                    At least 8 characters
+                  </li>
+                  <li className={/[A-Z]/.test(newPassword) ? "met" : "unmet"}>
+                    Contains an uppercase letter
+                  </li>
+                  <li className={/[a-z]/.test(newPassword) ? "met" : "unmet"}>
+                    Contains a lowercase letter
+                  </li>
+                  <li className={/[0-9]/.test(newPassword) ? "met" : "unmet"}>
+                    Contains a number
+                  </li>
+                  <li
+                    className={
+                      PASSWORD_SPECIAL_CHAR_REGEX.test(newPassword)
+                        ? "met"
+                        : "unmet"
+                    }
+                  >
+                    Contains a special character
+                  </li>
+                </ul>
+              )}
+              <input
+                className="auth-input"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                placeholder="Re-type Password"
+                required
+              />
+              <label className="auth-checkbox">
+                <input
+                  type="checkbox"
+                  checked={signUpPromo}
+                  onChange={(e) => setSignUpPromo(e.target.checked)}
+                />
+                Yes, please sign me up for exclusive offers and promotions
+              </label>
+              <button type="submit" className="auth-button">
+                Create Account
+              </button>
+            </form>
+            {registerError && <p className="error-message">{registerError}</p>}
+          </div>
         </div>
       </div>
     </div>

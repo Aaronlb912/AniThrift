@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import "../css/Messages.css";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -27,6 +33,7 @@ import {
   MessageContainer,
   MessageList,
   MessageHeader,
+  TypingIndicator,
 } from "@minchat/react-chat-ui";
 
 interface Conversation {
@@ -54,6 +61,7 @@ const Messages: React.FC = () => {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isOtherTyping, setIsOtherTyping] = useState<boolean>(false);
 
   // Ensure messages is always an array
   useEffect(() => {
@@ -65,6 +73,7 @@ const Messages: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
   const [blockedByUsers, setBlockedByUsers] = useState<string[]>([]);
+  const typingTimeoutRef = useRef<number | null>(null);
   const { userId: targetUserId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -151,6 +160,21 @@ const Messages: React.FC = () => {
       console.error("Error fetching blocked users:", error);
     }
   }, []);
+
+  const updateTypingStatus = useCallback(
+    async (threadId: string, userId: string, isTyping: boolean) => {
+      if (!threadId || !userId) return;
+      try {
+        await updateDoc(doc(db, "message_threads", threadId), {
+          [`typingStatus.${userId}`]: isTyping,
+          typingUpdatedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error updating typing status:", error);
+      }
+    },
+    []
+  );
 
   // Delete conversation
   const deleteConversation = useCallback(
@@ -366,6 +390,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!selectedConversation?.messageThreadId) {
       setMessages([]);
+      setIsOtherTyping(false);
       return;
     }
 
@@ -397,6 +422,34 @@ const Messages: React.FC = () => {
 
     return () => unsubscribe();
   }, [selectedConversation?.messageThreadId]);
+
+  useEffect(() => {
+    if (!selectedConversation?.messageThreadId) {
+      setIsOtherTyping(false);
+      return;
+    }
+
+    const threadRef = doc(db, "message_threads", selectedConversation.messageThreadId);
+    const unsubscribe = onSnapshot(threadRef, (snapshot) => {
+      const data = snapshot.data();
+      const typingStatus = data?.typingStatus || {};
+      if (selectedConversation?.userId) {
+        setIsOtherTyping(Boolean(typingStatus[selectedConversation.userId]));
+      } else {
+        setIsOtherTyping(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [selectedConversation?.messageThreadId, selectedConversation?.userId]);
+
+  useEffect(() => {
+    return () => {
+      if (user?.uid && selectedConversation?.messageThreadId) {
+        updateTypingStatus(selectedConversation.messageThreadId, user.uid, false);
+      }
+    };
+  }, [selectedConversation?.messageThreadId, updateTypingStatus, user?.uid]);
 
   // Fetch blocked users when user is set
   useEffect(() => {
@@ -550,6 +603,12 @@ const Messages: React.FC = () => {
           },
           { merge: true }
         );
+
+        await updateTypingStatus(
+          selectedConversation.messageThreadId,
+          user.uid,
+          false
+        );
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -561,6 +620,7 @@ const Messages: React.FC = () => {
       location.state,
       blockedUsers,
       blockedByUsers,
+      updateTypingStatus,
     ]
   );
 
@@ -629,6 +689,50 @@ const Messages: React.FC = () => {
       : [];
     return filtered;
   }, [messages, formatMessagesForMinChat, user?.uid]);
+
+  const handleStartTyping = useCallback(() => {
+    if (
+      !selectedConversation?.messageThreadId ||
+      !user?.uid ||
+      blockedUsers.includes(selectedConversation.userId) ||
+      blockedByUsers.includes(selectedConversation.userId)
+    ) {
+      return;
+    }
+
+    const threadId = selectedConversation.messageThreadId;
+    const currentUserId = user.uid;
+
+    updateTypingStatus(threadId, currentUserId, true);
+
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = window.setTimeout(() => {
+      updateTypingStatus(threadId, currentUserId, false);
+      typingTimeoutRef.current = null;
+    }, 5000);
+  }, [
+    selectedConversation,
+    user,
+    blockedUsers,
+    blockedByUsers,
+    updateTypingStatus,
+  ]);
+
+  const handleEndTyping = useCallback(() => {
+    if (!selectedConversation?.messageThreadId || !user?.uid) {
+      return;
+    }
+
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    updateTypingStatus(selectedConversation.messageThreadId, user.uid, false);
+  }, [selectedConversation?.messageThreadId, updateTypingStatus, user?.uid]);
 
   if (!user) {
     return <div>Please sign in to view messages.</div>;
@@ -758,8 +862,18 @@ const Messages: React.FC = () => {
                   }
                   currentUserId={user.uid.toLowerCase()}
                 />
+                {isOtherTyping && (
+                  <div className="typing-indicator-wrapper">
+                    <TypingIndicator
+                      content={`${selectedConversation.username} is typing...`}
+                    />
+                  </div>
+                )}
                 <MessageInput
                   onSendMessage={sendMessage}
+                  showAttachButton={false}
+                  onStartTyping={handleStartTyping}
+                  onEndTyping={handleEndTyping}
                   showSendButton={true}
                   placeholder={
                     location.state && (location.state as any).itemTitle
