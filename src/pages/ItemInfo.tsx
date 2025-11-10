@@ -28,6 +28,10 @@ import {
   TextField,
 } from "@mui/material";
 import { useSearch } from "../components/SearchHandler";
+import {
+  shippingServices,
+  shippingWeightTiers,
+} from "../data/shippingOptions";
 
 import "../css/ItemInfo.css"; // Ensure your CSS file path is correct
 
@@ -265,6 +269,46 @@ const ItemInfo = () => {
 
   if (!item) return <div className="loading-container">Loading...</div>;
 
+  const shippingSummary = (item as any)?.shippingSummary || null;
+  const shippingPayer: "buyer" | "seller" | null =
+    shippingSummary?.payer || (item as any)?.shippingPayer ||
+    (item.deliveryOption === "Buyer Selects at Checkout" ? "buyer" : null);
+
+  const shippingService = shippingSummary?.serviceId
+    ? shippingServices.find((service) => service.id === shippingSummary.serviceId)
+    : item.deliveryOption
+    ? shippingServices.find((service) => service.name === item.deliveryOption)
+    : null;
+
+  const weightTier = shippingSummary?.weightTierId
+    ? shippingWeightTiers.find((tier) => tier.id === shippingSummary.weightTierId)
+    : undefined;
+
+  const shippingPayerLabel = shippingPayer === "seller"
+    ? "Seller"
+    : shippingPayer === "buyer"
+    ? "Buyer"
+    : "Decided at checkout";
+
+  const shippingPayerChipText =
+    shippingPayer === "seller"
+      ? "Seller pays shipping"
+      : shippingPayer === "buyer"
+      ? "Buyer pays shipping"
+      : "Shipping decided at checkout";
+
+  const shippingServiceLabel =
+    shippingService?.name || item.deliveryOption || "Set at checkout";
+  const shippingSpeed = shippingService?.speed || "Set at checkout";
+  const shippingCostLabel = shippingService
+    ? shippingService.id === "ship-yourself"
+      ? "Custom rate"
+      : `$${shippingService.price.toFixed(2)}`
+    : "Calculated at checkout";
+
+  const shippingWeightLabel = weightTier?.label || "Not specified";
+  const shippingWeightDescription = weightTier?.description || null;
+
   return (
     <div className="item-info-container">
       {/* Main Product Section - Two Column Layout */}
@@ -305,6 +349,38 @@ const ItemInfo = () => {
           <div className="product-condition">
             <span className="condition-label">Condition:</span>
             <span className="condition-value">{item.condition}</span>
+          </div>
+
+          <div className="product-shipping-card">
+            <div className="shipping-card-header">
+              <h3>Shipping & Handling</h3>
+              <span className="shipping-payer-chip">{shippingPayerChipText}</span>
+            </div>
+            <div className="shipping-details-grid">
+              <div className="shipping-detail">
+                <span className="shipping-detail-label">Shipping Paid By</span>
+                <span className="shipping-detail-value">{shippingPayerLabel}</span>
+              </div>
+              <div className="shipping-detail">
+                <span className="shipping-detail-label">Service</span>
+                <span className="shipping-detail-value">{shippingServiceLabel}</span>
+              </div>
+              <div className="shipping-detail">
+                <span className="shipping-detail-label">Estimated Cost</span>
+                <span className="shipping-detail-value">{shippingCostLabel}</span>
+              </div>
+              <div className="shipping-detail">
+                <span className="shipping-detail-label">Speed</span>
+                <span className="shipping-detail-value">{shippingSpeed}</span>
+              </div>
+              <div className="shipping-detail">
+                <span className="shipping-detail-label">Package Weight</span>
+                <span className="shipping-detail-value">{shippingWeightLabel}</span>
+              </div>
+            </div>
+            {shippingWeightDescription && (
+              <p className="shipping-detail-note">{shippingWeightDescription}</p>
+            )}
           </div>
 
           {seller && item.sellerId && (
@@ -412,6 +488,18 @@ const ItemInfo = () => {
                 <span className="spec-label">Quantity Available:</span>
                 <span className="spec-value">{item.quantity}</span>
               </div>
+              {item.packageCondition && (
+                <div className="spec-item">
+                  <span className="spec-label">Packaging Condition:</span>
+                  <span className="spec-value">{item.packageCondition}</span>
+                </div>
+              )}
+              {item.color && (
+                <div className="spec-item">
+                  <span className="spec-label">Color:</span>
+                  <span className="spec-value">{item.color}</span>
+                </div>
+              )}
             </div>
           </div>
 

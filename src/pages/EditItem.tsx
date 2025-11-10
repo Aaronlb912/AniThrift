@@ -335,17 +335,6 @@ const EditItem = () => {
 
   const isDraft = item.listingStatus === "draft";
 
-  const matchingColorSuggestions = useMemo(() => {
-    const normalizedInput = (item?.color || "").trim().toLowerCase();
-    if (!normalizedInput) return [] as string[];
-
-    return availableColors
-      .filter((color) =>
-        color.toLowerCase().includes(normalizedInput)
-      )
-      .slice(0, 5);
-  }, [availableColors, item?.color]);
-
   const selectedWeightTier = useMemo(
     () =>
       shippingWeightTiers.find(
