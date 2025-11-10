@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import "../css/Carousel.css";
 import Slider from "react-slick";
@@ -44,15 +44,14 @@ interface CarouselProps {
 export const Carousel: React.FC<CarouselProps> = React.memo(({ items }) => {
   const isMultipleItems = items.length > 1;
 
-  const settings = useMemo(
+  const settings = React.useMemo(
     () => ({
       dots: true,
-      centerMode: true,
+      centerMode: false,
       infinite: isMultipleItems,
-      centerPadding: "60px",
-      slidesToShow: 3,
-      slidesToScroll: 1,
-      speed: 1200,
+      slidesToShow: Math.min(7, items.length),
+      slidesToScroll: Math.min(7, items.length),
+      speed: 800,
       cssEase: "ease-in-out",
       swipe: true,
       touchMove: true,
@@ -62,22 +61,43 @@ export const Carousel: React.FC<CarouselProps> = React.memo(({ items }) => {
       prevArrow: <PrevArrow />,
       responsive: [
         {
+          breakpoint: 1440,
+          settings: {
+            slidesToShow: Math.min(5, items.length),
+            slidesToScroll: Math.min(5, items.length),
+            infinite: items.length > 5,
+          },
+        },
+        {
           breakpoint: 1024,
           settings: {
-            slidesToShow: 2,
-            slidesToScroll: 1,
-            infinite: items.length > 2,
-            centerMode: items.length > 2,
+            slidesToShow: Math.min(4, items.length),
+            slidesToScroll: Math.min(4, items.length),
+            infinite: items.length > 4,
+          },
+        },
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: Math.min(3, items.length),
+            slidesToScroll: Math.min(3, items.length),
+            infinite: items.length > 3,
           },
         },
         {
           breakpoint: 600,
           settings: {
+            slidesToShow: Math.min(2, items.length),
+            slidesToScroll: Math.min(2, items.length),
+            infinite: items.length > 2,
+          },
+        },
+        {
+          breakpoint: 480,
+          settings: {
             slidesToShow: 1,
             slidesToScroll: 1,
             infinite: items.length > 1,
-            centerMode: items.length > 1,
-            centerPadding: "40px",
           },
         },
       ],
@@ -97,7 +117,13 @@ export const Carousel: React.FC<CarouselProps> = React.memo(({ items }) => {
             <Link to={`/item/${item.id || index}`} className="carousel-item-link">
               <img src={item.imageUrl} alt={item.title || item.name || `Item ${index + 1}`} />
               <p>{item.title || item.name}</p>
-              <p>${item.price}</p>
+              <p className="carousel-item-price">
+                {typeof item.price === "number"
+                  ? `$${item.price.toFixed(2)}`
+                  : typeof item.price === "string"
+                  ? item.price
+                  : "$0.00"}
+              </p>
             </Link>
           </div>
         ))}

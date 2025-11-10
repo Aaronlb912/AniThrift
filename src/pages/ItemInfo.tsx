@@ -14,6 +14,8 @@ import {
   updateDoc,
   limit,
   orderBy,
+  serverTimestamp,
+  increment,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -89,7 +91,9 @@ const ItemInfo = () => {
           setMainImage(itemData.photos[0]);
         }
 
-        updateRecentlyViewedItems(userId, id, seller);
+        if (userId) {
+          updateRecentlyViewedItems(userId, id, itemData);
+        }
 
         // Fetch the seller's information using sellerId from the item
         if (itemData.sellerId) {
@@ -119,43 +123,44 @@ const ItemInfo = () => {
 
   const updateRecentlyViewedItems = async (
     userId: string | null,
-    itemId: string | undefined
+    itemId: string | undefined,
+    itemData: Record<string, any>
   ) => {
-    // Check if userId or itemId is null or undefined
     if (!userId || !itemId) {
-      console.error("User ID or Item ID is missing");
       return;
     }
 
-    const itemRef = doc(db, "items", itemId);
-    const itemSnapshot = await getDoc(itemRef);
-
-    if (!itemSnapshot.exists()) {
-      console.error("Item does not exist");
-      return;
-    }
-
-    const itemData = itemSnapshot.data();
-
-    // Prevent adding the item if the viewer is the seller
-    if (itemData.sellerId === userId) {
-      console.log("User is the seller, not adding to recently viewed");
+    if (itemData?.sellerId === userId) {
       return;
     }
 
     const recentlyViewedRef = collection(db, "users", userId, "recentlyViewed");
-    const recentlyViewedSnapshot = await getDocs(recentlyViewedRef);
+    const itemRef = doc(db, "items", itemId);
 
-    let exists = false;
-    recentlyViewedSnapshot.forEach((doc) => {
-      if (doc.id === itemId) exists = true;
-    });
+    try {
+      await setDoc(
+        doc(recentlyViewedRef, itemId),
+        {
+          ref: itemRef,
+          viewedAt: serverTimestamp(),
+          category: itemData?.category || "",
+          tags: Array.isArray(itemData?.tags)
+            ? itemData.tags.filter((tag: unknown) => typeof tag === "string")
+            : [],
+        },
+        { merge: true }
+      );
 
-    if (!exists) {
-      await setDoc(doc(recentlyViewedRef, itemId), { ref: itemRef });
-      console.log("Added item to recently viewed");
-    } else {
-      console.log("Item already exists in recently viewed");
+      try {
+        await updateDoc(itemRef, {
+          viewCount: increment(1),
+          lastViewedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.warn("Unable to update item view count:", error);
+      }
+    } catch (error) {
+      console.error("Failed to update recently viewed items:", error);
     }
   };
 
