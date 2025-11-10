@@ -323,6 +323,9 @@ const YourOrdersPage = () => {
                 />
                 <div className="item-details">
                   <p className="item-title">{item.title}</p>
+                  <span className="item-quantity-count">
+                    Quantity: {item.quantity || 1}
+                  </span>
                   <button onClick={() => navigate(`/item/${item.itemId}`)}>
                     View item
                   </button>

@@ -1,72 +1,113 @@
 .listing-page {
-    width: 100%;
-    /* height: 100%; */
-  }
-  
-  .hero-section {
-    height: 40vh; /* 40% of the viewport height */
-    background-image: url('../assets/accout_icon.png'); /* Add the path to your background image */
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .tagline-box {
-    width: 450px; /* Adjust based on your design */
-    background-color: rgba(255, 253, 208, 0.95); /* Semi-transparent cream background */
-    padding: 20px;
-    text-align: center;
-    border-radius: 30px;
-  }
-  
-  .tagline-box h1 {
-    margin-bottom: 10px;
-  }
-  
-  .tagline-box p {
-    margin-bottom: 20px;
-  }
-  
-  .tagline-box button {
-    background-color: var(--primary-color); /* Cobalt blue */
-    color: white;
-    border: none ;
-    border-radius: 20px;
-    padding: 10px 20px;
-    cursor: pointer;
-    width: 70%;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
-    font-size: 90%;
-  }
-  
-  .tagline-box button:hover {
-    background-color: var(--primary-dark);
-  }
-  
-  .listing-simple h2 {
-    text-align: center;
-    margin-bottom: 20px;
+  width: 100%;
+  background: linear-gradient(180deg, var(--secondary-light), var(--background-color));
+  padding-bottom: 60px;
+}
+
+.hero-section {
+  min-height: 45vh;
+  padding: 60px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, rgba(0, 71, 171, 0.12), transparent),
+    url("../assets/accout_icon.png") center/cover;
+}
+
+.tagline-box {
+  width: min(520px, 90%);
+  background-color: rgba(245, 230, 211, 0.92);
+  padding: 28px 32px;
+  text-align: center;
+  border-radius: 28px;
+  box-shadow: 0 20px 38px rgba(0, 71, 171, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tagline-box h1 {
+  color: var(--primary-dark);
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  margin: 0;
+}
+
+.tagline-box p {
+  color: rgba(26, 26, 46, 0.75);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.tagline-box button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  cursor: pointer;
+  width: 70%;
+  align-self: center;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.tagline-box button:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 71, 171, 0.2);
+}
+
+.listing-simple {
+  margin-top: 50px;
+  padding: 0 20px;
+}
+
+.listing-simple h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--primary-dark);
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
 }
 
 .reasons-container {
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
 .reason-box {
-    flex-basis: 30%; /* Adjust based on your preference */
-    padding: 20px;
-    border: 1px solid #ddd; /* For visual structure */
-    border-radius: 16px; /* Rounded corners */
+  flex: 1 1 260px;
+  max-width: 320px;
+  padding: 22px 24px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(0, 71, 171, 0.12);
+  box-shadow: 0 16px 30px rgba(0, 71, 171, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.reason-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 40px rgba(0, 71, 171, 0.18);
 }
 
 .reason-number {
-    font-size: 48px; /* Large number */
-    font-weight: bold;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.reason-box p {
+  margin: 0;
+  color: rgba(26, 26, 46, 0.7);
+  font-size: 1rem;
 }
 
 /* Responsive Design */

@@ -16,6 +16,8 @@ import {
   getDocs,
   onSnapshot,
   updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -62,6 +64,7 @@ const Messages: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<any>(null);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
+  const [blockedByUsers, setBlockedByUsers] = useState<string[]>([]);
   const { userId: targetUserId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -142,6 +145,7 @@ const Messages: React.FC = () => {
       if (blockedUsersSnap.exists()) {
         const data = blockedUsersSnap.data();
         setBlockedUsers(data.blockedUsers || []);
+        setBlockedByUsers(data.blockedBy || []);
       }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
@@ -177,24 +181,37 @@ const Messages: React.FC = () => {
 
       try {
         const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        const currentBlocked = userSnap.exists()
-          ? userSnap.data().blockedUsers || []
-          : [];
-        const updatedBlocked = [...currentBlocked, userIdToBlock];
+        const blockedUserRef = doc(db, "users", userIdToBlock);
 
         await updateDoc(userRef, {
-          blockedUsers: updatedBlocked,
+          blockedUsers: arrayUnion(userIdToBlock),
         });
 
-        setBlockedUsers(updatedBlocked);
+        await updateDoc(blockedUserRef, {
+          blockedBy: arrayUnion(user.uid),
+        });
 
-        // Delete conversation with blocked user
+        setBlockedUsers((prev) =>
+          Array.from(new Set([...prev, userIdToBlock]))
+        );
+        setBlockedByUsers((prev) => prev);
+
         if (selectedConversation?.userId === userIdToBlock) {
           await deleteConversation(
             selectedConversation.id,
             selectedConversation.messageThreadId
+          );
+        }
+
+        if (selectedConversation?.messageThreadId) {
+          await deleteDoc(
+            doc(
+              db,
+              "users",
+              userIdToBlock,
+              "conversations",
+              selectedConversation.messageThreadId
+            )
           );
         }
       } catch (error) {
@@ -219,7 +236,15 @@ const Messages: React.FC = () => {
           blockedUsers: updatedBlocked,
         });
 
+        const blockedUserRef = doc(db, "users", userIdToUnblock);
+        await updateDoc(blockedUserRef, {
+          blockedBy: arrayRemove(user.uid),
+        });
+
         setBlockedUsers(updatedBlocked);
+        setBlockedByUsers((prev) =>
+          prev.filter((id) => id !== userIdToUnblock)
+        );
       } catch (error) {
         console.error("Error unblocking user:", error);
       }
@@ -271,7 +296,10 @@ const Messages: React.FC = () => {
           const data = convDoc.data();
 
           // Skip if user is blocked
-          if (blockedUsers.includes(data.otherUserId)) {
+          if (
+            blockedUsers.includes(data.otherUserId) ||
+            blockedByUsers.includes(data.otherUserId)
+          ) {
             continue;
           }
 
@@ -331,7 +359,7 @@ const Messages: React.FC = () => {
 
       return unsubscribe;
     },
-    [blockedUsers]
+    [blockedUsers, blockedByUsers]
   );
 
   // Listen to messages in real-time
@@ -399,6 +427,12 @@ const Messages: React.FC = () => {
         return;
       }
 
+      if (blockedByUsers.includes(targetUserId)) {
+        alert("This user has blocked you. You cannot message them.");
+        navigate("/messages");
+        return;
+      }
+
       const startConv = async () => {
         try {
           const otherUserDoc = await getDoc(doc(db, "users", targetUserId));
@@ -418,7 +452,14 @@ const Messages: React.FC = () => {
       };
       startConv();
     }
-  }, [targetUserId, user, startNewConversation, blockedUsers, navigate]);
+  }, [
+    targetUserId,
+    user,
+    startNewConversation,
+    blockedUsers,
+    blockedByUsers,
+    navigate,
+  ]);
 
   // Send message
   const sendMessage = useCallback(
@@ -434,6 +475,11 @@ const Messages: React.FC = () => {
       // Check if user is blocked
       if (blockedUsers.includes(selectedConversation.userId)) {
         alert("You cannot message this user. They have been blocked.");
+        return;
+      }
+
+      if (blockedByUsers.includes(selectedConversation.userId)) {
+        alert("This user has blocked you. You cannot send messages to them.");
         return;
       }
 
@@ -508,13 +554,20 @@ const Messages: React.FC = () => {
         console.error("Error sending message:", error);
       }
     },
-    [selectedConversation, user, messages.length, location.state, blockedUsers]
+    [
+      selectedConversation,
+      user,
+      messages.length,
+      location.state,
+      blockedUsers,
+      blockedByUsers,
+    ]
   );
 
   // Format messages for MinChat
   const formatMessagesForMinChat = useCallback(
-    (msgs: Message[] | undefined | null, currentUserId: string): any[] => {
-      if (!msgs || !Array.isArray(msgs)) {
+    (msgs: Message[] | undefined | null, currentUserId?: string): any[] => {
+      if (!msgs || !Array.isArray(msgs) || !currentUserId) {
         return [];
       }
       try {
@@ -570,7 +623,11 @@ const Messages: React.FC = () => {
 
   // Memoize formatted messages to prevent unnecessary re-renders
   const formattedMessages = useMemo(() => {
-    return formatMessagesForMinChat(messages, user?.uid || "");
+    const safeMessages = formatMessagesForMinChat(messages, user?.uid || "");
+    const filtered = Array.isArray(safeMessages)
+      ? safeMessages.filter((msg) => msg && msg.id && msg.user?.id)
+      : [];
+    return filtered;
   }, [messages, formatMessagesForMinChat, user?.uid]);
 
   if (!user) {
@@ -694,8 +751,12 @@ const Messages: React.FC = () => {
                   </div>
                 </div>
                 <MessageList
-                  messages={formattedMessages}
-                  currentUserId={user.uid}
+                  messages={
+                    Array.isArray(formattedMessages)
+                      ? formattedMessages.filter((msg) => msg && msg.user?.id)
+                      : []
+                  }
+                  currentUserId={user.uid.toLowerCase()}
                 />
                 <MessageInput
                   onSendMessage={sendMessage}

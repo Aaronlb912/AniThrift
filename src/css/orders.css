@@ -215,6 +215,12 @@
   min-width: 0;
 }
 
+.item-quantity-count {
+  font-size: 0.9rem;
+  color: rgba(26, 26, 46, 0.7);
+  font-weight: 600;
+}
+
 .item-title {
   font-weight: 600;
   font-size: 1rem;
