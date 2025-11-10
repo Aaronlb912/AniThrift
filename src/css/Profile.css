@@ -1,82 +1,359 @@
 @import "../ui/colors.css";
 
-.profile-container {
-  padding: 20px;
-  max-width: 90%; /* Adjust based on your layout needs */
-  margin: auto;
-  background-color: var(--background-color);
-}
-
-.profile-header h1 {
-  margin-left: 0;
-  text-align: left;
-}
-
-.bio {
-  background-color: var(--secondary-dark); /* Cream background to differentiate the bio section */
-  border: 1px solid #ddd; /* Slight border for definition */
-  border-radius: 12px; /* Rounded corners for a softer look */
-  padding: 15px; /* Space inside the box */
-  margin-top: 10px; /* Space between the "Bio:" label and the bio box */
-  white-space: pre-wrap; /* Ensures that whitespace and line breaks in the bio are respected */
-  width: 500px; /* Limits the width of the bio box, adjust as needed */
-  height: 100px;
-}
-
-.profile-info {
+.profile-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) clamp(20px, 5vw, 56px) 64px;
   display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 4vw, 40px);
+}
+
+.profile-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(24px, 4vw, 48px);
+  padding: clamp(24px, 4vw, 48px);
+  border-radius: 28px;
+  background: linear-gradient(120deg, rgba(33, 74, 147, 0.12), rgba(33, 74, 147, 0.04))
+      var(--secondary-light);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
   align-items: center;
-  gap: 150px; /* Adds space between the image/icon and the text */
 }
 
-.profile-info img,
-.profile-info .MuiSvgIcon-root {
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  padding: 5%;
+.profile-hero-media {
+  flex: 0 0 auto;
+  width: clamp(120px, 18vw, 180px);
+  height: clamp(120px, 18vw, 180px);
+  border-radius: 32px;
+  overflow: hidden;
+  background: var(--secondary-dark);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.profile-hero-media img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid #ddd; /* Adds a slight border around the image/icon */
 }
 
-.edit-profile-btn {
-  display: block;
-  margin-top: 20px;
-  background-color: var(--primary-color);
-  color: var(--font-color);
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.profile-hero-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: rgba(33, 74, 147, 0.45);
 }
 
-.edit-profile-btn:hover {
-  background-color: var(--hover-color);
+.profile-hero-placeholder svg {
+  font-size: clamp(96px, 12vw, 140px);
 }
 
-.selling-info {
+.profile-hero-content {
+  flex: 1 1 320px;
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vw, 24px);
 }
 
-.info-box {
-  flex: 1;
-  padding: 20px;
-  margin: 0 10px;
-  background-color: var(--secondary-dark);
-  border: 1px solid #eaeaea;
-  border-radius: 16px;
+.profile-hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.profile-hero-eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(33, 74, 147, 0.75);
+  margin-bottom: 8px;
+}
+
+.profile-hero-content h1 {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  color: var(--dark-color);
+  margin: 0;
+}
+
+.profile-username {
+  margin-top: 6px;
+  font-weight: 600;
+  color: rgba(33, 33, 33, 0.65);
+}
+
+.profile-edit-btn {
+  border: none;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  padding: 12px 24px;
+  border-radius: 28px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 12px 20px rgba(33, 74, 147, 0.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.profile-edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(33, 74, 147, 0.22);
+}
+
+.profile-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 12px 24px;
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid rgba(33, 74, 147, 0.28);
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 10px 20px rgba(33, 74, 147, 0.12);
+}
+
+.profile-secondary-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  box-shadow: 0 16px 28px rgba(33, 74, 147, 0.18);
+}
+
+.profile-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  color: rgba(31, 39, 63, 0.8);
+}
+
+.profile-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(33, 74, 147, 0.08);
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+
+.profile-rating-value {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.profile-rating-count {
+  color: rgba(31, 39, 63, 0.7);
+  font-size: 0.95rem;
+}
+
+.profile-join-date {
+  font-weight: 600;
+  color: rgba(31, 39, 63, 0.65);
+}
+
+.profile-bio-card {
+  background: var(--secondary-light);
+  border-radius: 24px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid rgba(33, 74, 147, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.profile-bio-card h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  color: rgba(31, 39, 63, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.profile-bio-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: rgba(31, 39, 63, 0.78);
+  white-space: pre-wrap;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(16px, 3vw, 24px);
+}
+
+.profile-stat-card {
+  background: var(--secondary-light);
+  padding: clamp(18px, 3vw, 24px);
+  border-radius: 24px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(33, 74, 147, 0.1);
   text-align: center;
 }
 
+.profile-stat-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(33, 33, 33, 0.6);
+  margin-bottom: 8px;
+}
+
+.profile-stat-value {
+  font-size: clamp(1.5rem, 3.2vw, 2rem);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.profile-section {
+  background: var(--secondary-light);
+  border-radius: 28px;
+  padding: clamp(20px, 3.5vw, 32px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(33, 74, 147, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.5vw, 24px);
+}
+
+.profile-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.profile-section-header h2 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  color: var(--dark-color);
+}
+
+.profile-section-note {
+  font-weight: 600;
+  color: rgba(31, 39, 63, 0.6);
+}
+
+.profile-link {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+}
+
+.profile-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(120deg, var(--primary-color), var(--primary-light));
+  transform-origin: right;
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.profile-link:hover::after {
+  transform-origin: left;
+  transform: scaleX(1);
+}
+
+.profile-carousel {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.profile-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: clamp(16px, 3vw, 24px);
+}
+
+.profile-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(33, 74, 147, 0.06), rgba(33, 74, 147, 0.01))
+      var(--background-color);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(33, 74, 147, 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+}
+
+.profile-item-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
+
+.profile-item-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.profile-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-item-body {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-item-body h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(31, 39, 63, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-item-body p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.profile-empty-state {
+  margin: 0;
+  color: rgba(31, 39, 63, 0.6);
+  font-size: 0.98rem;
+}
+
+.profile-loading {
+  width: 100%;
+  padding: 120px 24px;
+  text-align: center;
+  color: rgba(31, 39, 63, 0.6);
+  font-size: 1.1rem;
+}
+
+/* Reviews section legacy styles */
 .reviews-section {
-  margin-top: 20px;
+  margin-top: 12px;
 }
 
 .reviews-section button {
-  margin: 10px 5px; /* Space between buttons */
+  margin: 10px 5px;
   padding: 8px 16px;
   background-color: var(--primary-color);
   color: white;
@@ -89,78 +366,51 @@
   background-color: var(--primary-dark);
 }
 
-.carousel-container {
-  margin-top: 20px;
-}
-
-.no-reviews {
-  text-align: center;
-  color: #666;
-  margin-top: 20px;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .profile-info {
-    gap: 80px;
+@media (max-width: 900px) {
+  .profile-hero {
+    padding: clamp(20px, 4vw, 32px);
   }
 
-  .bio {
-    width: 100%;
-    max-width: 500px;
+  .profile-item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 
-@media (max-width: 768px) {
-  .profile-container {
-    padding: 15px;
-    max-width: 100%;
+@media (max-width: 640px) {
+  .profile-page {
+    padding: 24px 18px 56px;
   }
 
-  .profile-info {
+  .profile-hero {
+    border-radius: 22px;
+  }
+
+  .profile-meta-row {
     flex-direction: column;
-    gap: 20px;
     align-items: flex-start;
   }
 
-  .bio {
+  .profile-rating {
     width: 100%;
-    max-width: 100%;
+    justify-content: space-between;
   }
 
-  .selling-info {
-    flex-direction: column;
-    gap: 15px;
+  .profile-secondary-btn {
+    width: 100%;
+    text-align: center;
   }
 
-  .info-box {
-    margin: 0;
-    width: 100%;
-  }
-
-  .reviews-section button {
-    width: 100%;
-    margin: 5px 0;
+  .profile-item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
-@media (max-width: 480px) {
-  .profile-container {
-    padding: 10px;
+@media (max-width: 420px) {
+  .profile-item-card {
+    border-radius: 20px;
   }
 
-  .profile-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .profile-info img,
-  .profile-info .MuiSvgIcon-root {
-    width: 80px;
-    height: 80px;
-  }
-
-  .bio {
-    height: auto;
-    min-height: 80px;
+  .profile-item-body {
+    padding: 0 16px 16px;
   }
 }

@@ -15,7 +15,6 @@ import ReviewsSection from "../components/ReviewSection";
 import { Carousel } from "../components/Carousel"; // Adjust the path as necessary
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { DataGrid } from "@mui/x-data-grid";
 
 interface UserProfile {
   name: string;
@@ -34,34 +33,16 @@ interface SellingInfo {
   accountBalance: number;
 }
 
-const columns = [
-  {
-    field: "imageUrl",
-    headerName: "Image",
-    width: 160,
-    renderCell: (params: { value: any }) => (
-      <img
-        src={params.value || "defaultImageURLHere"} // Use a default image if imageUrl is missing
-        alt=""
-        style={{ width: "100%", height: "auto" }}
-      />
-    ),
-  },
-  { field: "id", headerName: "ID", width: 150 },
-  { field: "name", headerName: "Name", width: 130 },
-  { field: "price", headerName: "Price", type: "number", width: 90 },
-  // Add more columns as needed based on your item data structure
-];
-
 const Profile: React.FC = () => {
   const auth = getAuth();
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userItems, setUserItems] = useState<any[]>([]); // State to store the user's selling items
+  const [userItems, setUserItems] = useState<any[]>([]);
   const [watchListItems, setWatchListItems] = useState<any[]>([]);
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<any[]>([]);
   const [draftItems, setDraftItems] = useState<any[]>([]);
   const [soldItems, setSoldItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [sellingInfo, setSellingInfo] = useState<SellingInfo>({
     activeListings: 0,
@@ -69,41 +50,52 @@ const Profile: React.FC = () => {
     accountBalance: 0,
   });
 
+  const fetchStripeInfo = async (userId: string) => {
+    const stripeInfoUrl = `https://us-central1-anithrift-e77a9.cloudfunctions.net/fetchStripeAccountInfo?userId=${userId}`;
+    try {
+      const response = await fetch(stripeInfoUrl);
+      if (!response.ok) {
+        throw new Error("Failed to fetch Stripe account info");
+      }
+      const data = await response.json();
+      setSellingInfo((prevInfo) => ({
+        ...prevInfo,
+        sales: data.transaction_count || 0,
+        accountBalance:
+          Array.isArray(data.balance)
+            ? data.balance.reduce(
+                (acc: number, curr: { amount: number }) => acc + (curr?.amount || 0),
+                0
+              ) / 100
+            : 0,
+      }));
+    } catch (error) {
+      console.error("Error fetching Stripe info:", error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        fetchUserProfile(user.uid);
-        fetchUserItems(user.uid); // Fetch the user's selling items
-        fetchWatchListItems(user.uid); // Fetch the user's watchlist items
-        fetchDraftItems(user.uid);
-        fetchSoldItems(user.uid);
-        fetchRecentlyViewedItems(user.uid);
-
-        const fetchStripeInfo = async (userId: any) => {
-          const stripeInfoUrl = `https://us-central1-anithrift-e77a9.cloudfunctions.net/fetchStripeAccountInfo?userId=${userId}`;
-          try {
-            const response = await fetch(stripeInfoUrl);
-            if (!response.ok) {
-              throw new Error("Failed to fetch Stripe account info");
-            }
-            const data = await response.json();
-            setSellingInfo((prevInfo) => ({
-              ...prevInfo,
-              sales: data.transaction_count, // Adjust based on your JSON structure
-              accountBalance:
-                data.balance.reduce(
-                  (acc: any, curr: { amount: any }) => acc + curr.amount,
-                  0
-                ) / 100, // Convert to a readable format if necessary
-            }));
-          } catch (error) {
-            console.error("Error fetching Stripe info:", error);
-          }
-        };
-
-        fetchStripeInfo(user.uid);
+        setIsLoading(true);
+        try {
+          await Promise.all([
+            fetchUserProfile(user.uid),
+            fetchUserItems(user.uid),
+            fetchWatchListItems(user.uid),
+            fetchDraftItems(user.uid),
+            fetchSoldItems(user.uid),
+            fetchRecentlyViewedItems(user.uid),
+          ]);
+          await fetchStripeInfo(user.uid);
+        } catch (error) {
+          console.error("Error loading profile data:", error);
+        } finally {
+          setIsLoading(false);
+        }
       } else {
         navigate("/signin");
+        setIsLoading(false);
       }
     });
     return () => unsubscribe();
@@ -281,7 +273,7 @@ const Profile: React.FC = () => {
     setRecentlyViewedItems(resolvedItems);
   };
 
-  const fetchWatchListItems = async (uid) => {
+  const fetchWatchListItems = async (uid: string) => {
     const watchlistRef = collection(db, "users", uid, "watchlist");
     const querySnapshot = await getDocs(watchlistRef);
 
@@ -327,133 +319,188 @@ const Profile: React.FC = () => {
     setWatchListItems(resolvedItems);
   };
 
-  const handleRowClick = (param: { id: any }) => {
-    navigate(`/item/${param.id}`); // Navigate to the item's page using its ID
+  const FALLBACK_IMAGE = "https://via.placeholder.com/400x400.png?text=No+Image";
+
+  const formatPrice = (price?: number | string) => {
+    if (price === undefined || price === null) return "Price unavailable";
+    const numericPrice = Number(price);
+    if (Number.isNaN(numericPrice)) {
+      return "Price unavailable";
+    }
+    return `$${numericPrice.toFixed(2)}`;
   };
 
-  if (!userProfile) return <div>Loading...</div>;
+  const formatDate = (value?: string) => {
+    if (!value) return "Unknown";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+    });
+  };
+
+  const renderItemSection = (
+    title: string,
+    items: any[],
+    emptyMessage: string
+  ) => (
+    <section className="profile-section">
+      <div className="profile-section-header">
+        <h2>{title}</h2>
+      </div>
+      {items.length > 0 ? (
+        <div className="profile-item-grid">
+          {items.map((item) => (
+            <Link
+              key={item.id}
+              to={`/item/${item.id}`}
+              className="profile-item-card"
+            >
+              <div className="profile-item-image">
+                <img
+                  src={item.imageUrl || FALLBACK_IMAGE}
+                  alt={item.name || "Item"}
+                />
+              </div>
+              <div className="profile-item-body">
+                <h3 title={item.name || "Untitled"}>
+                  {item.name || "Untitled"}
+                </h3>
+                <p>{formatPrice(item.price)}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="profile-empty-state">{emptyMessage}</p>
+      )}
+    </section>
+  );
+
+  if (isLoading && !userProfile) {
+    return <div className="profile-loading">Loading...</div>;
+  }
+
+  if (!userProfile) {
+    return <div className="profile-loading">We couldn't load your profile.</div>;
+  }
+
+  const safeBio = userProfile.bio?.trim()
+    ? userProfile.bio
+    : "You haven’t added a bio yet. Share a little about your interests and what you love to collect!";
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <h1>My Profile</h1>
-      </div>
-      <hr />
-      <div className="profile-info">
-        {userProfile.photoURL ? (
-          <img
-            src={userProfile.photoURL}
-            alt="Profile"
-            style={{ width: 100, height: 100, borderRadius: "50%" }}
-          />
-        ) : (
-          <AccountCircleIcon style={{ fontSize: 100 }} />
-        )}
-        <div>
-          <h2>{userProfile.name}</h2>
-          <p>Username: {userProfile.username}</p>
-          <p>
-            Rating: <StarRating rating={userProfile.rating} />
-            Reviews: {userProfile.reviews}
+    <div className="profile-page">
+      <section className="profile-hero">
+        <div className="profile-hero-media">
+          {userProfile.photoURL ? (
+            <img src={userProfile.photoURL} alt="Profile" />
+          ) : (
+            <div className="profile-hero-placeholder">
+              <AccountCircleIcon />
+            </div>
+          )}
+        </div>
+        <div className="profile-hero-content">
+          <div className="profile-hero-top">
+            <div>
+              <p className="profile-hero-eyebrow">My Profile</p>
+              <h1>{userProfile.name || "Welcome"}</h1>
+              {userProfile.username && (
+                <p className="profile-username">@{userProfile.username}</p>
+              )}
+            </div>
+            <button
+              className="profile-edit-btn"
+              onClick={() => navigate("/edit-profile")}
+            >
+              Edit Profile
+            </button>
+          </div>
+          <div className="profile-meta-row">
+            <div className="profile-rating">
+              <StarRating rating={userProfile.rating || 0} />
+              <span className="profile-rating-value">
+                {userProfile.rating ? userProfile.rating.toFixed(1) : "New"}
+              </span>
+              <span className="profile-rating-count">
+                {userProfile.reviews || 0} review
+                {userProfile.reviews === 1 ? "" : "s"}
+              </span>
+            </div>
+            <span className="profile-join-date">
+              Member since {formatDate(userProfile.creationDate)}
+            </span>
+          </div>
+          <div className="profile-bio-card">
+            <h3>About me</h3>
+            <p>{safeBio}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="profile-stats">
+        <div className="profile-stat-card">
+          <p className="profile-stat-label">Active Listings</p>
+          <p className="profile-stat-value">{sellingInfo.activeListings}</p>
+        </div>
+        <div className="profile-stat-card">
+          <p className="profile-stat-label">Sales</p>
+          <p className="profile-stat-value">{sellingInfo.sales}</p>
+        </div>
+        <div className="profile-stat-card">
+          <p className="profile-stat-label">Account Balance</p>
+          <p className="profile-stat-value">
+            ${sellingInfo.accountBalance.toFixed(2)}
           </p>
-          <p>Member since: {userProfile.creationDate}</p>
-          <p>Bio</p>
-          <p className="bio">{userProfile.bio}</p>
         </div>
-      </div>
-      <button
-        className="edit-profile-btn"
-        onClick={() => navigate("/edit-profile")}
-      >
-        Edit Profile
-      </button>
+      </section>
 
-      <h2>Selling</h2>
-      <div className="selling-info">
-        <div className="info-box">
-          {sellingInfo.activeListings}
-          <br />
-          Active Listings
+      <section className="profile-section">
+        <div className="profile-section-header">
+          <h2>Recently viewed</h2>
+          {recentlyViewedItems.length > 0 && (
+            <Link to="/search" className="profile-link">
+              Explore more items
+            </Link>
+          )}
         </div>
-        {/* Display the sales count fetched from Stripe */}
-        <div className="info-box">
-          {sellingInfo.sales}
-          <br />
-          Sales
-        </div>
-        {/* Display the account balance fetched from Stripe */}
-        <div className="info-box">
-          ${sellingInfo.accountBalance.toFixed(2)}
-          <br />
-          Account Balance
-        </div>
-      </div>
-      <h2>Recently Viewed Items</h2>
-      <Carousel items={recentlyViewedItems} />
+        {recentlyViewedItems.length > 0 ? (
+          <div className="profile-carousel">
+            <Carousel items={recentlyViewedItems} />
+          </div>
+        ) : (
+          <p className="profile-empty-state">
+            Browse the marketplace to discover pieces tailored to your fandoms.
+          </p>
+        )}
+      </section>
 
-      <h2>Items I'm Selling</h2>
-      {userItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={userItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You do not have any items listed for sale.</p>
-      )}
-      {/* <ReviewsSection reviews={userProfile.reviews} /> */}
-
-      <h2>My Watch List</h2>
-      {watchListItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={watchListItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You are not currently watching any items.</p>
+      {renderItemSection(
+        "Items I'm selling",
+        userItems,
+        "You do not have any items listed yet. List an item to start selling."
       )}
 
-      <h2>My Draft List</h2>
-      {draftItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={draftItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You do not have any items saved as draft.</p>
+      {renderItemSection(
+        "Watchlist",
+        watchListItems,
+        "You are not currently watching any items. Tap the heart on listings you love."
       )}
 
-      <h2>My Sold List</h2>
-      {soldItems.length > 0 ? (
-        <div style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            rows={soldItems}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            onRowClick={handleRowClick} // Add the onRowClick prop
-            getRowId={(row: any) => row.id}
-          />
-        </div>
-      ) : (
-        <p>You have not sold any items.</p>
+      {renderItemSection(
+        "Draft listings",
+        draftItems,
+        "You do not have any items saved as drafts."
+      )}
+
+      {renderItemSection(
+        "Recently sold",
+        soldItems,
+        "You haven’t sold any items yet."
       )}
     </div>
   );
