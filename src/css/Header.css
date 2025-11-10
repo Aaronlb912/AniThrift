@@ -74,6 +74,39 @@
   color: #fff;
 }
 
+.header-mobile-title {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mobile-search {
+  width: 100%;
+}
+
+.searchBar-mobile {
+  border-radius: 14px;
+  height: 34px;
+  padding: 6px 12px;
+}
+
+.header-mobile-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-mobile-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-mobile-actions .MuiIconButton-root {
+  color: #fff !important;
+  padding: 6px;
+}
+
 .header-logo-search {
   display: flex;
   align-items: center;
@@ -148,8 +181,7 @@
   white-space: nowrap;
   border-radius: 999px;
   font-weight: 600 !important;
-  transition: background-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-nav .nav-link:hover {
@@ -208,11 +240,11 @@
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .header-utilities {
     justify-content: space-between;
   }
-  
+
   .header-nav {
     justify-content: center;
     flex-wrap: wrap;
@@ -223,10 +255,16 @@
   .header-main {
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
+    gap: 8px;
+    padding: 14px 16px 12px;
   }
 
   .header-nav {
+    display: none;
+  }
+
+  .header-logo-search,
+  .header-utilities {
     display: none;
   }
 

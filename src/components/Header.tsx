@@ -172,154 +172,211 @@ const Header: React.FC = React.memo(() => {
       >
         <div className="header-shell">
           <div className="header-main">
-            <div className="header-logo-search">
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="home"
-                component={Link}
-                to="/"
-                className="header-logo"
-              >
-                {!isMobile && (
-                  <Typography variant="h6" noWrap>
-                    AniThrift
-                  </Typography>
-                )}
-              </IconButton>
-              <div className="searchContainer">
-                <InputBase
-                  placeholder="Search…"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
-                  className="searchBar"
-                  endAdornment={
+            {isMobile ? (
+              <>
+                <Typography variant="h6" className="header-mobile-title" noWrap>
+                  AniThrift
+                </Typography>
+                <div className="searchContainer mobile-search">
+                  <InputBase
+                    placeholder="Search…"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+                    className="searchBar searchBar-mobile"
+                    endAdornment={
+                      <IconButton
+                        type="submit"
+                        aria-label="search"
+                        onClick={(e) => handleSearch(e)}
+                      >
+                        <SearchIcon />
+                      </IconButton>
+                    }
+                  />
+                </div>
+                <div className="header-mobile-actions">
+                  <IconButton
+                    color="inherit"
+                    aria-label="Open navigation"
+                    onClick={handleDrawerToggle}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <div className="header-mobile-icons">
                     <IconButton
-                      type="submit"
-                      aria-label="search"
-                      onClick={(e) => handleSearch(e)}
+                      color="inherit"
+                      component={Link}
+                      to="/messages"
+                      aria-label="Messages"
                     >
-                      <SearchIcon />
+                      <MessageIcon />
                     </IconButton>
-                  }
-                />
-              </div>
-            </div>
-            {!isMobile ? (
-              <div className="header-utilities">
-                <div className="header-welcome">
-                  {user ? (
-                    <>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          marginRight: 2,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                        onClick={handleMenu}
+                    <IconButton
+                      color="inherit"
+                      component={Link}
+                      to="/cart"
+                      aria-label="Cart"
+                    >
+                      <ShoppingCartIcon />
+                    </IconButton>
+                    <IconButton
+                      color="inherit"
+                      component={Link}
+                      to={user ? "/profile" : "/signin"}
+                      aria-label={user ? "Profile" : "Sign In"}
+                    >
+                      <AccountCircleIcon />
+                    </IconButton>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="header-logo-search">
+                  <IconButton
+                    edge="start"
+                    color="inherit"
+                    aria-label="home"
+                    component={Link}
+                    to="/"
+                    className="header-logo"
+                  >
+                    <Typography variant="h6" noWrap>
+                      AniThrift
+                    </Typography>
+                  </IconButton>
+                  <div className="searchContainer">
+                    <InputBase
+                      placeholder="Search…"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+                      className="searchBar"
+                      endAdornment={
+                        <IconButton
+                          type="submit"
+                          aria-label="search"
+                          onClick={(e) => handleSearch(e)}
+                        >
+                          <SearchIcon />
+                        </IconButton>
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="header-utilities">
+                  <div className="header-welcome">
+                    {user ? (
+                      <>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            marginRight: 2,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                          onClick={handleMenu}
+                        >
+                          Welcome, {user.username || "User"}
+                          {Boolean(anchorEl) ? (
+                            <ArrowDropDownIcon />
+                          ) : (
+                            <ArrowRightIcon />
+                          )}
+                        </Typography>
+                        <Menu
+                          anchorEl={anchorEl}
+                          open={Boolean(anchorEl)}
+                          onClose={handleClose}
+                          disableScrollLock={true}
+                          disableAutoFocusItem={true}
+                          MenuListProps={{
+                            "aria-labelledby": "user-menu-button",
+                          }}
+                          PaperProps={{
+                            elevation: 0,
+                            className: "user-menu-paper",
+                          }}
+                        >
+                          <MenuItem
+                            className="user-menu-item"
+                            onClick={() => {
+                              handleClose();
+                              navigate("/profile");
+                            }}
+                          >
+                            My Profile
+                          </MenuItem>
+                          <MenuItem
+                            className="user-menu-item"
+                            onClick={() => {
+                              handleClose();
+                              navigate("/orders");
+                            }}
+                          >
+                            My Orders
+                          </MenuItem>
+                          <MenuItem
+                            className="user-menu-item"
+                            onClick={() => {
+                              handleClose();
+                              navigate("/profsettings");
+                            }}
+                          >
+                            Profile Settings
+                          </MenuItem>
+                          <MenuItem
+                            className="user-menu-item"
+                            onClick={handleSignOut}
+                          >
+                            Sign Out
+                          </MenuItem>
+                        </Menu>
+                      </>
+                    ) : (
+                      <Button
+                        color="inherit"
+                        startIcon={<AccountCircleIcon />}
+                        component={Link}
+                        to="/signin"
+                        className="header-signin"
                       >
-                        Welcome, {user.username || "User"}
-                        {Boolean(anchorEl) ? <ArrowDropDownIcon /> : <ArrowRightIcon />}
-                      </Typography>
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleClose}
-                        disableScrollLock={true}
-                        disableAutoFocusItem={true}
-                        MenuListProps={{
-                          'aria-labelledby': 'user-menu-button',
-                        }}
-                        PaperProps={{
-                          elevation: 0,
-                          className: "user-menu-paper",
-                        }}
-                      >
-                        <MenuItem
-                          className="user-menu-item"
-                          onClick={() => {
-                            handleClose();
-                            navigate("/profile");
-                          }}
-                        >
-                          My Profile
-                        </MenuItem>
-                        <MenuItem
-                          className="user-menu-item"
-                          onClick={() => {
-                            handleClose();
-                            navigate("/orders");
-                          }}
-                        >
-                          My Orders
-                        </MenuItem>
-                        <MenuItem
-                          className="user-menu-item"
-                          onClick={() => {
-                            handleClose();
-                            navigate("/profsettings");
-                          }}
-                        >
-                          Profile Settings
-                        </MenuItem>
-                        <MenuItem className="user-menu-item" onClick={handleSignOut}>
-                          Sign Out
-                        </MenuItem>
-                      </Menu>
-                    </>
-                  ) : (
+                        Sign In
+                      </Button>
+                    )}
+                  </div>
+                  <div className="header-actions">
+                    <IconButton
+                      color="inherit"
+                      component={Link}
+                      to="/messages"
+                      className="header-action-icon-button"
+                      aria-label="Messages"
+                    >
+                      <MessageIcon />
+                    </IconButton>
                     <Button
                       color="inherit"
-                      startIcon={<AccountCircleIcon />}
                       component={Link}
-                      to="/signin"
-                      className="header-signin"
+                      to="/listing"
+                      className="header-action-button"
                     >
-                      Sign In
+                      Sell
                     </Button>
-                  )}
+                    <IconButton
+                      color="inherit"
+                      aria-label="cart"
+                      component={Link}
+                      to="/cart"
+                      className="header-action-icon-button"
+                    >
+                      <ShoppingCartIcon />
+                    </IconButton>
+                  </div>
                 </div>
-                <div className="header-actions">
-                  <IconButton
-                    color="inherit"
-                    component={Link}
-                    to="/messages"
-                    className="header-action-icon-button"
-                    aria-label="Messages"
-                  >
-                    <MessageIcon />
-                  </IconButton>
-                  <Button
-                    color="inherit"
-                    component={Link}
-                    to="/listing"
-                    className="header-action-button"
-                  >
-                    Sell
-                  </Button>
-                  <IconButton
-                    color="inherit"
-                    aria-label="cart"
-                    component={Link}
-                    to="/cart"
-                    className="header-action-icon-button"
-                  >
-                    <ShoppingCartIcon />
-                  </IconButton>
-                </div>
-              </div>
-            ) : (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerToggle}
-                className="mobile-menu-button"
-              >
-                <MenuIcon />
-              </IconButton>
+              </>
             )}
           </div>
           {!isMobile && (
