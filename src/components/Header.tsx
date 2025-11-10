@@ -283,10 +283,21 @@ const Header: React.FC = React.memo(() => {
                   )}
                 </div>
                 <div className="header-actions">
-                  <Button color="inherit" component={Link} to="/messages">
+                  <IconButton
+                    color="inherit"
+                    component={Link}
+                    to="/messages"
+                    className="header-action-icon-button"
+                    aria-label="Messages"
+                  >
                     <MessageIcon />
-                  </Button>
-                  <Button color="inherit" component={Link} to="/listing">
+                  </IconButton>
+                  <Button
+                    color="inherit"
+                    component={Link}
+                    to="/listing"
+                    className="header-action-button"
+                  >
                     Sell
                   </Button>
                   <IconButton
@@ -294,6 +305,7 @@ const Header: React.FC = React.memo(() => {
                     aria-label="cart"
                     component={Link}
                     to="/cart"
+                    className="header-action-icon-button"
                   >
                     <ShoppingCartIcon />
                   </IconButton>
