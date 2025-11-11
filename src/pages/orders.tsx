@@ -334,7 +334,12 @@ const YourOrdersPage = () => {
                   {item.sellerId && (
                     <button
                       onClick={() => {
-                        // Navigate to messages with sellerId and include item info in state
+                        if (!auth.currentUser) {
+                          navigate("/signin", {
+                            state: { redirectTo: `/messages/${item.sellerId}` },
+                          });
+                          return;
+                        }
                         navigate(`/messages/${item.sellerId}`, {
                           state: {
                             itemTitle: item.title,

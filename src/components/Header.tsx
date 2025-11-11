@@ -144,6 +144,14 @@ const Header: React.FC = React.memo(() => {
     [handleDrawerToggle, handleCategoryClick]
   );
 
+  const handleMessagesClick = useCallback(() => {
+    if (user) {
+      navigate("/messages");
+    } else {
+      navigate("/signin", { state: { redirectTo: "/messages" } });
+    }
+  }, [user, navigate]);
+
   const drawer = useMemo(
     () => (
       <List className="drawer-list">
@@ -206,8 +214,7 @@ const Header: React.FC = React.memo(() => {
                   <div className="header-mobile-icons">
                     <IconButton
                       color="inherit"
-                      component={Link}
-                      to="/messages"
+                      onClick={handleMessagesClick}
                       aria-label="Messages"
                     >
                       <MessageIcon />
@@ -350,8 +357,7 @@ const Header: React.FC = React.memo(() => {
                   <div className="header-actions">
                     <IconButton
                       color="inherit"
-                      component={Link}
-                      to="/messages"
+                      onClick={handleMessagesClick}
                       className="header-action-icon-button"
                       aria-label="Messages"
                     >

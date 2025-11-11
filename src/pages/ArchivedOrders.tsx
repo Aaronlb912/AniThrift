@@ -282,6 +282,12 @@ const YourArchivedPage = () => {
                   {item.sellerId && (
                     <button
                       onClick={() => {
+                        if (!auth.currentUser) {
+                          navigate("/signin", {
+                            state: { redirectTo: `/messages/${item.sellerId}` },
+                          });
+                          return;
+                        }
                         navigate(`/messages/${item.sellerId}`, {
                           state: {
                             itemTitle: item.title,

@@ -200,13 +200,13 @@ const Messages: React.FC = () => {
 
   // Block a user
   const blockUser = useCallback(
-    async (userIdToBlock: string) => {
-      if (!user?.uid || !userIdToBlock) return;
+    async (conversation: Conversation) => {
+      if (!user?.uid || !conversation?.userId) return;
 
       try {
+        const userIdToBlock = conversation.userId;
         const userRef = doc(db, "users", user.uid);
         const blockedUserRef = doc(db, "users", userIdToBlock);
-        const activeConversation = selectedConversation;
 
         await updateDoc(userRef, {
           blockedUsers: arrayUnion(userIdToBlock),
@@ -221,46 +221,35 @@ const Messages: React.FC = () => {
         );
         setBlockedByUsers((prev) => prev);
 
-        if (activeConversation?.userId === userIdToBlock) {
-          await deleteConversation(
-            activeConversation.id,
-            activeConversation.messageThreadId
-          );
-        }
+        await deleteConversation(conversation.id, conversation.messageThreadId);
 
-        if (activeConversation?.messageThreadId) {
+        if (conversation.messageThreadId) {
           await deleteDoc(
             doc(
               db,
               "users",
               userIdToBlock,
               "conversations",
-              activeConversation.messageThreadId
+              conversation.messageThreadId
             )
           );
 
-          // Mark typing status false for both users to stop indicators
+          await updateTypingStatus(conversation.messageThreadId, user.uid, false);
           await updateTypingStatus(
-            activeConversation.messageThreadId,
-            user.uid,
-            false
-          );
-          await updateTypingStatus(
-            activeConversation.messageThreadId,
+            conversation.messageThreadId,
             userIdToBlock,
             false
           );
 
-          // Delete thread for both parties to remove messages
           await deleteDoc(
-            doc(db, "message_threads", activeConversation.messageThreadId)
+            doc(db, "message_threads", conversation.messageThreadId)
           );
         }
       } catch (error) {
         console.error("Error blocking user:", error);
       }
     },
-    [user, selectedConversation, deleteConversation, updateTypingStatus]
+    [user, deleteConversation, updateTypingStatus]
   );
 
   // Unblock a user
@@ -862,7 +851,7 @@ const Messages: React.FC = () => {
                               `Are you sure you want to block ${selectedConversation.username}? This will delete your conversation with them.`
                             )
                           ) {
-                            blockUser(selectedConversation.userId);
+                            blockUser(selectedConversation);
                           }
                         }}
                         title="Block user"

@@ -414,6 +414,12 @@ const ItemInfo = () => {
                   <button
                     className="message-seller-btn"
                     onClick={() => {
+                      if (!userId) {
+                        navigate("/signin", {
+                          state: { redirectTo: `/messages/${item.sellerId}` },
+                        });
+                        return;
+                      }
                       navigate(`/messages/${item.sellerId}`);
                     }}
                   >

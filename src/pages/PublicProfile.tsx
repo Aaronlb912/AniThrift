@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase-config";
 import {
@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import "../css/Profile.css"; // You might want to reuse or create a new stylesheet
 import StarRating from "../components/StarRating";
-import { Carousel } from "../components/Carousel";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
@@ -34,63 +33,69 @@ const PublicProfile: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  const fetchUserProfile = useCallback(
+    async (username: string) => {
+      try {
+        const usernameRef = doc(db, "usernames", username);
+        const usernameSnap = await getDoc(usernameRef);
+
+        if (!usernameSnap.exists()) {
+          navigate("/seller-not-found", { replace: true });
+          return;
+        }
+
+        const userId = usernameSnap.data().userId;
+        setProfileUserId(userId); // Store the userId for messaging
+
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          navigate("/seller-not-found", { replace: true });
+          return;
+        }
+
+        const userData = userSnap.data();
+        const rating =
+          typeof userData.rating === "number" ? userData.rating : 0;
+
+        if (
+          currentUserId &&
+          currentUserId !== userId &&
+          Array.isArray(userData.blockedUsers) &&
+          userData.blockedUsers.includes(currentUserId)
+        ) {
+          setIsLoading(false);
+          navigate("/seller-not-found", { replace: true });
+          return;
+        }
+
+        setUserProfile({
+          ...userData,
+          rating,
+        });
+
+        await fetchUserItems(userId);
+        await fetchSoldItems(userId);
+      } catch (error) {
+        console.error("Error loading seller profile:", error);
+        navigate("/seller-not-found", { replace: true });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentUserId, navigate]
+  );
+
   useEffect(() => {
     if (username) {
       setIsLoading(true);
       setUserProfile(null);
+      setUserItems([]);
+      setSoldItems([]);
       fetchUserProfile(username);
     }
-  }, [username, currentUserId]);
-
-  const fetchUserProfile = async (username: string) => {
-    try {
-      const usernameRef = doc(db, "usernames", username);
-      const usernameSnap = await getDoc(usernameRef);
-
-      if (!usernameSnap.exists()) {
-        navigate("/seller-not-found", { replace: true });
-        return;
-      }
-
-      const userId = usernameSnap.data().userId;
-      setProfileUserId(userId); // Store the userId for messaging
-
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        navigate("/seller-not-found", { replace: true });
-        return;
-      }
-
-      const userData = userSnap.data();
-      const rating = typeof userData.rating === "number" ? userData.rating : 0;
-
-      if (
-        currentUserId &&
-        currentUserId !== userId &&
-        Array.isArray(userData.blockedUsers) &&
-        userData.blockedUsers.includes(currentUserId)
-      ) {
-        setIsLoading(false);
-        navigate("/seller-not-found", { replace: true });
-        return;
-      }
-
-      setUserProfile({
-        ...userData,
-        rating,
-      });
-
-      await fetchUserItems(userId);
-      await fetchSoldItems(userId);
-    } catch (error) {
-      console.error("Error loading seller profile:", error);
-      navigate("/seller-not-found", { replace: true });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [username, fetchUserProfile]);
 
   const fetchUserItems = async (uid: string) => {
     const q = query(collection(db, "items"), where("sellerId", "==", uid));
@@ -218,12 +223,20 @@ const PublicProfile: React.FC = () => {
               )}
             </div>
             {profileUserId && (
-              <Link
-                to={`/messages/${profileUserId}`}
+              <button
                 className="profile-secondary-btn"
+                onClick={() => {
+                  if (!currentUserId) {
+                    navigate("/signin", {
+                      state: { redirectTo: `/messages/${profileUserId}` },
+                    });
+                    return;
+                  }
+                  navigate(`/messages/${profileUserId}`);
+                }}
               >
                 Message seller
-              </Link>
+              </button>
             )}
           </div>
           <div className="profile-meta-row">
