@@ -1,0 +1,55 @@
+[debug] [2025-11-11T03:14:13.499Z] ----------------------------------------------------------------------
+[debug] [2025-11-11T03:14:13.511Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\aaron\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions:searchEbayItems
+[debug] [2025-11-11T03:14:13.511Z] CLI Version:   13.5.2
+[debug] [2025-11-11T03:14:13.512Z] Platform:      win32
+[debug] [2025-11-11T03:14:13.512Z] Node Version:  v22.14.0
+[debug] [2025-11-11T03:14:13.512Z] Time:          Mon Nov 10 2025 22:14:13 GMT-0500 (Eastern Standard Time)
+[debug] [2025-11-11T03:14:13.512Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-11-11T03:14:13.516Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-11-11T03:14:13.648Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-11T03:14:13.649Z] > authorizing via signed-in user (abryantdev@gmail.com)
+[debug] [2025-11-11T03:14:13.649Z] [iam] checking project anithrift-e77a9 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-11-11T03:14:13.650Z] > refreshing access token with scopes: []
+[debug] [2025-11-11T03:14:13.651Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-11T03:14:13.651Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:13.753Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-11-11T03:14:13.753Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-11-11T03:14:13.769Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 400
+[debug] [2025-11-11T03:14:13.769Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:13.770Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/anithrift-e77a9:testIamPermissions [none]
+[debug] [2025-11-11T03:14:13.770Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/anithrift-e77a9:testIamPermissions x-goog-quota-user=projects/anithrift-e77a9
+[debug] [2025-11-11T03:14:13.770Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/anithrift-e77a9:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-11-11T03:14:13.843Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/anithrift-e77a9:testIamPermissions 401
+[debug] [2025-11-11T03:14:13.844Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/anithrift-e77a9:testIamPermissions {"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.cloudresourcemanager.v1.Projects.TestIamPermissions","service":"cloudresourcemanager.googleapis.com"}}]}}
+[debug] [2025-11-11T03:14:13.844Z] [iam] error while checking permissions, command may fail: FirebaseError: HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+[debug] [2025-11-11T03:14:13.844Z] > refreshing access token with scopes: []
+[debug] [2025-11-11T03:14:13.845Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-11T03:14:13.845Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:13.883Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 400
+[debug] [2025-11-11T03:14:13.883Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:13.883Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/anithrift-e77a9/serviceAccounts/anithrift-e77a9@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-11-11T03:14:13.883Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/anithrift-e77a9/serviceAccounts/anithrift-e77a9@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-11-11T03:14:14.013Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/anithrift-e77a9/serviceAccounts/anithrift-e77a9@appspot.gserviceaccount.com:testIamPermissions 401
+[debug] [2025-11-11T03:14:14.014Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/anithrift-e77a9/serviceAccounts/anithrift-e77a9@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"service":"iam.googleapis.com","method":"google.iam.admin.v1.IAM.TestIamPermissions"}}]}}
+[debug] [2025-11-11T03:14:14.014Z] [functions] service account IAM check errored, deploy may fail: HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"service":"iam.googleapis.com","method":"google.iam.admin.v1.IAM.TestIamPermissions"}}]}},"response":{"statusCode":401}},"exit":1,"message":"HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":401}
+[info] 
+[info] === Deploying to 'anithrift-e77a9'...
+[info] 
+[info] i  deploying functions 
+[info] +  functions: Finished running predeploy script. 
+[debug] [2025-11-11T03:14:14.018Z] > refreshing access token with scopes: []
+[debug] [2025-11-11T03:14:14.018Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-11T03:14:14.019Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:14.073Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 400
+[debug] [2025-11-11T03:14:14.073Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-11T03:14:14.074Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/anithrift-e77a9 [none]
+[debug] [2025-11-11T03:14:14.237Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/anithrift-e77a9 401
+[debug] [2025-11-11T03:14:14.237Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/anithrift-e77a9 {"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED"}}
+[debug] [2025-11-11T03:14:14.237Z] HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+[debug] [2025-11-11T03:14:14.295Z] FirebaseError: HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+    at responseToError (C:\Users\aaron\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:49:12)
+    at RetryOperation._fn (C:\Users\aaron\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:297:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to get Firebase project anithrift-e77a9. Please make sure the project exists and your account has permission to access it.
