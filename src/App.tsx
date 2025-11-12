@@ -6,7 +6,9 @@ import { Carousel } from "./components/Carousel";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import welcomeBanner from "./assets/welcome-banner.jpg";
+import { Link } from "react-router-dom";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import ban1 from "./assets/ban1.jpeg";
 import ban2 from "./assets/ban2.jpg";
 import ban3 from "./assets/ban3.jpg";
@@ -100,6 +102,48 @@ const mapFirestoreItem = (id: string, data: Record<string, any>): Item => {
     viewCount: typeof data.viewCount === "number" ? data.viewCount : 0,
   };
 };
+
+interface HeroArrowProps {
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: () => void;
+}
+
+const HeroPrevArrow: React.FC<HeroArrowProps> = ({ className, style, onClick }) => (
+  <div
+    className={`${className ?? ""} hero-carousel-arrow hero-carousel-arrow--prev`}
+    style={{ ...style }}
+    onClick={onClick}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(event) => {
+      if ((event.key === "Enter" || event.key === " ") && onClick) {
+        event.preventDefault();
+        onClick();
+      }
+    }}
+  >
+    <KeyboardArrowLeftIcon fontSize="large" />
+  </div>
+);
+
+const HeroNextArrow: React.FC<HeroArrowProps> = ({ className, style, onClick }) => (
+  <div
+    className={`${className ?? ""} hero-carousel-arrow hero-carousel-arrow--next`}
+    style={{ ...style }}
+    onClick={onClick}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(event) => {
+      if ((event.key === "Enter" || event.key === " ") && onClick) {
+        event.preventDefault();
+        onClick();
+      }
+    }}
+  >
+    <KeyboardArrowRightIcon fontSize="large" />
+  </div>
+);
 
 const App: React.FC = () => {
   const [user] = useAuthState(auth);
@@ -387,23 +431,97 @@ const App: React.FC = () => {
     ? guestPopularItems
     : defaultCarouselItems;
 
+  const heroSlides = useMemo(
+    () => [
+      {
+        id: "welcome",
+        title: "Welcome to AniThrift!",
+        subtitle:
+          "Your destination for pre-loved and rare anime finds. Refresh your collection without breaking the bank.",
+        ctaText: "Shop All Vintage Finds",
+        ctaLink: "/search?query=vintage",
+        overlayStart: "rgba(49, 46, 129, 0.88)",
+        overlayEnd: "rgba(30, 64, 175, 0.82)",
+        eyebrow: "Curated Marketplace",
+      },
+      {
+        id: "figures",
+        title: "Rare Figures, Secured.",
+        subtitle:
+          "Discover exclusive statues, prize figures, and grails from the series you love—fully authenticated by our community.",
+        ctaText: "Explore Figures & Statues",
+        ctaLink: "/search?query=figures",
+        overlayStart: "rgba(107, 33, 168, 0.88)",
+        overlayEnd: "rgba(147, 51, 234, 0.78)",
+        eyebrow: "Collector Spotlight",
+      },
+      {
+        id: "flash-sale",
+        title: "20% Off All Apparel",
+        subtitle:
+          "Streetwear, cosplay essentials, and cozy fits inspired by your favorite worlds—limited time only!",
+        ctaText: "Grab the Discount",
+        ctaLink: "/search?query=apparel",
+        overlayStart: "rgba(220, 38, 38, 0.9)",
+        overlayEnd: "rgba(234, 179, 8, 0.85)",
+        eyebrow: "Flash Sale",
+      },
+    ],
+    []
+  );
+
+  const heroCarouselSettings = useMemo(
+    () => ({
+      dots: true,
+      infinite: heroSlides.length > 1,
+      speed: 900,
+      fade: true,
+      autoplay: true,
+      autoplaySpeed: 6000,
+      pauseOnHover: true,
+      arrows: true,
+      nextArrow: <HeroNextArrow />,
+      prevArrow: <HeroPrevArrow />,
+      draggable: true,
+      swipe: true,
+      adaptiveHeight: false,
+    }),
+    [heroSlides.length]
+  );
+
   return (
     <div className="background">
       <div className="homepage">
-        <div className="slideshow">
-          <Slider autoplay autoplaySpeed={5000} speed={1000}>
-            <div>
-              <img src={ban1} alt="News 1" />
-            </div>
-            <div>
-              <img src={ban2} alt="Event 1" />
-            </div>
-            <div>
-              <img src={ban3} alt="Discount 1" />
-            </div>
-            {/* Add more slides as needed */}
-          </Slider>
-        </div>
+        <section className="hero-carousel-wrapper">
+          <div className="hero-carousel">
+            <Slider {...heroCarouselSettings}>
+              {heroSlides.map((slide) => {
+                const backgroundStyle = {
+                  backgroundImage: `linear-gradient(135deg, ${slide.overlayStart}, ${slide.overlayEnd})`,
+                } as React.CSSProperties;
+
+                return (
+                  <div key={slide.id} className="hero-slide-outer">
+                    <div className="hero-slide" style={backgroundStyle}>
+                      <div className="hero-slide-content">
+                        {slide.eyebrow && (
+                          <span className="hero-slide-eyebrow">{slide.eyebrow}</span>
+                        )}
+                        <h1>{slide.title}</h1>
+                        <p>{slide.subtitle}</p>
+                        {slide.ctaText && (
+                          <Link className="hero-slide-button" to={slide.ctaLink}>
+                            {slide.ctaText}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Slider>
+          </div>
+        </section>
         <div className="first-carousel">
           <h2>{user ? "Picks for You" : "Recent Uploads"}</h2>
           <Carousel items={picksCarouselItems} />
