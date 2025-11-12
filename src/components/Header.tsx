@@ -182,7 +182,13 @@ const Header: React.FC = React.memo(() => {
           <div className="header-main">
             {isMobile ? (
               <>
-                <Typography variant="h6" className="header-mobile-title" noWrap>
+                <Typography
+                  variant="h6"
+                  className="header-mobile-title"
+                  noWrap
+                  component={Link}
+                  to="/"
+                >
                   AniThrift
                 </Typography>
                 <div className="searchContainer mobile-search">
