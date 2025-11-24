@@ -177,8 +177,56 @@ const FilterBar: React.FC<FilterBarProps> = ({
     }
   };
 
+  const hasActiveFilters = () => {
+    // Check if any facets are selected
+    const hasSelectedFacets = Object.values(selectedFacets).some(
+      (values) => values && values.length > 0
+    );
+    
+    // Check if price range is set
+    const hasPriceRange = priceRange.min !== undefined || priceRange.max !== undefined;
+    
+    return hasSelectedFacets || hasPriceRange;
+  };
+
+  const handleResetFilters = () => {
+    // Reset all facet selections
+    handleFacetChange({});
+    
+    // Reset price range
+    setLocalPriceRange({
+      min: undefined,
+      max: undefined,
+    });
+    
+    if (onPriceRangeChange) {
+      onPriceRangeChange({
+        min: undefined,
+        max: undefined,
+      });
+    }
+    
+    // Clear search queries
+    setTagSearchQuery("");
+    setAnimeTagSearchQuery("");
+    
+    // Close all dropdowns
+    setOpenDropdowns(new Set());
+  };
+
   return (
     <div className="filter-bar">
+      {/* Reset Filters Button */}
+      {hasActiveFilters() && (
+        <button
+          type="button"
+          onClick={handleResetFilters}
+          className="reset-filters-button"
+        >
+          Reset All Filters
+        </button>
+      )}
+      
       {/* Price Range Filter */}
       {onPriceRangeChange && (
         <div>
