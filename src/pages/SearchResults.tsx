@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase-config";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import FilterBar from "../components/SearchFilter";
-import EbayResults from "../components/EbayResults";
 import "../css/search.css";
 
 // SearchResult type for Firebase items
@@ -240,12 +239,6 @@ const SearchResults: React.FC = () => {
           </div>
         )}
       </div>
-      <h1>Ebay Results</h1>
-      <div className="Results">
-        <EbayResults searchQuery={searchQuery} />
-      </div>
-      {/* <h1>FaceBook MarketPlace Results</h1>
-      <div className="Results"></div> */}
     </div>
   );
 };

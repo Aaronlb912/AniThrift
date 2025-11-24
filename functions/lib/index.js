@@ -22,9 +22,6 @@ const { onRequest } = require("firebase-functions/v2/https");
 
 const { defineSecret } = require("firebase-functions/params");
 const { error } = require("console");
-// let Ebay = require("ebay-node-api");
-const ebayClientSecret = defineSecret("EBAY_CLIENT_SECRET");
-const ebayAuthToken = defineSecret("EBAY_AUTH_TOKEN");
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -560,51 +557,6 @@ exports.completeStripeOnboarding = functions.https.onRequest(
   }
 );
 
-const Ebay = require("ebay-node-api");
-
-exports.searchEbayItems = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-    if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
-      return;
-    }
-
-    const {
-      keywords = "Anime",
-      offset = 0,
-      allowAdultContent = false,
-    } = req.body || {};
-
-    const adultFilter = allowAdultContent
-      ? "adultOnly:true"
-      : "adultOnly:false";
-
-    let ebay = new Ebay({
-      clientID: "Anithrif-Anithrif-PRD-b7fc0fe97-09fe34fa",
-      clientSecret: "PRD-7fc0fe97ba6b-5be0-4310-a07b-7ffa",
-      body: {
-        grant_type: "client_credentials",
-        scope: "https://api.ebay.com/oauth/api_scope",
-      },
-    });
-
-    try {
-      await ebay.getAccessToken();
-      const items = await ebay.searchItems({
-        keyword: keywords,
-        limit: "120",
-        offset: offset.toString(),
-        filter: adultFilter,
-      });
-
-      console.log("Items to return:", items);
-      res.status(200).send(items);
-    } catch (error) {
-      console.error("Error with eBay API:", error);
-      res.status(500).send("Error fetching data from eBay");
-    }
-  });
-});
 
 const APP_ID = "1051253752632272";
 const APP_SECRET = "4c96a3feadf40491781d3cd11804bfd4";

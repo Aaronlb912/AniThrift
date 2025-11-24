@@ -31,7 +31,6 @@ const sections: Section[] = [
     title: "Account Preferences",
     items: [
       { text: "Permissions", path: "/settings/permissions" },
-      { text: "Content Preferences", path: "/settings/content-preferences" },
       { text: "Advertisement Preferences", path: "/settings/ad-preferences" },
       {
         text: "Communication Preferences",

@@ -62,9 +62,6 @@ const SettingsStripeAccount = lazy(
   () => import("./pages/SettingsStripeAccount")
 );
 const SettingsPermissions = lazy(() => import("./pages/SettingsPermissions"));
-const SettingsContentPreferences = lazy(
-  () => import("./pages/SettingsContentPreferences")
-);
 const SettingsAdPreferences = lazy(
   () => import("./pages/SettingsAdPreferences")
 );
@@ -192,10 +189,6 @@ root.render(
               <Route
                 path="/settings/permissions"
                 element={<SettingsPermissions />}
-              />
-              <Route
-                path="/settings/content-preferences"
-                element={<SettingsContentPreferences />}
               />
               <Route
                 path="/settings/ad-preferences"
