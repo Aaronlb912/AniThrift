@@ -22,17 +22,17 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [animeTagSearchQuery, setAnimeTagSearchQuery] = useState("");
   const [maxPrice, setMaxPrice] = useState(1000); // Default max price
   const [localPriceRange, setLocalPriceRange] = useState({
-    min: priceRange.min !== undefined ? priceRange.min : 0,
-    max: priceRange.max !== undefined ? priceRange.max : maxPrice,
+    min: priceRange.min !== undefined ? priceRange.min : undefined,
+    max: priceRange.max !== undefined ? priceRange.max : undefined,
   });
 
-  // Update local price range when prop or maxPrice changes
+  // Update local price range when prop changes
   useEffect(() => {
     setLocalPriceRange({
-      min: priceRange.min !== undefined ? priceRange.min : 0,
-      max: priceRange.max !== undefined ? priceRange.max : maxPrice,
+      min: priceRange.min,
+      max: priceRange.max,
     });
-  }, [priceRange.min, priceRange.max, maxPrice]);
+  }, [priceRange.min, priceRange.max]);
 
   useEffect(() => {
     const fetchFacets = async () => {
@@ -146,26 +146,33 @@ const FilterBar: React.FC<FilterBarProps> = ({
     });
   };
 
-  const handlePriceRangeChange = (type: "min" | "max", value: number) => {
+  const handlePriceRangeChange = (type: "min" | "max", value: string) => {
+    const numValue = value === "" ? undefined : parseFloat(value);
+    
+    // Validate the input
+    if (numValue !== undefined && (isNaN(numValue) || numValue < 0)) {
+      return;
+    }
+    
     const newRange = {
       ...localPriceRange,
-      [type]: value,
+      [type]: numValue,
     };
     
     // Ensure min doesn't exceed max and vice versa
-    if (type === "min" && value > localPriceRange.max) {
-      newRange.max = value;
+    if (type === "min" && numValue !== undefined && localPriceRange.max !== undefined && numValue > localPriceRange.max) {
+      newRange.max = numValue;
     }
-    if (type === "max" && value < localPriceRange.min) {
-      newRange.min = value;
+    if (type === "max" && numValue !== undefined && localPriceRange.min !== undefined && numValue < localPriceRange.min) {
+      newRange.min = numValue;
     }
     
     setLocalPriceRange(newRange);
     
     if (onPriceRangeChange) {
       onPriceRangeChange({
-        min: newRange.min > 0 ? newRange.min : undefined,
-        max: newRange.max < maxPrice ? newRange.max : undefined,
+        min: newRange.min,
+        max: newRange.max,
       });
     }
   };
@@ -183,34 +190,32 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
           {openDropdowns.has("price") && (
             <div className="dropdown">
-              <div className="price-slider-container">
-                <div className="price-display">
-                  <span className="price-label">Min: ${localPriceRange.min.toFixed(2)}</span>
-                  <span className="price-label">Max: ${localPriceRange.max.toFixed(2)}</span>
-                </div>
-                <div className="slider-wrapper">
+              <div className="price-input-container">
+                <div className="price-input-group">
+                  <label htmlFor="price-min">Min Price ($)</label>
                   <input
-                    type="range"
+                    type="number"
+                    id="price-min"
                     min="0"
-                    max={maxPrice}
-                    step="1"
-                    value={localPriceRange.min}
-                    onChange={(e) => handlePriceRangeChange("min", parseFloat(e.target.value))}
-                    className="price-slider price-slider-min"
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max={maxPrice}
-                    step="1"
-                    value={localPriceRange.max}
-                    onChange={(e) => handlePriceRangeChange("max", parseFloat(e.target.value))}
-                    className="price-slider price-slider-max"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={localPriceRange.min !== undefined ? localPriceRange.min : ""}
+                    onChange={(e) => handlePriceRangeChange("min", e.target.value)}
+                    className="price-input"
                   />
                 </div>
-                <div className="slider-labels">
-                  <span>$0</span>
-                  <span>${maxPrice}+</span>
+                <div className="price-input-group">
+                  <label htmlFor="price-max">Max Price ($)</label>
+                  <input
+                    type="number"
+                    id="price-max"
+                    min="0"
+                    step="0.01"
+                    placeholder={`${maxPrice}+`}
+                    value={localPriceRange.max !== undefined ? localPriceRange.max : ""}
+                    onChange={(e) => handlePriceRangeChange("max", e.target.value)}
+                    className="price-input"
+                  />
                 </div>
               </div>
             </div>
