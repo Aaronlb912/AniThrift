@@ -22,6 +22,7 @@ import {
   orderBy,
   limit,
 } from "firebase/firestore";
+import { filterAdultContent } from "./utils/contentFilter";
 
 interface Item {
   id: string;
@@ -35,6 +36,7 @@ interface Item {
   createdAt?: number;
   viewedAt?: number;
   viewCount?: number;
+  isAdultContent?: boolean;
 }
 
 const FALLBACK_IMAGE = "https://via.placeholder.com/400x400.png?text=No+Image";
@@ -100,6 +102,7 @@ const mapFirestoreItem = (id: string, data: Record<string, any>): Item => {
     listingStatus: typeof data.listingStatus === "string" ? data.listingStatus : undefined,
     createdAt: parseTimestamp(data.creationDate || data.createdAt || data.created_at),
     viewCount: typeof data.viewCount === "number" ? data.viewCount : 0,
+    isAdultContent: Boolean(data.isAdultContent),
   };
 };
 
@@ -223,29 +226,30 @@ const App: React.FC = () => {
         ).filter((item): item is Item => item !== null);
 
         recentlyViewed.sort((a, b) => (b.viewedAt ?? 0) - (a.viewedAt ?? 0));
-        setRecentlyViewedItems(recentlyViewed.slice(0, 20));
+        const filteredRecentlyViewed = await filterAdultContent(recentlyViewed.slice(0, 20));
+        setRecentlyViewedItems(filteredRecentlyViewed);
 
         if (recentlyViewed.length === 0) {
           const all = await fetchAllMarketplaceItems();
           const available = all.filter((item) => item.listingStatus !== "sold" && item.sellerId !== uid);
-          const sortedRecent = available
+          const filteredAvailable = await filterAdultContent(available);
+          const sortedRecent = filteredAvailable
             .filter((item) => {
               const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
               return (item.createdAt ?? 0) >= monthAgo;
             })
             .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-          setPicksForYouItems(
-            sortedRecent.length > 0
+          const finalPicks = sortedRecent.length > 0
               ? sortedRecent.slice(0, 12)
-              : available.sort(() => 0.5 - Math.random()).slice(0, 12)
-          );
-          const popularPool = available
+              : filteredAvailable.sort(() => 0.5 - Math.random()).slice(0, 12);
+          setPicksForYouItems(finalPicks);
+          const popularPool = filteredAvailable
             .slice()
             .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
           setRecentCategoryItems(
             popularPool.length > 0
               ? popularPool.slice(0, 9)
-              : available.slice(0, 9)
+              : filteredAvailable.slice(0, 9)
           );
           return;
         }
@@ -286,9 +290,10 @@ const App: React.FC = () => {
         const availableItems = allItems.filter((item) =>
           item.listingStatus !== "sold" && item.sellerId !== uid
         );
+        const filteredAvailableItems = await filterAdultContent(availableItems);
         const recentlyViewedIds = new Set(recentlyViewed.map((item) => item.id));
 
-        const scoredItems = availableItems
+        const scoredItems = filteredAvailableItems
           .filter((item) => !recentlyViewedIds.has(item.id))
           .map((item) => {
             let score = 0;
@@ -313,14 +318,15 @@ const App: React.FC = () => {
           .map(({ item }) => item)
           .slice(0, 12);
 
-        setPicksForYouItems(
+        const filteredPicks = await filterAdultContent(
           picks.length > 0 ? picks : recentlyViewed.slice(0, 12)
         );
+        setPicksForYouItems(filteredPicks);
 
         const categoryItems: Item[] = [];
         const seenIds = new Set<string>();
         recentCategoriesByOrder.forEach((category) => {
-          const itemsForCategory = availableItems
+          const itemsForCategory = filteredAvailableItems
             .filter((item) => item.category === category)
             .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
             .slice(0, 3);
@@ -336,7 +342,8 @@ const App: React.FC = () => {
           categoryItems.push(...recentlyViewed.slice(0, 9));
         }
 
-        setRecentCategoryItems(categoryItems);
+        const filteredCategoryItems = await filterAdultContent(categoryItems);
+        setRecentCategoryItems(filteredCategoryItems);
       } catch (error) {
         console.error("Error building personalized carousels:", error);
         setRecentlyViewedItems([]);
@@ -363,14 +370,17 @@ const App: React.FC = () => {
 
       const fallbackShuffled = available.sort(() => 0.5 - Math.random());
 
-      setGuestRecentItems(
+      const filteredRecent = await filterAdultContent(
         recent.length > 0 ? recent.slice(0, 20) : fallbackShuffled.slice(0, 20)
       );
-      setGuestPopularItems(
+      const filteredPopular = await filterAdultContent(
         popular.length > 0
           ? popular.slice(0, 20)
           : fallbackShuffled.slice(0, 20)
       );
+      
+      setGuestRecentItems(filteredRecent);
+      setGuestPopularItems(filteredPopular);
     };
 
     if (user) {

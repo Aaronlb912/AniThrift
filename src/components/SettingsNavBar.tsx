@@ -36,6 +36,7 @@ const sections: Section[] = [
         text: "Communication Preferences",
         path: "/settings/communication-preferences",
       },
+      { text: "Content Preferences", path: "/settings/content-preferences" },
       { text: "Blocked Users", path: "/settings/blocked-users" },
       { text: "Close Account", path: "/settings/close-account" },
     ],

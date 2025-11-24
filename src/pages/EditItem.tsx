@@ -14,6 +14,8 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Switch,
+  Box,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import {
@@ -52,6 +54,7 @@ interface MarketplaceItemEditable {
   shippingPayer: ShippingPayer;
   shippingWeightTierId: string;
   shippingServiceId: string;
+  isAdultContent?: boolean;
 }
 
 const EditItem = () => {
@@ -72,6 +75,7 @@ const EditItem = () => {
     shippingPayer: "buyer",
     shippingWeightTierId: "up-to-8oz",
     shippingServiceId: "usps-first-class",
+    isAdultContent: false,
   });
   const [tags, setTags] = useState<{ label: string }[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
@@ -106,6 +110,7 @@ const EditItem = () => {
             data?.shippingSummary?.weightTierId || "up-to-8oz",
           shippingServiceId:
             data?.shippingSummary?.serviceId || "usps-first-class",
+          isAdultContent: data.isAdultContent || false,
         });
         setTags(
           (data.tags || []).map((label: string) => ({
@@ -311,6 +316,7 @@ const EditItem = () => {
           serviceId: item.shippingServiceId,
         },
         deliveryOption: normalizedDeliveryOption,
+        isAdultContent: item.isAdultContent || false,
       };
 
       await updateDoc(doc(db, "items", id!), updatedItemInfo);
@@ -480,6 +486,33 @@ const EditItem = () => {
                   <MenuItem value="Games">Games</MenuItem>
                 </Select>
               </FormControl>
+              <Box sx={{ marginTop: 2, marginBottom: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={item.isAdultContent || false}
+                      onChange={(e) =>
+                        setItem({
+                          ...item,
+                          isAdultContent: e.target.checked,
+                        })
+                      }
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <span>
+                      <strong>18+ Content</strong>
+                      <br />
+                      <small style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+                        Mark this item as containing adult-only content. It will
+                        only be visible to users who have enabled 18+ content in
+                        their preferences.
+                      </small>
+                    </span>
+                  }
+                />
+              </Box>
             </div>
             {isDraft && (
               <>

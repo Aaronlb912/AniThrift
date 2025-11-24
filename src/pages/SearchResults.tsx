@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase-config";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import FilterBar from "../components/SearchFilter";
+import { filterAdultContent } from "../utils/contentFilter";
 import "../css/search.css";
 
 // SearchResult type for Firebase items
@@ -11,6 +12,7 @@ interface SearchResult {
   photos: string[];
   title: string;
   price: number;
+  isAdultContent?: boolean;
   [key: string]: unknown;
 }
 
@@ -125,11 +127,14 @@ const SearchResults: React.FC = () => {
           });
         }
 
+        // Filter adult content based on user preferences
+        const filteredItems = await filterAdultContent(items);
+        
         // Store all items and paginate
-        setAllItems(items);
+        setAllItems(filteredItems);
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedItems = items.slice(startIndex, endIndex);
+        const paginatedItems = filteredItems.slice(startIndex, endIndex);
         
         setSearchResults(paginatedItems);
       } catch (error) {

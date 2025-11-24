@@ -130,8 +130,14 @@ const Header: React.FC = React.memo(() => {
 
   const handleCategoryClick = useCallback(
     (query: string) => {
-      setSearchQuery(query);
-      navigate(`/search?query=${encodeURIComponent(query)}`);
+      if (query === "") {
+        // "All Categories" goes to search
+        setSearchQuery(query);
+        navigate(`/search?query=${encodeURIComponent(query)}`);
+      } else {
+        // Other categories go to category preview page
+        navigate(`/category/${query}`);
+      }
     },
     [setSearchQuery, navigate]
   );
@@ -139,9 +145,16 @@ const Header: React.FC = React.memo(() => {
   const handleDrawerItemClick = useCallback(
     (query: string) => {
       handleDrawerToggle(); // Close the drawer
-      handleCategoryClick(query); // Use the same handler as desktop
+      if (query === "") {
+        // "All Categories" goes to search
+        setSearchQuery(query);
+        navigate(`/search?query=${encodeURIComponent(query)}`);
+      } else {
+        // Other categories go to category preview page
+        navigate(`/category/${query}`);
+      }
     },
-    [handleDrawerToggle, handleCategoryClick]
+    [handleDrawerToggle, setSearchQuery, navigate]
   );
 
   const handleMessagesClick = useCallback(() => {

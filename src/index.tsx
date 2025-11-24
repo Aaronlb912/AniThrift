@@ -12,6 +12,7 @@ import CookieConsent from "./components/CookieConsent";
 const App = lazy(() => import("./App"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SearchResult = lazy(() => import("./pages/SearchResults"));
+const CategoryPreview = lazy(() => import("./pages/CategoryPreview"));
 const Profile = lazy(() => import("./pages/Profile"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Listing = lazy(() => import("./pages/Listing"));
@@ -87,6 +88,9 @@ const SettingsInvoicedDonations = lazy(
 const SettingsBlockedUsers = lazy(
   () => import("./pages/SettingsBlockedUsers")
 );
+const SettingsContentPreferences = lazy(
+  () => import("./pages/SettingsContentPreferences")
+);
 // Loading fallback component
 const LoadingFallback = () => (
   <div
@@ -120,6 +124,7 @@ root.render(
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/search" element={<SearchResult />} />
+              <Route path="/category/:categoryQuery" element={<CategoryPreview />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/listing" element={<Listing />} />
@@ -225,6 +230,10 @@ root.render(
               <Route
                 path="/settings/blocked-users"
                 element={<SettingsBlockedUsers />}
+              />
+              <Route
+                path="/settings/content-preferences"
+                element={<SettingsContentPreferences />}
               />
               <Route path="/seller-not-found" element={<SellerNotFound />} />
               <Route path="*" element={<NotFound />} />

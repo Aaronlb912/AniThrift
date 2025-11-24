@@ -24,6 +24,8 @@ import {
   Chip,
   CircularProgress,
   Tooltip,
+  Switch,
+  Box,
 } from "@mui/material";
 import MalSearch from "../components/MalSearch";
 import axios from "axios";
@@ -51,6 +53,7 @@ interface MarketplaceItemType {
   creationDate: string;
   sellerId?: string;
   listingStatus: MarketplaceItemStatus;
+  isAdultContent?: boolean;
   shippingSummary?: {
     payer: ShippingPayer;
     weightTierId: string;
@@ -89,6 +92,7 @@ const Selling = () => {
     quantity: 0,
     creationDate: "",
     listingStatus: "selling",
+    isAdultContent: false,
   });
   const [tags, setTags] = useState<{ label: string }[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
@@ -772,6 +776,33 @@ const Selling = () => {
                   <MenuItem value="Games">Games</MenuItem>
                 </Select>
               </FormControl>
+              <Box sx={{ marginTop: 2, marginBottom: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={item.isAdultContent || false}
+                      onChange={(e) =>
+                        setItem((prev) => ({
+                          ...prev,
+                          isAdultContent: e.target.checked,
+                        }))
+                      }
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <span>
+                      <strong>18+ Content</strong>
+                      <br />
+                      <small style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+                        Mark this item as containing adult-only content. It will
+                        only be visible to users who have enabled 18+ content in
+                        their preferences.
+                      </small>
+                    </span>
+                  }
+                />
+              </Box>
               <h3>Color</h3>
               <div className="color-input-wrapper">
                 <TextField
