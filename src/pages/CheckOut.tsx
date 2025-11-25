@@ -201,7 +201,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Validate shipping rates are selected for all sellers
+    // Group items by seller
     const itemsBySeller: Record<string, CartItem[]> = {};
     cartItems.forEach((item: CartItem) => {
       if (!itemsBySeller[item.sellerId]) {
@@ -210,6 +210,7 @@ const CheckoutPage = () => {
       itemsBySeller[item.sellerId].push(item);
     });
 
+    // Validate shipping rates are selected for all sellers
     const missingRates = Object.keys(itemsBySeller).filter(
       (sellerId) => !selectedShippingRates[sellerId] && !shippingErrors[sellerId]
     );
@@ -221,30 +222,57 @@ const CheckoutPage = () => {
 
     setIsLoading(true);
     try {
-      // Calculate total shipping cost
-      const totalShippingCost = Object.values(selectedShippingRates).reduce(
-        (sum, rate) => sum + parseFloat(rate.amount),
-        0
-      );
+      // Create separate checkout sessions for each seller
+      const checkoutSessions: string[] = [];
 
-      // Calculate item total
-      const itemTotal = cartItems.reduce(
-        (total: number, item: CartItem) => total + Number(item.price) * item.quantity,
-        0
-      );
+      for (const [sellerId, sellerItems] of Object.entries(itemsBySeller)) {
+        // Calculate shipping cost for this seller
+        const sellerShippingCost = selectedShippingRates[sellerId]
+          ? parseFloat(selectedShippingRates[sellerId].amount)
+          : 0;
 
-      const response = await axios.post(
-        "https://us-central1-anithrift-e77a9.cloudfunctions.net/createCheckoutSession",
-        {
-          cartItems,
-          buyerId: user?.uid,
-          shippingAddress,
-          shippingRates: selectedShippingRates,
-          shippingCost: totalShippingCost,
-          itemTotal,
-        }
-      );
-      window.location.href = response.data.url;
+        // Calculate item total for this seller
+        const sellerItemTotal = sellerItems.reduce(
+          (total: number, item: CartItem) => total + Number(item.price) * item.quantity,
+          0
+        );
+
+        // Create seller-specific shipping rates object
+        const sellerShippingRates: Record<string, ShippoRate> = {
+          [sellerId]: selectedShippingRates[sellerId],
+        };
+
+        // Create checkout session for this seller's items
+        const response = await axios.post(
+          "https://us-central1-anithrift-e77a9.cloudfunctions.net/createCheckoutSession",
+          {
+            cartItems: sellerItems, // Only items from this seller
+            buyerId: user?.uid,
+            sellerId: sellerId, // Include seller ID for proper payout
+            shippingAddress,
+            shippingRates: sellerShippingRates,
+            shippingCost: sellerShippingCost,
+            itemTotal: sellerItemTotal,
+          }
+        );
+
+        checkoutSessions.push(response.data.url);
+      }
+
+      // If only one seller, redirect directly
+      if (checkoutSessions.length === 1) {
+        window.location.href = checkoutSessions[0];
+      } else {
+        // Multiple sellers - process sequentially
+        // Store remaining sessions in sessionStorage to process after first payment
+        const remainingSessions = checkoutSessions.slice(1);
+        sessionStorage.setItem('pendingCheckoutSessions', JSON.stringify(remainingSessions));
+        sessionStorage.setItem('totalCheckoutSessions', checkoutSessions.length.toString());
+        sessionStorage.setItem('currentCheckoutIndex', '1');
+        
+        alert(`You have items from ${checkoutSessions.length} different sellers. You'll complete checkout for each seller separately. Starting with the first seller...`);
+        window.location.href = checkoutSessions[0];
+      }
     } catch (error) {
       console.error("Failed to start the payment process:", error);
       alert("Payment process failed.");

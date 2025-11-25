@@ -4,7 +4,7 @@
  */
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
+exports.fetchStripeAccountInfo = exports.completeStripeOnboarding = exports.createStripeAccountOnFirstItem = exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
@@ -493,10 +493,24 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
         return;
     }
     try {
-        const { cartItems, buyerId, shippingAddress, shippingRates, shippingCost = 0, itemTotal, } = req.body;
+        const { cartItems, buyerId, sellerId, shippingAddress, shippingRates, shippingCost = 0, itemTotal, } = req.body;
         if (!cartItems || !buyerId) {
             res.status(400).json({ error: "Missing required fields" });
             return;
+        }
+        // Get seller's Stripe account ID if available (for Stripe Connect)
+        let sellerStripeAccountId = null;
+        if (sellerId) {
+            try {
+                const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+                if (sellerDoc.exists) {
+                    const sellerData = sellerDoc.data();
+                    sellerStripeAccountId = (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripeAccountId) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripe_account_id) || null;
+                }
+            }
+            catch (error) {
+                logger.warn(`Could not fetch seller Stripe account for ${sellerId}:`, error);
+            }
         }
         // Calculate total
         const calculatedItemTotal = itemTotal || cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
@@ -531,8 +545,8 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
                 quantity: 1,
             });
         }
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
+        // Create Stripe checkout session with seller-specific payment
+        const sessionParams = {
             payment_method_types: ["card"],
             line_items: lineItems,
             mode: "payment",
@@ -540,13 +554,24 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             cancel_url: `${req.headers.origin || "https://anithrift.com"}/cart`,
             metadata: {
                 buyerId,
+                sellerId: sellerId || "",
                 cartItems: JSON.stringify(cartItems),
                 shippingAddress: JSON.stringify(shippingAddress || {}),
                 shippingRates: JSON.stringify(shippingRates || {}),
                 shippingCost: shippingCost.toString(),
                 itemTotal: calculatedItemTotal.toString(),
             },
-        });
+        };
+        // If seller has a Stripe Connect account, use it for direct payout
+        if (sellerStripeAccountId) {
+            sessionParams.payment_intent_data = {
+                on_behalf_of: sellerStripeAccountId,
+                transfer_data: {
+                    destination: sellerStripeAccountId,
+                },
+            };
+        }
+        const session = await stripe.checkout.sessions.create(sessionParams);
         // Store order information in Firestore (optional, for tracking)
         try {
             const orderRef = admin.firestore().collection("orders").doc();
@@ -573,6 +598,218 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
         logger.error("Error creating checkout session:", error);
         res.status(500).json({
             error: "Failed to create checkout session",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Create Stripe Connect account on first item listing
+ * This function is called when a user lists their first item
+ *
+ * Request body:
+ * {
+ *   item: MarketplaceItemType
+ * }
+ */
+exports.createStripeAccountOnFirstItem = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    try {
+        const { item } = req.body;
+        if (!item || !item.sellerId) {
+            res.status(400).json({ error: "Missing required fields: item with sellerId" });
+            return;
+        }
+        const sellerId = item.sellerId;
+        // Check if user already has a Stripe account
+        const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+        if (!sellerDoc.exists) {
+            res.status(404).json({ error: "Seller not found" });
+            return;
+        }
+        const sellerData = sellerDoc.data();
+        // If seller already has a Stripe account, skip creation
+        if ((sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripeAccountId) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripe_account_id)) {
+            logger.info(`Seller ${sellerId} already has Stripe account`);
+            res.json({
+                success: true,
+                message: "Stripe account already exists",
+                stripeAccountId: (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripeAccountId) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripe_account_id),
+            });
+            return;
+        }
+        // Create Stripe Connect account
+        const account = await stripe.accounts.create({
+            type: "express",
+            country: "US",
+            email: (sellerData === null || sellerData === void 0 ? void 0 : sellerData.email) || "",
+            capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+            },
+        });
+        // Create account link for onboarding
+        const accountLink = await stripe.accountLinks.create({
+            account: account.id,
+            refresh_url: `${req.headers.origin || "https://anithrift.com"}/settings/stripe-account?refresh=true`,
+            return_url: `${req.headers.origin || "https://anithrift.com"}/settings/stripe-account?success=true`,
+            type: "account_onboarding",
+        });
+        // Update user document with Stripe account ID
+        await admin.firestore().collection("users").doc(sellerId).update({
+            stripeAccountId: account.id,
+            stripe_account_id: account.id,
+            stripeOnboardingComplete: false,
+            isSeller: true,
+        });
+        res.json({
+            success: true,
+            stripeAccountId: account.id,
+            onboardingUrl: accountLink.url,
+            message: "Stripe account created. User needs to complete onboarding.",
+        });
+    }
+    catch (error) {
+        logger.error("Error creating Stripe account:", error);
+        res.status(500).json({
+            error: "Failed to create Stripe account",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Complete Stripe onboarding (called from StripeOnboardingForm)
+ *
+ * Request body:
+ * {
+ *   userId: string
+ * }
+ */
+exports.completeStripeOnboarding = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            res.status(400).json({ error: "Missing required field: userId" });
+            return;
+        }
+        // Get user's Stripe account ID
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        const userData = userDoc.data();
+        const stripeAccountId = (userData === null || userData === void 0 ? void 0 : userData.stripeAccountId) || (userData === null || userData === void 0 ? void 0 : userData.stripe_account_id);
+        if (!stripeAccountId) {
+            res.status(400).json({ error: "User does not have a Stripe account. Please list an item first." });
+            return;
+        }
+        // Create account link for onboarding
+        const accountLink = await stripe.accountLinks.create({
+            account: stripeAccountId,
+            refresh_url: `${req.headers.origin || "https://anithrift.com"}/settings/stripe-account?refresh=true`,
+            return_url: `${req.headers.origin || "https://anithrift.com"}/settings/stripe-account?success=true`,
+            type: "account_onboarding",
+        });
+        res.json({
+            url: accountLink.url,
+        });
+    }
+    catch (error) {
+        logger.error("Error creating Stripe onboarding link:", error);
+        res.status(500).json({
+            error: "Failed to create onboarding link",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Fetch Stripe account info for a user
+ *
+ * Query params:
+ *   userId: string
+ */
+exports.fetchStripeAccountInfo = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    if (req.method !== "GET") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    try {
+        const userId = req.query.userId;
+        if (!userId) {
+            res.status(400).json({ error: "Missing required query parameter: userId" });
+            return;
+        }
+        // Get user's Stripe account ID
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        const userData = userDoc.data();
+        const stripeAccountId = (userData === null || userData === void 0 ? void 0 : userData.stripeAccountId) || (userData === null || userData === void 0 ? void 0 : userData.stripe_account_id);
+        if (!stripeAccountId) {
+            res.json({
+                hasAccount: false,
+                message: "No Stripe account found",
+            });
+            return;
+        }
+        // Fetch account details from Stripe
+        const account = await stripe.accounts.retrieve(stripeAccountId);
+        const balance = await stripe.balance.retrieve({
+            stripeAccount: stripeAccountId,
+        });
+        // Get charges count
+        const charges = await stripe.charges.list({
+            limit: 100,
+        }, {
+            stripeAccount: stripeAccountId,
+        });
+        res.json({
+            hasAccount: true,
+            accountId: stripeAccountId,
+            charges_enabled: account.charges_enabled,
+            payouts_enabled: account.payouts_enabled,
+            details_submitted: account.details_submitted,
+            balance: balance.available,
+            transaction_count: charges.data.length,
+        });
+    }
+    catch (error) {
+        logger.error("Error fetching Stripe account info:", error);
+        res.status(500).json({
+            error: "Failed to fetch Stripe account info",
             message: error.message,
         });
     }

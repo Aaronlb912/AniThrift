@@ -110,70 +110,156 @@ const CartPage: React.FC = () => {
     fetchCartItems(user.uid);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = (sellerId?: string) => {
+    if (sellerId) {
+      // Checkout specific seller's items only
+      const sellerItems = cartItems[sellerId]?.items || [];
+      navigate("/checkout", { state: { cartItems: sellerItems } });
+    } else {
+      // Checkout all items from all sellers
+      const allItems = Object.values(cartItems).flatMap((group) => group.items);
+      navigate("/checkout", { state: { cartItems: allItems } });
+    }
+  };
+
+  const calculateTotal = () => {
     const allItems = Object.values(cartItems).flatMap((group) => group.items);
-    navigate("/checkout", { state: { cartItems: allItems } });
+    return allItems.reduce(
+      (total, item) => total + (Number(item.price) * Number(item.quantity)),
+      0
+    );
+  };
+
+  const getTotalItems = () => {
+    return Object.values(cartItems).reduce(
+      (total, group) => total + group.items.length,
+      0
+    );
   };
 
   return (
     <div className="cart-container">
+      <div className="cart-header">
+        <h1 className="cart-title">Shopping Cart</h1>
+        {Object.keys(cartItems).length > 0 && (
+          <p className="cart-subtitle">
+            {getTotalItems()} {getTotalItems() === 1 ? "item" : "items"}
+          </p>
+        )}
+      </div>
+
       {Object.keys(cartItems).length ? (
-        Object.entries(cartItems).map(([sellerId, { sellerName, items }]) => (
-          <div key={sellerId} className="seller-box">
-            <h2>Seller: {sellerName}</h2>
-            {items.map((item) => (
-              <Link
-                to={`/item/${item.itemId}`}
-                key={item.id}
-                className="item-row-link"
-              >
-                <div className="item-row">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="item-image"
-                  />
-                  <div className="item-info">
-                    <p className="item-title">{item.title}</p>
-                    <p className="item-price">${item.price}</p>
-                    <p className="quantity">Quantity: {item.quantity}</p>
+        <>
+          <div className="cart-content">
+            {Object.entries(cartItems).map(([sellerId, { sellerName, items }]) => (
+              <div key={sellerId} className="seller-group">
+                <div className="seller-header">
+                  <h2 className="seller-name">{sellerName}</h2>
+                </div>
+                <div className="items-list">
+                  {items.map((item) => (
+                    <div key={item.id} className="cart-item-card">
+                      <Link
+                        to={`/item/${item.itemId}`}
+                        className="item-link"
+                      >
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="item-image"
+                        />
+                      </Link>
+                      <div className="item-details">
+                        <Link
+                          to={`/item/${item.itemId}`}
+                          className="item-link"
+                        >
+                          <h3 className="item-title">{item.title}</h3>
+                        </Link>
+                        <div className="item-meta">
+                          <span className="item-price">${Number(item.price).toFixed(2)}</span>
+                          <span className="item-quantity">Qty: {item.quantity}</span>
+                          <span className="item-subtotal">
+                            ${(Number(item.price) * Number(item.quantity)).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => removeItemFromCart(item.id)}
+                        className="remove-item-btn"
+                        aria-label="Remove item"
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="seller-total">
+                  <div className="seller-total-info">
+                    <span className="seller-total-label">Seller Total:</span>
+                    <span className="seller-total-amount">
+                      $
+                      {items
+                        .reduce(
+                          (total, item) => total + (Number(item.price) * Number(item.quantity)),
+                          0
+                        )
+                        .toFixed(2)}
+                    </span>
                   </div>
                   <Button
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent navigation when deleting
-                      removeItemFromCart(item.id);
-                    }}
-                    className="remove-item-btn"
+                    variant="contained"
+                    className="seller-checkout-btn"
+                    onClick={() => handleCheckout(sellerId)}
                   >
-                    <DeleteIcon />
+                    Checkout {sellerName}
                   </Button>
                 </div>
-              </Link>
+              </div>
             ))}
-
-            <p className="total-price">
-              Total: $
-              {items
-                .reduce(
-                  (total, item) => total + Number(item.price * item.quantity),
-                  0
-                )
-                .toFixed(2)}
-            </p>
-            <Button
-              variant="contained"
-              className="checkout-btn"
-              onClick={handleCheckout} // Updated to use the new handleCheckout function
-            >
-              Checkout ({items.length} items)
-            </Button>
           </div>
-        ))
+          {Object.keys(cartItems).length > 1 && (
+            <div className="cart-footer">
+              <div className="cart-summary">
+                <div className="summary-row">
+                  <span className="summary-label">Total Items:</span>
+                  <span className="summary-value">{getTotalItems()}</span>
+                </div>
+                <div className="summary-row total-row">
+                  <span className="summary-label">Combined Total:</span>
+                  <span className="summary-value total-amount">
+                    ${calculateTotal().toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <p className="multi-seller-notice">
+                You have items from {Object.keys(cartItems).length} different sellers. 
+                Each seller will be checked out separately to ensure proper payment processing.
+              </p>
+              <Button
+                variant="contained"
+                className="checkout-btn"
+                onClick={handleCheckout}
+              >
+                Checkout All Sellers
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
-        <div className="empty-cart-message">
-          <p>Your cart is empty.</p>
-          <Button component={Link} to="/search" className="explore-btn">
-            Explore
+        <div className="empty-cart">
+          <div className="empty-cart-icon">🛒</div>
+          <h2 className="empty-cart-title">Your cart is empty</h2>
+          <p className="empty-cart-message">
+            Start shopping to add items to your cart
+          </p>
+          <Button
+            component={Link}
+            to="/search"
+            variant="contained"
+            className="explore-btn"
+          >
+            Start Shopping
           </Button>
         </div>
       )}

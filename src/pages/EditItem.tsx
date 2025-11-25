@@ -317,6 +317,8 @@ const EditItem = () => {
         },
         deliveryOption: normalizedDeliveryOption,
         isAdultContent: item.isAdultContent || false,
+        // Keep the existing listingStatus (don't change it unless publishing)
+        listingStatus: item.listingStatus,
       };
 
       await updateDoc(doc(db, "items", id!), updatedItemInfo);
@@ -798,7 +800,122 @@ const EditItem = () => {
               </>
             )}
 
-            <div className="actions">
+            <div className="form-actions">
+              {isDraft && (
+                <Button
+                  type="button"
+                  variant="contained"
+                  color="primary"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setIsLoading(true);
+
+                    // Validate all required fields before publishing
+                    if (!item.title.trim()) {
+                      alert("Please enter a title for your item.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.description.trim()) {
+                      alert("Please enter a description for your item.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.category) {
+                      alert("Please select a category.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.condition) {
+                      alert("Please select an item condition.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.packageCondition) {
+                      alert("Please select a packaging condition.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.shippingPayer) {
+                      alert("Please choose who pays for shipping.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.shippingWeightTierId) {
+                      alert("Please select a weight range for shipping.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (!item.shippingServiceId) {
+                      alert("Please select a shipping service.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    if (item.photos.length === 0) {
+                      alert("Please upload at least one photo.");
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    try {
+                      // Upload new photos that don't have downloadURL
+                      const photoUrls = await Promise.all(
+                        item.photos.map(async (photo) => {
+                          if (photo.downloadURL) return photo.downloadURL;
+
+                          const storageReference = storageRef(
+                            storage,
+                            `photos/${id}/${photo.fileName || Date.now()}`
+                          );
+                          const uploadTask = await uploadBytesResumable(
+                            storageReference,
+                            photo as any
+                          );
+                          return getDownloadURL(uploadTask.ref);
+                        })
+                      );
+
+                      const normalizedDeliveryOption =
+                        item.deliveryOption?.trim() || "Buyer Selects at Checkout";
+
+                      const updatedItemInfo = {
+                        ...item,
+                        price: parseFloat(item.price) || 0,
+                        photos: photoUrls,
+                        tags: tags.map((tag) => tag.label),
+                        animeTags,
+                        shippingSummary: {
+                          payer: item.shippingPayer,
+                          weightTierId: item.shippingWeightTierId,
+                          serviceId: item.shippingServiceId,
+                        },
+                        deliveryOption: normalizedDeliveryOption,
+                        isAdultContent: item.isAdultContent || false,
+                        listingStatus: "selling" as const, // Publish the item
+                      };
+
+                      await updateDoc(doc(db, "items", id!), updatedItemInfo);
+                      alert("Item published successfully!");
+                      navigate(`/item/${id}`);
+                    } catch (error) {
+                      console.error("Error publishing item:", error);
+                      alert("An error occurred while publishing the item. Please try again.");
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                >
+                  Publish Item
+                </Button>
+              )}
               <Button type="submit" variant="contained" color="primary">
                 Save Changes
               </Button>

@@ -1,157 +1,135 @@
-/* Use the same styles as Selling.css */
-.selling-form {
-  margin: 20px auto;
-  padding: 30px;
-  max-width: 900px;
+@import "../ui/colors.css";
+
+/* Match Selling.css styling */
+.edit-item-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 64px) clamp(20px, 6vw, 48px) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vw, 56px);
+  font-family: "Nunito", sans-serif;
+}
+
+.edit-item-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(24px, 5vw, 40px);
+  padding: clamp(32px, 6vw, 52px);
+  border-radius: 32px;
+  background: linear-gradient(135deg, rgba(33, 74, 147, 0.14), rgba(255, 125, 212, 0.22));
+  box-shadow: 0 26px 52px rgba(16, 43, 109, 0.16);
+}
+
+.edit-item-eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(33, 74, 147, 0.7);
+  margin-bottom: 8px;
+}
+
+.edit-item-hero h1 {
+  margin: 0 0 16px;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2.4rem, 4vw, 3rem);
+  color: var(--dark-color);
+}
+
+.edit-item-hero p {
+  margin: 0 0 18px;
+  line-height: 1.7;
+  color: rgba(31, 39, 63, 0.78);
+}
+
+.edit-item-highlight {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 28px;
+  padding: clamp(24px, 4vw, 32px);
+  border: 1px solid rgba(33, 74, 147, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.14);
+}
+
+.edit-item-form-card {
   background: var(--secondary-light);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  border-radius: 28px;
+  padding: clamp(28px, 5vw, 44px);
+  box-shadow: 0 32px 60px rgba(16, 43, 109, 0.12);
+}
+
+.selling-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 4vw, 28px);
+  text-align: left;
 }
 
 .selling-form h1 {
-  text-align: center;
-  margin: 0 auto 30px auto;
-  padding: 20px 40px;
-  color: #333;
-  font-size: 2rem;
-  background-color: var(--secondary-light);
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: block;
-  width: 85%;
-  max-width: 100%;
+  margin: 0 0 24px;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2rem, 3.5vw, 2.4rem);
+  color: var(--dark-color);
+  text-align: left;
 }
 
 .selling-form h2 {
-  text-align: left;
-  margin: 25px 0 15px 0;
-  color: #444;
-  font-size: 1.5rem;
-  text-decoration: none;
-  padding-bottom: 8px;
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  color: var(--dark-color);
   border-bottom: 2px solid var(--primary-color);
-  display: inline-block;
-  width: 100%;
-}
-
-.selling-form form {
-  text-align: left;
+  padding-bottom: 8px;
 }
 
 .selling-form h3 {
-  text-align: left;
-  margin: 20px 0 10px 0;
-  color: #555;
-  font-size: 1.2rem;
-  text-decoration: none;
+  margin: 12px 0 6px;
+  font-size: 1.1rem;
+  color: rgba(35, 45, 72, 0.85);
+  border-bottom: 1.5px solid rgba(33, 74, 147, 0.16);
   padding-bottom: 6px;
-  border-bottom: 1.5px solid #6c757d;
-  display: inline-block;
-  width: 100%;
 }
 
 .section {
-  margin-bottom: 30px;
-}
-
-.form-actions {
-  margin-top: 40px;
-  margin-bottom: 20px;
-  padding-top: 20px;
   display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.form-actions button {
-  text-align: center;
-  min-width: 180px;
-  padding: 12px 30px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  text-transform: none;
-}
-
-.form-actions button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.selling-form .MuiOutlinedInput-root {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-.selling-form .MuiOutlinedInput-notchedOutline {
-  border: none !important;
-}
-
-.selling-form .MuiInputBase-root {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-.selling-form .MuiInputBase-input {
-  border: none;
-}
-
-.selling-form .MuiOutlinedInput-root:hover {
-  border-color: #999;
-}
-
-.selling-form .MuiOutlinedInput-root.Mui-focused {
-  border-color: var(--primary-color);
-}
-
-.selling-form .MuiInputLabel-root {
-  display: none !important;
-}
-
-.selling-form .MuiInputLabel-outlined {
-  display: none !important;
-}
-
-.form-field {
-  z-index: 0;
-  margin-bottom: 15px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .dropzone {
   border: 2px dashed var(--primary-color);
-  padding: 30px;
-  text-align: center;
-  margin-bottom: 20px;
-  cursor: pointer;
-  border-radius: 12px;
-  background-color: #f8f9fa;
-  transition: all 0.3s ease;
-  min-height: 150px;
+  border-radius: 18px;
+  padding: clamp(30px, 5vw, 48px);
+  background: rgba(255, 255, 255, 0.92);
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  min-height: 160px;
 }
 
 .dropzone:hover {
   border-color: var(--primary-light);
-  background-color: #e7f3ff;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 24px rgba(33, 74, 147, 0.12);
 }
 
 .dropzone p {
-  color: #666;
-  font-size: 16px;
+  flex-basis: 100%;
   margin: 0;
+  color: rgba(35, 45, 72, 0.7);
+  font-weight: 600;
 }
 
 .photo-preview {
   position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 5px;
+  width: 122px;
+  height: 122px;
   border-radius: 18px;
   overflow: visible;
+  box-shadow: 0 16px 28px rgba(16, 43, 109, 0.16);
 }
 
 .preview-image {
@@ -165,25 +143,71 @@
   position: absolute;
   top: -10px;
   right: -10px;
-  background-color: #dc3545;
-  color: white;
-  border: 2px solid white;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  background: var(--danger-color);
+  border: 2px solid #fff;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(220, 53, 69, 0.3);
+  transition: transform 0.2s ease;
 }
 
 .remove-photo:hover {
-  background-color: #c82333;
-  transform: scale(1.1);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.selling-form .MuiOutlinedInput-root {
+  border: 1px solid rgba(33, 74, 147, 0.2);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.selling-form .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.selling-form .MuiOutlinedInput-root:hover {
+  border-color: rgba(33, 74, 147, 0.4);
+}
+
+.selling-form .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(33, 74, 147, 0.12);
+}
+
+.selling-form .MuiInputLabel-root,
+.selling-form .MuiInputLabel-outlined {
+  display: none !important;
+}
+
+.tags-section,
+.animeTags-section {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(33, 74, 147, 0.16);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tags-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-chip {
+  background: rgba(33, 74, 147, 0.12);
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
 .condition-selector {
@@ -211,13 +235,6 @@
   margin-top: 2px;
 }
 
-.condition-selector .MuiTypography-body1 {
-  font-size: 0.875rem;
-  word-break: break-word;
-  line-height: 1.4;
-  width: 100%;
-}
-
 .condition-label-container {
   display: flex;
   flex-direction: column;
@@ -237,43 +254,58 @@
   line-height: 1.4;
 }
 
-.tags-section,
-.animeTags-section {
-  margin: 10px 0 20px 0;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background-color: #fafafa;
-}
-
-.tag-chip {
-  margin: 5px;
-}
-
-.tags-chip-group {
+.form-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 12px;
 }
 
-.product-info-section {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.form-actions .MuiButton-root {
+  min-width: 180px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 600;
+  box-shadow: 0 18px 32px rgba(16, 43, 109, 0.16);
 }
 
-.pricing-section input,
-.quantity-section input {
-  width: calc(100% - 20px);
+.form-actions .MuiButton-containedPrimary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.form-actions .MuiButton-containedPrimary:hover {
+  box-shadow: 0 22px 40px rgba(16, 43, 109, 0.22);
+}
+
+.form-actions .MuiButton-containedSecondary {
+  background: linear-gradient(135deg, var(--tertiary-color), var(--tertiary-dark));
+}
+
+.form-actions .MuiButton-containedSecondary:hover {
+  box-shadow: 0 22px 40px rgba(180, 64, 64, 0.18);
+}
+
+.form-actions .MuiButton-outlinedPrimary {
+  border-width: 2px;
+  border-color: rgba(33, 74, 147, 0.4);
+  color: var(--primary-color);
+}
+
+.form-actions .MuiButton-outlinedPrimary:hover {
+  border-color: var(--primary-color);
+  background: rgba(33, 74, 147, 0.08);
+}
+
+.form-field {
+  z-index: 0;
+  margin-bottom: 15px;
 }
 
 .loading-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -283,7 +315,7 @@
 
 .loading-overlay-content {
   text-align: center;
-  color: white;
+  color: #fff;
 }
 
 .loading-overlay-content p {
@@ -291,102 +323,30 @@
 }
 
 .loading-overlay-spinner {
-  color: white;
-}
-
-.edit-item-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: clamp(32px, 6vw, 64px) clamp(20px, 6vw, 40px) 96px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(32px, 5vw, 48px);
-}
-
-.edit-item-hero {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: clamp(20px, 4vw, 32px);
-  padding: clamp(28px, 5vw, 48px);
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(33, 74, 147, 0.14), rgba(255, 125, 212, 0.22));
-  box-shadow: 0 26px 48px rgba(16, 43, 109, 0.16);
-}
-
-.edit-item-eyebrow {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(33, 74, 147, 0.7);
-  margin-bottom: 8px;
-}
-
-.edit-item-hero h1 {
-  font-family: "Playfair Display", serif;
-  font-size: clamp(2.2rem, 3.8vw, 2.8rem);
-  margin: 0 0 14px;
-  color: var(--dark-color);
-}
-
-.edit-item-hero p {
-  margin: 0;
-  line-height: 1.7;
-  color: rgba(35, 45, 72, 0.78);
-}
-
-.edit-item-highlight {
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 20px;
-  padding: clamp(18px, 3vw, 24px);
-  border: 1px solid rgba(33, 74, 147, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 125, 212, 0.15);
-}
-
-.edit-item-form-card {
-  border-radius: 28px;
-  padding: clamp(28px, 5vw, 44px);
+  color: #fff;
 }
 
 .edit-item-tips {
-  background: linear-gradient(135deg, rgba(33, 74, 147, 0.1), rgba(255, 125, 212, 0.18));
+  background: linear-gradient(135deg, rgba(33, 74, 147, 0.12), rgba(255, 125, 212, 0.2));
   border-radius: 28px;
-  padding: clamp(24px, 5vw, 36px);
-  box-shadow: 0 24px 46px rgba(16, 43, 109, 0.14);
+  padding: clamp(24px, 4vw, 32px);
+  box-shadow: 0 26px 48px rgba(16, 43, 109, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: rgba(31, 39, 63, 0.82);
 }
 
 .edit-item-tips h2 {
+  margin: 0;
   font-family: "Playfair Display", serif;
-  margin: 0 0 12px;
   color: var(--dark-color);
 }
 
 .edit-item-tips ul {
   margin: 0;
   padding-left: 20px;
-  color: rgba(31, 39, 63, 0.78);
   line-height: 1.7;
-}
-
-.edit-item-form-card .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.edit-item-form-card .actions .MuiButton-root {
-  min-width: 160px;
-  border-radius: 12px;
-}
-
-.shipping-note {
-  margin-top: -4px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(33, 74, 147, 0.08);
-  color: rgba(31, 39, 63, 0.76);
-  font-weight: 600;
-  line-height: 1.5;
 }
 
 .shipping-section {
@@ -567,50 +527,35 @@
   color: rgba(31, 39, 63, 0.65);
 }
 
-@media screen and (max-width: 768px) {
-  .selling-form {
-    padding: 20px;
-    margin: 10px;
-  }
-
-  .condition-selector .MuiFormControlLabel-root {
-    width: 100px;
-    font-size: 0.75rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .form-actions button {
-    width: 100%;
-    max-width: none;
-  }
-
-  .section {
-    padding: 15px;
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .edit-item-page {
-    padding: 32px 20px 80px;
+    padding: 28px 20px 72px;
+  }
+
+  .edit-item-hero {
+    padding: 28px;
   }
 
   .edit-item-form-card {
     padding: 24px;
   }
 
-  .edit-item-form-card .actions {
+  .condition-selector {
+    justify-content: flex-start;
+  }
+
+  .condition-selector .MuiFormControlLabel-root {
+    width: 100%;
+  }
+
+  .form-actions {
     flex-direction: column;
   }
 
-  .edit-item-form-card .actions .MuiButton-root {
+  .form-actions .MuiButton-root {
     width: 100%;
   }
-}
 
-@media (max-width: 640px) {
   .shipping-section-header {
     flex-direction: column;
   }

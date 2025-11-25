@@ -451,10 +451,17 @@ const Selling = () => {
         ref: globalItemDocRef,
       });
 
-      await axios.post(
-        "https://us-central1-anithrift-e77a9.cloudfunctions.net/createStripeAccountOnFirstItem",
-        { item: newItemData }
-      );
+      // Create Stripe account on first item listing (non-blocking)
+      try {
+        await axios.post(
+          "https://us-central1-anithrift-e77a9.cloudfunctions.net/createStripeAccountOnFirstItem",
+          { item: newItemData }
+        );
+      } catch (stripeError: any) {
+        // Log error but don't block item listing
+        console.error("Error creating Stripe account (non-blocking):", stripeError);
+        // Item is still listed, user can complete Stripe onboarding later
+      }
 
       console.log("Item listed with ID:", globalItemDocRef.id);
 
@@ -503,6 +510,7 @@ const Selling = () => {
         weightTierId: item.shippingWeightTierId,
         serviceId: item.shippingServiceId,
       },
+      isAdultContent: item.isAdultContent || false,
     };
 
     try {
