@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   TextField,
   Button,
@@ -81,6 +82,8 @@ const EditItem = () => {
   const [tagInput, setTagInput] = useState<string>("");
   const [animeTags, setAnimeTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hasShippingAddress, setHasShippingAddress] = useState<boolean | null>(null);
   const storage = getStorage();
 
   useEffect(() => {
@@ -125,6 +128,31 @@ const EditItem = () => {
 
     fetchItem();
   }, [id]);
+
+  // Check if user has a shipping address
+  useEffect(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const shipFromAddress = userData?.shipFromAddress;
+            const hasAddress = shipFromAddress && 
+              (typeof shipFromAddress === 'string' ? shipFromAddress.trim() !== '' : true);
+            setHasShippingAddress(!!hasAddress);
+          } else {
+            setHasShippingAddress(false);
+          }
+        } catch (error) {
+          console.error("Error checking shipping address:", error);
+          setHasShippingAddress(false);
+        }
+      }
+    });
+  }, []);
 
 
   const onDrop = useCallback(
@@ -214,7 +242,7 @@ const EditItem = () => {
     setAnimeTags((prev) => prev.filter((tag) => tag !== label));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, publish: boolean = false) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -222,6 +250,18 @@ const EditItem = () => {
     if (!item.price || parseFloat(item.price) < 0.01) {
       alert("Please enter a valid price of at least $0.01.");
       setIsLoading(false);
+      return;
+    }
+
+    // Check if user has a shipping address when publishing
+    if (publish && !hasShippingAddress) {
+      const confirmRedirect = window.confirm(
+        "You must set up a shipping address before publishing items. This is required for shipping calculations.\n\nWould you like to go to your address settings now?"
+      );
+      setIsLoading(false);
+      if (confirmRedirect) {
+        navigate("/addresses");
+      }
       return;
     }
 
@@ -317,8 +357,8 @@ const EditItem = () => {
         },
         deliveryOption: normalizedDeliveryOption,
         isAdultContent: item.isAdultContent || false,
-        // Keep the existing listingStatus (don't change it unless publishing)
-        listingStatus: item.listingStatus,
+        // Update listingStatus if publishing
+        listingStatus: publish ? "selling" : item.listingStatus,
       };
 
       await updateDoc(doc(db, "items", id!), updatedItemInfo);
@@ -806,111 +846,9 @@ const EditItem = () => {
                   type="button"
                   variant="contained"
                   color="primary"
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.preventDefault();
-                    setIsLoading(true);
-
-                    // Validate all required fields before publishing
-                    if (!item.title.trim()) {
-                      alert("Please enter a title for your item.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.description.trim()) {
-                      alert("Please enter a description for your item.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.category) {
-                      alert("Please select a category.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.condition) {
-                      alert("Please select an item condition.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.packageCondition) {
-                      alert("Please select a packaging condition.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.shippingPayer) {
-                      alert("Please choose who pays for shipping.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.shippingWeightTierId) {
-                      alert("Please select a weight range for shipping.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (!item.shippingServiceId) {
-                      alert("Please select a shipping service.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    if (item.photos.length === 0) {
-                      alert("Please upload at least one photo.");
-                      setIsLoading(false);
-                      return;
-                    }
-
-                    try {
-                      // Upload new photos that don't have downloadURL
-                      const photoUrls = await Promise.all(
-                        item.photos.map(async (photo) => {
-                          if (photo.downloadURL) return photo.downloadURL;
-
-                          const storageReference = storageRef(
-                            storage,
-                            `photos/${id}/${photo.fileName || Date.now()}`
-                          );
-                          const uploadTask = await uploadBytesResumable(
-                            storageReference,
-                            photo as any
-                          );
-                          return getDownloadURL(uploadTask.ref);
-                        })
-                      );
-
-                      const normalizedDeliveryOption =
-                        item.deliveryOption?.trim() || "Buyer Selects at Checkout";
-
-                      const updatedItemInfo = {
-                        ...item,
-                        price: parseFloat(item.price) || 0,
-                        photos: photoUrls,
-                        tags: tags.map((tag) => tag.label),
-                        animeTags,
-                        shippingSummary: {
-                          payer: item.shippingPayer,
-                          weightTierId: item.shippingWeightTierId,
-                          serviceId: item.shippingServiceId,
-                        },
-                        deliveryOption: normalizedDeliveryOption,
-                        isAdultContent: item.isAdultContent || false,
-                        listingStatus: "selling" as const, // Publish the item
-                      };
-
-                      await updateDoc(doc(db, "items", id!), updatedItemInfo);
-                      alert("Item published successfully!");
-                      navigate(`/item/${id}`);
-                    } catch (error) {
-                      console.error("Error publishing item:", error);
-                      alert("An error occurred while publishing the item. Please try again.");
-                    } finally {
-                      setIsLoading(false);
-                    }
+                    handleSubmit(e, true); // Pass true to publish
                   }}
                 >
                   Publish Item

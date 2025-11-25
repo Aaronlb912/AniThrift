@@ -2,7 +2,14 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { db } from "../firebase-config";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, doc, setDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  getDocs,
+  getDoc,
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import {
   getStorage,
@@ -105,12 +112,35 @@ const Selling = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasShippingAddress, setHasShippingAddress] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
     const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserId(user.uid);
+        // Check if user has a shipping address
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const shipFromAddress = userData?.shipFromAddress;
+            // Check if shipFromAddress exists and is not null/empty
+            const hasAddress =
+              shipFromAddress &&
+              (typeof shipFromAddress === "string"
+                ? shipFromAddress.trim() !== ""
+                : true);
+            setHasShippingAddress(!!hasAddress);
+          } else {
+            setHasShippingAddress(false);
+          }
+        } catch (error) {
+          console.error("Error checking shipping address:", error);
+          setHasShippingAddress(false);
+        }
       } else {
         navigate("/signin");
       }
@@ -350,6 +380,18 @@ const Selling = () => {
       return;
     }
 
+    // Check if user has a shipping address
+    if (!hasShippingAddress) {
+      const confirmRedirect = window.confirm(
+        "You must set up a shipping address before listing items. This is required for shipping calculations.\n\nWould you like to go to your address settings now?"
+      );
+      setIsLoading(false);
+      if (confirmRedirect) {
+        navigate("/addresses");
+      }
+      return;
+    }
+
     if (item.quantity < 1) {
       alert("Quantity must be at least 1.");
       setIsLoading(false);
@@ -459,7 +501,10 @@ const Selling = () => {
         );
       } catch (stripeError: any) {
         // Log error but don't block item listing
-        console.error("Error creating Stripe account (non-blocking):", stripeError);
+        console.error(
+          "Error creating Stripe account (non-blocking):",
+          stripeError
+        );
         // Item is still listed, user can complete Stripe onboarding later
       }
 
@@ -581,6 +626,51 @@ const Selling = () => {
             <p>Processing...</p>
           </div>
         </div>
+      )}
+      {hasShippingAddress === false && (
+        <Box
+          sx={{
+            margin: "20px auto",
+            maxWidth: "800px",
+            padding: "16px 24px",
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffc107",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <strong
+              style={{
+                display: "block",
+                marginBottom: "4px",
+                color: "#856404",
+              }}
+            >
+              Shipping Address Required
+            </strong>
+            <p style={{ margin: 0, color: "#856404", fontSize: "0.9rem" }}>
+              You must set up a shipping address before listing items. This is
+              required for shipping calculations.
+            </p>
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/addresses")}
+            sx={{
+              backgroundColor: "#ffc107",
+              color: "#000",
+              "&:hover": {
+                backgroundColor: "#e0a800",
+              },
+            }}
+          >
+            Set Address
+          </Button>
+        </Box>
       )}
 
       <section className="selling-hero">
