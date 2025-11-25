@@ -218,33 +218,6 @@ const CartPage: React.FC = () => {
               </div>
             ))}
           </div>
-          {Object.keys(cartItems).length > 1 && (
-            <div className="cart-footer">
-              <div className="cart-summary">
-                <div className="summary-row">
-                  <span className="summary-label">Total Items:</span>
-                  <span className="summary-value">{getTotalItems()}</span>
-                </div>
-                <div className="summary-row total-row">
-                  <span className="summary-label">Combined Total:</span>
-                  <span className="summary-value total-amount">
-                    ${calculateTotal().toFixed(2)}
-                  </span>
-                </div>
-              </div>
-              <p className="multi-seller-notice">
-                You have items from {Object.keys(cartItems).length} different sellers. 
-                Each seller will be checked out separately to ensure proper payment processing.
-              </p>
-              <Button
-                variant="contained"
-                className="checkout-btn"
-                onClick={handleCheckout}
-              >
-                Checkout All Sellers
-              </Button>
-            </div>
-          )}
         </>
       ) : (
         <div className="empty-cart">
