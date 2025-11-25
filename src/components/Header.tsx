@@ -27,7 +27,9 @@ import "../css/Header.css";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase-config";
 import { useSearch } from "./SearchHandler";
+import { useUnreadMessages } from "../contexts/UnreadMessagesContext";
 import { doc, getDoc } from "firebase/firestore";
+import Badge from "@mui/material/Badge";
 
 interface UserProfile {
   username?: string;
@@ -43,6 +45,7 @@ const Header: React.FC = React.memo(() => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { setSearchQuery } = useSearch();
+  const { unreadCount } = useUnreadMessages();
 
   const categories = useMemo(
     () => [
@@ -236,7 +239,21 @@ const Header: React.FC = React.memo(() => {
                       onClick={handleMessagesClick}
                       aria-label="Messages"
                     >
-                      <MessageIcon />
+                      <Badge
+                        badgeContent={unreadCount > 0 ? unreadCount : 0}
+                        color="error"
+                        max={99}
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            fontSize: "0.7rem",
+                            height: "18px",
+                            minWidth: "18px",
+                            padding: "0 4px",
+                          },
+                        }}
+                      >
+                        <MessageIcon />
+                      </Badge>
                     </IconButton>
                     <IconButton
                       color="inherit"
@@ -380,7 +397,21 @@ const Header: React.FC = React.memo(() => {
                       className="header-action-icon-button"
                       aria-label="Messages"
                     >
-                      <MessageIcon />
+                      <Badge
+                        badgeContent={unreadCount > 0 ? unreadCount : 0}
+                        color="error"
+                        max={99}
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            fontSize: "0.7rem",
+                            height: "18px",
+                            minWidth: "18px",
+                            padding: "0 4px",
+                          },
+                        }}
+                      >
+                        <MessageIcon />
+                      </Badge>
                     </IconButton>
                     <Button
                       color="inherit"

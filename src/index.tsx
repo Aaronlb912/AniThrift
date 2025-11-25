@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SearchProvider from "./components/SearchHandler";
 import { AuthProvider } from "./components/userAuth";
+import { UnreadMessagesProvider } from "./contexts/UnreadMessagesContext";
 import CookieConsent from "./components/CookieConsent";
 
 // Lazy load components for code splitting
@@ -117,8 +118,9 @@ const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <SearchProvider>
-        <BrowserRouter>
+      <UnreadMessagesProvider>
+        <SearchProvider>
+          <BrowserRouter>
           <Header />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
@@ -247,6 +249,7 @@ root.render(
           <Footer />
         </BrowserRouter>
       </SearchProvider>
+      </UnreadMessagesProvider>
     </AuthProvider>
   </React.StrictMode>
 );

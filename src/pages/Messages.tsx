@@ -35,6 +35,7 @@ import {
   MessageHeader,
   TypingIndicator,
 } from "@minchat/react-chat-ui";
+import { useUnreadMessages } from "../contexts/UnreadMessagesContext";
 
 interface Conversation {
   id: string;
@@ -83,6 +84,7 @@ const Messages: React.FC = () => {
   const { userId: targetUserId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { markConversationAsRead } = useUnreadMessages();
 
   useEffect(() => {
     const auth = getAuth();
@@ -565,7 +567,7 @@ const Messages: React.FC = () => {
       // Don't clean up here - we want to keep listeners active
       // They'll be cleaned up on component unmount
     };
-  }, [selectedConversation?.messageThreadId]);
+  }, [selectedConversation?.messageThreadId, markConversationAsRead]);
 
   useEffect(() => {
     if (!selectedConversation?.messageThreadId) {
@@ -943,7 +945,13 @@ const Messages: React.FC = () => {
                 className={`conversation-item ${
                   selectedConversation?.id === conversation.id ? "active" : ""
                 }`}
-                onClick={() => setSelectedConversation(conversation)}
+                onClick={() => {
+                  setSelectedConversation(conversation);
+                  // Mark conversation as read when selected
+                  if (conversation.messageThreadId) {
+                    markConversationAsRead(conversation.messageThreadId);
+                  }
+                }}
               >
                 <div className="conversation-avatar">
                   {conversation.otherUserPhotoURL ? (
