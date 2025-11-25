@@ -103,6 +103,9 @@ const SettingsSellerDashboard: React.FC = () => {
           <li>
             <a href="/settings/stripe-account">Payment Setup</a>
           </li>
+          <li>
+            <a href="/addresses">Set Shipping Address</a>
+          </li>
         </ul>
       </div>
     </div>

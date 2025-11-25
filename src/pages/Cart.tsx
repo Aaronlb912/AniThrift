@@ -15,12 +15,18 @@ import "../css/Cart.css";
 
 interface CartItem {
   id: string;
+  itemId?: string;
   imageUrl: string;
   title: string;
   price: number;
   sellerId: string;
   sellerName: string;
   quantity: number;
+  shippingSummary?: {
+    payer: string;
+    weightTierId: string;
+    serviceId: string;
+  };
 }
 
 interface GroupedCartItems {
@@ -49,15 +55,40 @@ const CartPage: React.FC = () => {
     const cartRef = collection(db, "users", userId, "cart");
     const cartSnapshot = await getDocs(cartRef);
 
-    const items = cartSnapshot.docs.map((docSnapshot) => {
-      const itemData = docSnapshot.data();
-      return {
-        id: docSnapshot.id,
-        ...itemData,
-        sellerId: itemData.sellerId,
-        sellerName: itemData.sellerName,
-      };
-    });
+    // Fetch full item data including shipping info
+    const items = await Promise.all(
+      cartSnapshot.docs.map(async (docSnapshot) => {
+        const itemData = docSnapshot.data();
+        
+        // Fetch full item data if we have itemId
+        if (itemData.itemId) {
+          try {
+            const itemDoc = await getDoc(doc(db, "items", itemData.itemId));
+            if (itemDoc.exists()) {
+              const fullItemData = itemDoc.data();
+              return {
+                id: docSnapshot.id,
+                itemId: itemData.itemId,
+                ...itemData,
+                sellerId: itemData.sellerId,
+                sellerName: itemData.sellerName,
+                shippingSummary: fullItemData.shippingSummary || itemData.shippingSummary || null,
+              };
+            }
+          } catch (error) {
+            console.error("Error fetching item data:", error);
+          }
+        }
+        
+        return {
+          id: docSnapshot.id,
+          ...itemData,
+          sellerId: itemData.sellerId,
+          sellerName: itemData.sellerName,
+          shippingSummary: itemData.shippingSummary || null,
+        };
+      })
+    );
 
     const groupedItems = items.reduce((acc, item) => {
       if (!acc[item.sellerId]) {

@@ -45,6 +45,7 @@ const sections: Section[] = [
     title: "Selling",
     items: [
       { text: "Seller Dashboard", path: "/settings/seller-dashboard" },
+      { text: "Shipping Address", path: "/addresses" },
       { text: "Subscriptions", path: "/settings/subscriptions" },
       { text: "Donation Preferences", path: "/settings/donation-preferences" },
       { text: "Pending Donations", path: "/settings/pending-donations" },

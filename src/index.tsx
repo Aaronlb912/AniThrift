@@ -88,6 +88,7 @@ const SettingsInvoicedDonations = lazy(
 const SettingsBlockedUsers = lazy(
   () => import("./pages/SettingsBlockedUsers")
 );
+const AddressesPage = lazy(() => import("./components/Addresses"));
 const SettingsContentPreferences = lazy(
   () => import("./pages/SettingsContentPreferences")
 );
@@ -145,6 +146,7 @@ root.render(
                 path="/settings/account-settings"
                 element={<AccountSettings />}
               />
+              <Route path="/addresses" element={<AddressesPage />} />
               <Route path="/success" element={<PurchaseSuccess />} />
               <Route
                 path="/StripeOnboardingForm"

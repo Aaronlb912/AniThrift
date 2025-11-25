@@ -1,600 +1,580 @@
+"use strict";
 /**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ * Firebase Cloud Functions for AniThrift
  */
-const admin = require("firebase-admin");
-admin.initializeApp();
-
-const db = admin.firestore();
-const axios = require("axios");
+var _a;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const express = require("express");
-const app = express();
-app.use(express.json()); // This line is crucial
-
+const admin = require("firebase-admin");
 const functions = require("firebase-functions");
-const { onRequest } = require("firebase-functions/v2/https");
-
-const { defineSecret } = require("firebase-functions/params");
-const { error } = require("console");
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-// exports.helloWorld = (0, https_1.onRequest)(
-//   { secrets: [ebayAuthToken] },
-//   async (request, response) => {
-//     const oauthToken = ebayAuthToken;
-//     logger.info("Hello logs!", { structuredData: true });
-//     try {
-//       // Adjust this URL to match your actual backend endpoint
-//       const resp = await axios_1.default.get(
-//         "https://api.ebay.com/buy/browse/v1/item_summary/search?q=drone&limit=3",
-//         {
-//           headers: {
-//             Authorization: `Bearer ${oauthToken}`,
-//             "Content-Type": "application/json",
-//             // Include additional headers as required by the eBay API
-//           },
-//         }
-//       );
-//       if (!resp.data) throw new Error("Failed to fetch data");
-//       // const data = await response.json();
-//       // Assuming the response format matches eBay's, adjust as necessary
-//       // const items =
-//       //   data.findItemsByKeywordsResponse[0].searchResult[0].item || [];
-//       response.send(resp.data);
-//       // console.log("First ten items from eBay search:", items.slice(0, 10));
-//     } catch (error) {
-//       console.error("Error fetching eBay search results: ", error);
-//       response.send(error);
-//     }
-//   }
-// );
-// const getAccessToken = async (ebayClientSecret) => {
-//   let ebay = new Ebay({
-//     clientID: "Anithrif-Anithrif-PRD-b7fc0fe97-09fe34fa",
-//     clientSecret: ebayClientSecret,
-//     body: {
-//       grant_type: "client_credentials",
-//       //you may need to define the oauth scope
-//       scope: "https://api.ebay.com/oauth/api_scope",
-//     },
-//   });
-//   return ebay.getAccessToken().then(
-//     (data) => {
-//       return data;
-//     },
-//     (error) => {
-//       console.log(error);
-//     }
-//   );
-// };
+const stripe_1 = require("stripe");
+// Initialize Firebase Admin
+admin.initializeApp();
+// Initialize Stripe
+const stripe = new stripe_1.default(((_a = functions.config().stripe) === null || _a === void 0 ? void 0 : _a.secret_key) || process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2023-10-16" });
+// Get Shippo API Key (secure - only accessible server-side, never exposed to client)
+// Priority: 1. Firebase Functions config, 2. Environment variable
+// This is secure because functions.config() is only available in Cloud Functions runtime
+const getShippoApiKey = () => {
+    var _a;
+    return ((_a = functions.config().shippo) === null || _a === void 0 ? void 0 : _a.api_key) ||
+        process.env.SHIPPO_API_KEY ||
+        "";
+};
+const SHIPPO_API_URL = "https://api.goshippo.com";
 /**
- * const whitelistedIPs = [
-  '108.45.67.167',
-  '98.201.220.188',
-  '2601:2c1:c200:a::b',
-  '192.168.1.152',
-  'fe80::932:1e42:b462:c403%12',
-];
+ * Calculate shipping rates using Shippo API
+ *
+ * Request body:
+ * {
+ *   fromAddress: ShippingAddress,
+ *   toAddress: ShippingAddress,
+ *   parcel: { length, width, height, weight }
+ * }
  */
-// https://firebase.google.com/docs/functions/http-events?gen=2nd#node.js
-/**
- * to enable it for your domain
- * { cors: ['anithrift.com'] }
- */
-// exports.searchEbayItems = (0, https_1.onRequest)(
-//   { secrets: [ebayClientSecret] },
-//   async (req, res) => {
-//     res.set("Access-Control-Allow-Origin", "*");
-//     res.set("Accept", "Application/json");
-//     console.log("body", req.body);
-//     try {
-//       let parsedBody = await JSON.parse(req.body);
-//       console.log(parsedBody, parsedBody);
-//       let token = await getAccessToken(ebayClientSecret);
-//       const endpoint = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${parsedBody.query}`;
-//       const headers = {
-//         Authorization: `Bearer ${token.access_token}`,
-//         "Content-Type": "application/json",
-//         "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
-//         "Accept-Language": "en-US",
-//         "Accept-Charset": "utf-8",
-//         Accept: "application/json",
-//         LegacyUse: "true",
-//       };
-//       const response = await axios_1.default.get(endpoint, {
-//         headers: headers,
-//       });
-//       // Process and send the response data
-//       res.status(200).send(response.data);
-//     } catch (error) {
-//       console.log(JSON.stringify(error));
-//       res
-//         .status(500)
-//         .send({ error: error, message: "Failed to fetch data from eBay" });
-//     }
-//   }
-// );
-// const ip = req.ip;
-// if (whitelistedIPs.includes(ip as string)) {
-//   // IP is whitelisted, proceed with your function's logic
-//   res.set("Access-Control-Allow-Origin", "*");
-// } else {
-//   // IP is not whitelisted, send an appropriate response
-//   res.status(403).send('Access denied');
-// }
-//# sourceMappingURL=index.js.map
-// server.js
-
-const cors = require("cors")({ origin: true });
-const stripe = require("stripe")(
-  "sk_test_51OmlACB42524Tsr4u5DxNgH2OJluMx2gZa888g0TX5kAqLDlKs2LScFM3zmrK3MvjmuzPmxOl4pHPPQPWluPz2VK00cGhyFCZm"
-);
-
-exports.fetchStripeAccountInfo = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-    try {
-      const userId = req.query.userId; // Ensure you have a way to securely identify the user
-      const userRef = admin.firestore().collection("users").doc(userId);
-      const userDoc = await userRef.get();
-
-      if (!userDoc.exists) {
-        return res.status(404).send("User not found");
-      }
-
-      const stripeAccountId = userDoc.data().stripeAccountId;
-
-      // Fetch the Stripe account balance for the Connect account
-      const balance = await stripe.balance.retrieve({
-        stripeAccount: stripeAccountId,
-      });
-
-      let allTransactions = [];
-      let hasMore = true;
-      let startingAfter = null;
-
-      while (hasMore) {
-        let params = { limit: 100 };
-        if (startingAfter) {
-          params.starting_after = startingAfter;
-        }
-
-        const transactions = await stripe.balanceTransactions.list(params, {
-          stripeAccount: stripeAccountId,
-        });
-
-        allTransactions.push(...transactions.data);
-        hasMore = transactions.has_more;
-        if (hasMore && transactions.data.length > 0) {
-          startingAfter = transactions.data[transactions.data.length - 1].id;
-        }
-      }
-
-      // Optionally, filter transactions based on your criteria for "incoming" transactions
-      // const incomingTransactions = allTransactions.filter(transaction => ...);
-
-      const accountInfo = {
-        balance: balance.available.map((amt) => ({
-          currency: amt.currency,
-          amount: amt.amount,
-        })),
-        pending_balance: balance.pending.map((amt) => ({
-          currency: amt.currency,
-          amount: amt.amount,
-        })),
-        // If filtered, use incomingTransactions.length, otherwise allTransactions.length
-        transaction_count: allTransactions.length,
-      };
-
-      res.json(accountInfo);
-    } catch (error) {
-      console.error("Failed to fetch Stripe account info:", error);
-      res.status(500).send("Internal server error");
-    }
-  });
-});
-
-exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-    // Ensure that you're receiving a POST request
+exports.calculateShippoRates = (0, https_1.onRequest)({
+    cors: true,
+    region: "us-central1",
+    timeoutSeconds: 60,
+}, async (req, res) => {
     if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
-      return;
+        res.status(405).json({ error: "Method not allowed" });
+        return;
     }
-
+    const SHIPPO_API_KEY = getShippoApiKey();
+    if (!SHIPPO_API_KEY || SHIPPO_API_KEY === "") {
+        logger.error("Shippo API key not configured");
+        res.status(500).json({
+            error: "Shippo API key not configured. Please set shippo.api_key in Firebase Functions config.",
+        });
+        return;
+    }
     try {
-      const { cartItems, buyerId } = req.body;
-
-      // Check for cartItems in the request
-      if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-        throw new Error("cartItems is required and must be a non-empty array.");
-      }
-
-      // Validate buyerId
-      if (!buyerId) {
-        return res.status(400).send("buyerId is required.");
-      }
-
-      // Optionally verify the buyer's Firebase user ID if needed
-      // This step is optional and should be used according to your security requirements
-      const buyerExists = await checkIfUserExists(buyerId);
-
-      // Assuming the first cart item to determine the seller for simplification. Adjust as necessary.
-      const sellerStripeAccountId = await fetchSellerStripeAccountId(
-        cartItems[0].sellerId
-      );
-
-      if (!sellerStripeAccountId) {
-        throw new Error("Seller Stripe account ID not found");
-      }
-
-      const lineItems = cartItems.map((item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.title,
-            images: [item.imageUrl],
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }));
-
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: lineItems,
-        mode: "payment",
-        success_url: `http://localhost:3000/success`,
-        cancel_url: `http://localhost:3000/cart`,
-        payment_intent_data: {
-          application_fee_amount: 123, // Adjust your application fee
-          transfer_data: {
-            destination: sellerStripeAccountId,
-          },
-        },
-        metadata: {
-          buyerId,
-          cartItems: JSON.stringify(
-            cartItems.map((item) => ({
-              itemId: item.itemId, // Ensure each item has a unique identifier
-              quantity: item.quantity,
-            }))
-          ),
-        },
-      });
-
-      res.json({ url: session.url });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  });
-});
-
-async function fetchSellerStripeAccountId(sellerId) {
-  const sellerRef = admin.firestore().doc(`users/${sellerId}`);
-  const sellerSnap = await sellerRef.get();
-
-  if (!sellerSnap.exists) {
-    throw new Error("Seller not found");
-  }
-
-  const sellerData = sellerSnap.data();
-  return sellerData.stripeAccountId; // Ensure this is correctly pointing to where the Stripe account ID is stored
-}
-
-async function checkIfUserExists(userId) {
-  try {
-    await admin.auth().getUser(userId);
-    return true;
-  } catch (error) {
-    console.error("Error checking user existence:", error);
-    return false;
-  }
-}
-
-exports.submitFeedback = functions.https.onRequest(async (req, res) => {
-  const { userId, category, feedback } = req.body;
-
-  if (!userId || !category || !feedback) {
-    return res.status(400).send("Missing required fields");
-  }
-
-  try {
-    const feedbackRef = admin.firestore().collection("feedback").doc();
-    await feedbackRef.set({
-      userId,
-      category,
-      feedback,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    res.status(200).send("Feedback submitted successfully");
-  } catch (error) {
-    console.error("Error submitting feedback:", error);
-    res.status(500).send("Internal server error");
-  }
-});
-
-exports.stripeWebhook = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-    // console.log(JSON.stringify(req.body));
-
-    const event = req.body;
-
-    // Proceed only for checkout.session.completed events
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-
-      const { buyerId, cartItems } = session.metadata; // Make sure metadata is stored correctly during checkout session creation
-      const parsedCartItems = JSON.parse(cartItems); // Make sure metadata is stored correctly during checkout session creation
-
-      try {
-        await updateInventoryAndOrderStatus(parsedCartItems);
-        await emptyBuyersCart(buyerId, parsedCartItems);
-        await createOrderReferenceForBuyer(
-          buyerId,
-          parsedCartItems,
-          session.id
-        );
-        await sendEmailConfirmation(buyerId, parsedCartItems);
-        res.status(200).send({ received: true });
-      } catch (error) {
-        console.error("Failed to process purchase:", JSON.stringify(error));
-        res.status(500).send({ error: "Failed to process purchase" });
-      }
-    } else {
-      return res.status(200).send({ received: false });
-    }
-  });
-});
-
-async function updateInventoryAndOrderStatus(cartItems) {
-  // Assuming cartItems is an array of { itemId, quantity }
-
-  try {
-    const itemsToUpdate = cartItems.map((item) => {
-      return admin
-        .firestore()
-        .doc(`items/${item.itemId}`)
-        .get()
-        .then((doc) => {
-          if (!doc.exists) {
-            console.log(`Item ${item.itemId} not found`);
-            return null;
-          }
-          const itemData = doc.data();
-          const updatedQuantity = itemData.quantity - item.quantity;
-
-          const newData = {
-            ...itemData,
-            quantity: updatedQuantity,
-          };
-
-          // Update listingStatus to "sold" if the updated quantity is less than or equal to 0
-          if (updatedQuantity <= 0) {
-            newData.listingStatus = "sold"; // Ensure this field name matches your database schema
-          }
-
-          // Perform the update
-          return admin.firestore().doc(`items/${item.itemId}`).update(newData);
+        const { fromAddress, toAddress, parcel } = req.body;
+        if (!fromAddress || !toAddress || !parcel) {
+            res.status(400).json({ error: "Missing required fields" });
+            return;
+        }
+        // Create shipment request
+        const shipmentData = {
+            address_from: {
+                name: fromAddress.name,
+                street1: fromAddress.street1,
+                street2: fromAddress.street2 || "",
+                city: fromAddress.city,
+                state: fromAddress.state,
+                zip: fromAddress.zip,
+                country: fromAddress.country || "US",
+                phone: fromAddress.phone || "",
+                email: fromAddress.email || "",
+            },
+            address_to: {
+                name: toAddress.name,
+                street1: toAddress.street1,
+                street2: toAddress.street2 || "",
+                city: toAddress.city,
+                state: toAddress.state,
+                zip: toAddress.zip,
+                country: toAddress.country || "US",
+                phone: toAddress.phone || "",
+                email: toAddress.email || "",
+            },
+            parcels: [
+                {
+                    length: parcel.length.toString(),
+                    width: parcel.width.toString(),
+                    height: parcel.height.toString(),
+                    weight: parcel.weight.toString(),
+                    mass_unit: "oz",
+                    distance_unit: "in",
+                },
+            ],
+            async: false,
+        };
+        // Call Shippo API
+        const response = await fetch(`${SHIPPO_API_URL}/shipments`, {
+            method: "POST",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(shipmentData),
         });
-    });
-
-    await Promise.all(itemsToUpdate);
-  } catch (error) {
-    console.error("Error updating items:", error);
-  }
-}
-
-async function emptyBuyersCart(buyerId, cartItems) {
-  try {
-    // First, extract the item IDs from the cartItems
-    const purchasedItemIds = cartItems.map((item) => item.itemId);
-
-    const cartRef = admin
-      .firestore()
-      .collection("users")
-      .doc(buyerId)
-      .collection("cart");
-
-    // Firestore queries have a limitation on the 'in' operator to 10 items.
-    // You might need to segment the purchasedItemIds if there are more than 10.
-    const batchSize = 10;
-    for (let i = 0; i < purchasedItemIds.length; i += batchSize) {
-      const batchIds = purchasedItemIds.slice(i, i + batchSize);
-
-      // Fetch all cart items documents for the buyer matching the batch of IDs
-      const snapshot = await cartRef
-        .where(admin.firestore.FieldPath.documentId(), "in", batchIds)
-        .get();
-
-      if (!snapshot.empty) {
-        // Create a batch to perform deletion in one go
-        const batch = admin.firestore().batch();
-        snapshot.docs.forEach((doc) => {
-          batch.delete(doc.ref); // Schedule deletion of each document
+        if (!response.ok) {
+            const errorData = await response.json();
+            logger.error("Shippo API error:", errorData);
+            res.status(response.status).json({
+                error: "Failed to calculate shipping rates",
+                details: errorData,
+            });
+            return;
+        }
+        const shipment = await response.json();
+        // Get rates
+        const ratesResponse = await fetch(`${SHIPPO_API_URL}/shipments/${shipment.object_id}/rates`, {
+            method: "GET",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+            },
         });
-
-        await batch.commit(); // Execute the batch deletion
-        console.log("Cart items removed successfully for batch.");
-      }
+        if (!ratesResponse.ok) {
+            const errorData = await ratesResponse.json();
+            logger.error("Shippo rates API error:", errorData);
+            res.status(ratesResponse.status).json({
+                error: "Failed to get shipping rates",
+                details: errorData,
+            });
+            return;
+        }
+        const ratesData = await ratesResponse.json();
+        // Format rates for frontend
+        const rates = ratesData.results.map((rate) => {
+            var _a, _b;
+            return ({
+                object_id: rate.object_id,
+                amount: rate.amount,
+                currency: rate.currency,
+                provider: rate.provider,
+                servicelevel: {
+                    name: ((_a = rate.servicelevel) === null || _a === void 0 ? void 0 : _a.name) || rate.servicelevel_name || "Standard",
+                    token: ((_b = rate.servicelevel) === null || _b === void 0 ? void 0 : _b.token) || rate.servicelevel_token || "",
+                },
+                estimated_days: rate.estimated_days || null,
+                duration_terms: rate.duration_terms || null,
+            });
+        });
+        res.json({ rates });
     }
-    console.log("All cart items removed successfully.");
-    return true; // Indicate success
-  } catch (error) {
-    console.error("Error removing items from cart:", error);
-    return false; // Indicate failure
-  }
-}
-
-async function createOrderReferenceForBuyer(buyerId, cartItems, orderId) {
-  try {
-    const orderRef = admin
-      .firestore()
-      .collection("users")
-      .doc(buyerId)
-      .collection("orders")
-      .doc(orderId);
-    await orderRef.set({
-      cartItems,
-      orderId,
-      date: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    return true;
-  } catch (error) {
-    return error;
-  }
-}
-
-async function sendEmailConfirmation(buyerId, cartItems) {
-  // Implement your email sending logic here
-  // You can use Firebase Extensions or third-party services like SendGrid
-  return true;
-}
-
-exports.createStripeAccountOnFirstItem = functions.https.onRequest(
-  async (req, res) => {
-    cors(req, res, async () => {
-      const { item } = req.body;
-      const userId = item.sellerId; // Assuming item data includes a sellerId
-
-      // Retrieve user data
-      const userRef = admin.firestore().doc(`users/${userId}`);
-      const userSnap = await userRef.get();
-      if (!userSnap.exists) return null;
-
-      const user = userSnap.data();
-
-      // Check if the user already has a Stripe account
-      if (!user.stripeAccountId) {
-        // Create a new Stripe Connect account
+    catch (error) {
+        logger.error("Error calculating shipping rates:", error);
+        res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Calculate shipping rates for a seller (seller address fetched server-side for privacy)
+ *
+ * Request body:
+ * {
+ *   sellerId: string,
+ *   toAddress: ShippingAddress,
+ *   parcel: { length, width, height, weight }
+ * }
+ */
+exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    const SHIPPO_API_KEY = getShippoApiKey();
+    if (!SHIPPO_API_KEY || SHIPPO_API_KEY === "") {
+        logger.error("Shippo API key not configured");
+        res.status(500).json({
+            error: "Shippo API key not configured. Please set shippo.api_key in Firebase Functions config.",
+        });
+        return;
+    }
+    try {
+        const { sellerId, toAddress, parcel } = req.body;
+        if (!sellerId || !toAddress || !parcel) {
+            res.status(400).json({ error: "Missing required fields: sellerId, toAddress, parcel" });
+            return;
+        }
+        // Fetch seller's address server-side (never exposed to client)
+        const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+        if (!sellerDoc.exists) {
+            res.status(404).json({ error: "Seller not found" });
+            return;
+        }
+        const sellerData = sellerDoc.data();
+        const sellerAddressStr = (sellerData === null || sellerData === void 0 ? void 0 : sellerData.shipFromAddress) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.registrationAddress);
+        if (!sellerAddressStr) {
+            res.status(400).json({ error: "Seller has not set a shipping address" });
+            return;
+        }
+        // Parse seller address
+        const fromAddress = typeof sellerAddressStr === "string"
+            ? JSON.parse(sellerAddressStr)
+            : sellerAddressStr;
+        // Create shipment request
+        const shipmentData = {
+            address_from: {
+                name: fromAddress.name,
+                street1: fromAddress.street1,
+                street2: fromAddress.street2 || "",
+                city: fromAddress.city,
+                state: fromAddress.state,
+                zip: fromAddress.zip,
+                country: fromAddress.country || "US",
+                phone: fromAddress.phone || "",
+                email: fromAddress.email || "",
+            },
+            address_to: {
+                name: toAddress.name,
+                street1: toAddress.street1,
+                street2: toAddress.street2 || "",
+                city: toAddress.city,
+                state: toAddress.state,
+                zip: toAddress.zip,
+                country: toAddress.country || "US",
+                phone: toAddress.phone || "",
+                email: toAddress.email || "",
+            },
+            parcels: [
+                {
+                    length: parcel.length.toString(),
+                    width: parcel.width.toString(),
+                    height: parcel.height.toString(),
+                    weight: parcel.weight.toString(),
+                    mass_unit: "oz",
+                    distance_unit: "in",
+                },
+            ],
+            async: false,
+        };
+        // Call Shippo API
+        const response = await fetch(`${SHIPPO_API_URL}/shipments`, {
+            method: "POST",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(shipmentData),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            logger.error("Shippo API error:", errorData);
+            res.status(response.status).json({
+                error: "Failed to calculate shipping rates",
+                details: errorData,
+            });
+            return;
+        }
+        const shipment = await response.json();
+        // Get rates
+        const ratesResponse = await fetch(`${SHIPPO_API_URL}/shipments/${shipment.object_id}/rates`, {
+            method: "GET",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+            },
+        });
+        if (!ratesResponse.ok) {
+            const errorData = await ratesResponse.json();
+            logger.error("Shippo rates API error:", errorData);
+            res.status(ratesResponse.status).json({
+                error: "Failed to get shipping rates",
+                details: errorData,
+            });
+            return;
+        }
+        const ratesData = await ratesResponse.json();
+        // Format rates for frontend (seller address never included in response)
+        const rates = ratesData.results.map((rate) => {
+            var _a, _b;
+            return ({
+                object_id: rate.object_id,
+                amount: rate.amount,
+                currency: rate.currency,
+                provider: rate.provider,
+                servicelevel: {
+                    name: ((_a = rate.servicelevel) === null || _a === void 0 ? void 0 : _a.name) || rate.servicelevel_name || "Standard",
+                    token: ((_b = rate.servicelevel) === null || _b === void 0 ? void 0 : _b.token) || rate.servicelevel_token || "",
+                },
+                estimated_days: rate.estimated_days || null,
+                duration_terms: rate.duration_terms || null,
+            });
+        });
+        res.json({ rates });
+    }
+    catch (error) {
+        logger.error("Error calculating shipping rates:", error);
+        res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Create a shipping label using Shippo API
+ *
+ * Request body:
+ * {
+ *   rateId: string,
+ *   orderId: string,
+ *   metadata?: object
+ * }
+ */
+exports.createShippoLabel = (0, https_1.onRequest)({
+    cors: true,
+    region: "us-central1",
+    timeoutSeconds: 60,
+}, async (req, res) => {
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    const SHIPPO_API_KEY = getShippoApiKey();
+    if (!SHIPPO_API_KEY || SHIPPO_API_KEY === "") {
+        logger.error("Shippo API key not configured");
+        res.status(500).json({
+            error: "Shippo API key not configured. Please set shippo.api_key in Firebase Functions config.",
+        });
+        return;
+    }
+    try {
+        const { rateId, orderId, metadata } = req.body;
+        if (!rateId || !orderId) {
+            res.status(400).json({ error: "Missing required fields: rateId, orderId" });
+            return;
+        }
+        // Create transaction (purchase label)
+        const transactionData = {
+            rate: rateId,
+            async: false,
+            metadata: metadata || {},
+        };
+        const response = await fetch(`${SHIPPO_API_URL}/transactions`, {
+            method: "POST",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(transactionData),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            logger.error("Shippo transaction error:", errorData);
+            res.status(response.status).json({
+                error: "Failed to create shipping label",
+                details: errorData,
+            });
+            return;
+        }
+        const transaction = await response.json();
+        // Update order in Firestore with label information
         try {
-          const account = await stripe.accounts.create({
-            type: "express",
-            country: "US",
-            email: user.email,
-            capabilities: {
-              card_payments: { requested: true },
-              transfers: { requested: true },
-            },
-            business_type: "individual",
-            business_profile: {
-              url: `https://www.anithrift.com/${userId}`,
-            },
-          });
-
-          // Update user document with Stripe account ID
-          await userRef.update({ stripeAccountId: account.id });
-          console.log(
-            `Stripe account created with ID: ${account.id} for user: ${userId}`
-          );
-          return res
-            .status(200)
-            .send({ status: "account successfully created" });
-        } catch (error) {
-          return res.status(500).send({
-            error: `Error creating Stripe account for user ${userId}:`,
-          });
+            const orderRef = admin.firestore().collection("orders").doc(orderId);
+            await orderRef.update({
+                shippingLabel: {
+                    label_url: transaction.label_url,
+                    tracking_number: transaction.tracking_number,
+                    tracking_url_provider: transaction.tracking_url_provider,
+                    shippo_transaction_id: transaction.object_id,
+                    created_at: admin.firestore.FieldValue.serverTimestamp(),
+                },
+                status: "shipped",
+            });
         }
-      } else {
-        return res
-          .status(200)
-          .send(`User ${userId} already has a Stripe account.`);
-      }
-    });
-  }
-);
-
-exports.completeStripeOnboarding = functions.https.onRequest(
-  async (req, res) => {
-    cors(req, res, async () => {
-      const { userId } = req.body;
-      admin
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .get()
-        .then(async (userSnapshot) => {
-          if (!userSnapshot.exists) {
-            return res.status(404).send("User not found");
-          }
-
-          const userData = userSnapshot.data();
-          // Assume userData contains a field named 'stripeAccountId'
-          let stripeAccountId = userData.stripeAccountId;
-
-          if (!stripeAccountId) {
-            // Create a new Stripe account if it doesn't exist
-            const account = await stripe.accounts.create({
-              /* Account creation params */
-            });
-            // Save the Stripe account ID to Firestore
-            await admin.firestore().collection("users").doc(userId).update({
-              stripeAccountId: account.id,
-            });
-            stripeAccountId = account.id;
-          }
-
-          // Generate an account link for onboarding
-          const accountLink = await stripe.accountLinks.create({
-            account: stripeAccountId,
-            refresh_url: "http://localhost:3000/reauth",
-            return_url: "http://localhost:3000/",
-            type: "account_onboarding",
-          });
-
-          res.json({ url: accountLink.url });
-        })
-        .catch((error) => {
-          res.status(500).send("Internal server error");
+        catch (firestoreError) {
+            logger.error("Error updating order in Firestore:", firestoreError);
+            // Continue even if Firestore update fails
+        }
+        res.json({
+            label_url: transaction.label_url,
+            tracking_number: transaction.tracking_number,
+            tracking_url_provider: transaction.tracking_url_provider,
+            shippo_transaction_id: transaction.object_id,
         });
-    });
-  }
-);
-
-
-const APP_ID = "1051253752632272";
-const APP_SECRET = "4c96a3feadf40491781d3cd11804bfd4";
-
-exports.fetchFacebookMarketplace = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-    if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
-      return;
     }
-
-    try {
-      // Step 1: Get Access Token
-      const tokenResponse = await fetch(
-        `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&client_secret=${APP_SECRET}&grant_type=client_credentials`
-      );
-      const tokenData = await tokenResponse.json();
-      const accessToken = tokenData.access_token;
-
-      if (!accessToken) {
-        throw new Error("Unable to fetch access token");
-      }
-
-      // Step 2: Fetch Facebook Marketplace Listings
-      const marketplaceResponse = await fetch(
-        `https://graph.facebook.com/v12.0/marketplace?access_token=${accessToken}`
-      );
-      const marketplaceData = await marketplaceResponse.json();
-
-      if (!marketplaceData) {
-        throw new Error("Unable to fetch marketplace data");
-      }
-
-      console.log("Items to return:", marketplaceData);
-      res.status(200).send(marketplaceData);
-    } catch (error) {
-      console.error("Error with Facebook Graph API:", error);
-      res.status(500).send("Error fetching data from Facebook Marketplace");
+    catch (error) {
+        logger.error("Error creating shipping label:", error);
+        res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+        });
     }
-  });
 });
+/**
+ * Get tracking information for a shipment
+ *
+ * Request body:
+ * {
+ *   trackingNumber: string,
+ *   carrier: string (e.g., "usps", "ups", "fedex")
+ * }
+ */
+exports.getShippoTracking = (0, https_1.onRequest)({
+    cors: true,
+    region: "us-central1",
+    timeoutSeconds: 60,
+}, async (req, res) => {
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    const SHIPPO_API_KEY = getShippoApiKey();
+    if (!SHIPPO_API_KEY || SHIPPO_API_KEY === "") {
+        logger.error("Shippo API key not configured");
+        res.status(500).json({
+            error: "Shippo API key not configured. Please set shippo.api_key in Firebase Functions config.",
+        });
+        return;
+    }
+    try {
+        const { trackingNumber, carrier } = req.body;
+        if (!trackingNumber || !carrier) {
+            res.status(400).json({ error: "Missing required fields: trackingNumber, carrier" });
+            return;
+        }
+        // Create tracking request
+        const trackingData = {
+            carrier: carrier.toLowerCase(),
+            tracking_number: trackingNumber,
+        };
+        const response = await fetch(`${SHIPPO_API_URL}/tracks`, {
+            method: "POST",
+            headers: {
+                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(trackingData),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            logger.error("Shippo tracking API error:", errorData);
+            res.status(response.status).json({
+                error: "Failed to get tracking information",
+                details: errorData,
+            });
+            return;
+        }
+        const tracking = await response.json();
+        res.json({
+            tracking_status: tracking.tracking_status,
+            tracking_history: tracking.tracking_history || [],
+            eta: tracking.eta,
+            carrier: tracking.carrier,
+        });
+    }
+    catch (error) {
+        logger.error("Error getting tracking info:", error);
+        res.status(500).json({
+            error: "Internal server error",
+            message: error.message,
+        });
+    }
+});
+/**
+ * Create Stripe checkout session with shipping costs included
+ *
+ * Request body:
+ * {
+ *   cartItems: Array,
+ *   buyerId: string,
+ *   shippingAddress: ShippingAddress,
+ *   shippingRates: Record<string, ShippoRate>,
+ *   shippingCost: number,
+ *   itemTotal: number
+ * }
+ */
+exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    if (req.method !== "POST") {
+        res.status(405).json({ error: "Method not allowed" });
+        return;
+    }
+    try {
+        const { cartItems, buyerId, shippingAddress, shippingRates, shippingCost = 0, itemTotal, } = req.body;
+        if (!cartItems || !buyerId) {
+            res.status(400).json({ error: "Missing required fields" });
+            return;
+        }
+        // Calculate total
+        const calculatedItemTotal = itemTotal || cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+        const totalAmount = calculatedItemTotal + (shippingCost || 0);
+        // Create line items for Stripe
+        const lineItems = [];
+        // Add item line items
+        cartItems.forEach((item) => {
+            lineItems.push({
+                price_data: {
+                    currency: "usd",
+                    product_data: {
+                        name: item.title,
+                        images: item.imageUrl ? [item.imageUrl] : [],
+                    },
+                    unit_amount: Math.round(item.price * 100), // Convert to cents
+                },
+                quantity: item.quantity,
+            });
+        });
+        // Add shipping as a line item if there's a shipping cost
+        if (shippingCost > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: "usd",
+                    product_data: {
+                        name: "Shipping",
+                        description: "Shipping and handling",
+                    },
+                    unit_amount: Math.round(shippingCost * 100), // Convert to cents
+                },
+                quantity: 1,
+            });
+        }
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: lineItems,
+            mode: "payment",
+            success_url: `${req.headers.origin || "https://anithrift.com"}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${req.headers.origin || "https://anithrift.com"}/cart`,
+            metadata: {
+                buyerId,
+                cartItems: JSON.stringify(cartItems),
+                shippingAddress: JSON.stringify(shippingAddress || {}),
+                shippingRates: JSON.stringify(shippingRates || {}),
+                shippingCost: shippingCost.toString(),
+                itemTotal: calculatedItemTotal.toString(),
+            },
+        });
+        // Store order information in Firestore (optional, for tracking)
+        try {
+            const orderRef = admin.firestore().collection("orders").doc();
+            await orderRef.set({
+                buyerId,
+                cartItems,
+                shippingAddress: shippingAddress || {},
+                shippingRates: shippingRates || {},
+                shippingCost,
+                itemTotal: calculatedItemTotal,
+                totalAmount,
+                stripeSessionId: session.id,
+                status: "pending",
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+        catch (firestoreError) {
+            logger.error("Error storing order in Firestore:", firestoreError);
+            // Continue even if Firestore update fails
+        }
+        res.json({ url: session.url, sessionId: session.id });
+    }
+    catch (error) {
+        logger.error("Error creating checkout session:", error);
+        res.status(500).json({
+            error: "Failed to create checkout session",
+            message: error.message,
+        });
+    }
+});
+//# sourceMappingURL=index.js.map

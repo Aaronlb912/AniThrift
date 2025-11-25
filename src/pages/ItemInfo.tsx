@@ -219,6 +219,7 @@ const ItemInfo = () => {
         quantity: selectedQuantity,
         sellerId: item.sellerId,
         sellerName: seller.name,
+        shippingSummary: (item as any).shippingSummary || null,
         addedOn: new Date(),
       });
     } else {
