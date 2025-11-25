@@ -62,6 +62,12 @@ const Messages: React.FC = () => {
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOtherTyping, setIsOtherTyping] = useState<boolean>(false);
+  
+  // Cache messages per thread to avoid reloading
+  const messagesCache = useRef<Record<string, Message[]>>({});
+  // Store active listeners to manage them properly
+  const messageListeners = useRef<Record<string, () => void>>({});
+  const typingListeners = useRef<Record<string, () => void>>({});
 
   // Ensure messages is always an array
   useEffect(() => {
@@ -91,12 +97,97 @@ const Messages: React.FC = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Find existing conversation between two users
+  const findExistingConversation = useCallback(async (userId1: string, userId2: string) => {
+    // First, check user1's conversations
+    const user1ConvsRef = collection(db, "users", userId1, "conversations");
+    const user1Snapshot = await getDocs(user1ConvsRef);
+
+    for (const convDoc of user1Snapshot.docs) {
+      const convData = convDoc.data();
+      if (convData.otherUserId === userId2) {
+        const otherUserDoc = await getDoc(doc(db, "users", userId2));
+        const otherUsername = otherUserDoc.data()?.username || "User";
+        return {
+          id: convDoc.id,
+          username: otherUsername,
+          userId: userId2,
+          messageThreadId: convData.messageThreadId,
+        };
+      }
+    }
+
+    // Also check message_threads collection directly for threads with these participants
+    // This prevents race conditions where conversations might exist but not be found in user's collection
+    const threadsRef = collection(db, "message_threads");
+    const threadsSnapshot = await getDocs(threadsRef);
+    
+    for (const threadDoc of threadsSnapshot.docs) {
+      const threadData = threadDoc.data();
+      const participants = threadData.participants || [];
+      
+      // Check if both users are in the participants array
+      if (
+        participants.includes(userId1) &&
+        participants.includes(userId2) &&
+        participants.length === 2
+      ) {
+        // Found existing thread, now check if conversation exists in user's collection
+        const threadId = threadDoc.id;
+        const user1ConvRef = doc(db, "users", userId1, "conversations", threadId);
+        const user1ConvSnap = await getDoc(user1ConvRef);
+        
+        if (user1ConvSnap.exists()) {
+          const convData = user1ConvSnap.data();
+          const otherUserDoc = await getDoc(doc(db, "users", userId2));
+          const otherUsername = otherUserDoc.data()?.username || "User";
+          return {
+            id: threadId,
+            username: otherUsername,
+            userId: userId2,
+            messageThreadId: threadId,
+          };
+        } else {
+          // Thread exists but conversation doc is missing, recreate it
+          const otherUserDoc = await getDoc(doc(db, "users", userId2));
+          const otherUsername = otherUserDoc.data()?.username || "User";
+          const currentUserDoc = await getDoc(doc(db, "users", userId1));
+          const currentUsername = currentUserDoc.data()?.username || "User";
+          
+          // Recreate conversation documents for both users
+          await setDoc(doc(db, "users", userId1, "conversations", threadId), {
+            otherUserId: userId2,
+            otherUsername: otherUsername,
+            messageThreadId: threadId,
+            lastMessageTimestamp: threadData.createdAt || serverTimestamp(),
+          });
+          
+          await setDoc(doc(db, "users", userId2, "conversations", threadId), {
+            otherUserId: userId1,
+            otherUsername: currentUsername,
+            messageThreadId: threadId,
+            lastMessageTimestamp: threadData.createdAt || serverTimestamp(),
+          });
+          
+          return {
+            id: threadId,
+            username: otherUsername,
+            userId: userId2,
+            messageThreadId: threadId,
+          };
+        }
+      }
+    }
+    
+    return null;
+  }, []);
+
   // Function to start a new conversation
   const startNewConversation = useCallback(
     async (otherUserId: string, otherUsername: string) => {
       if (!user?.uid) return null;
 
-      // Check if conversation already exists
+      // Check if conversation already exists (with improved checking)
       const existingConv = await findExistingConversation(
         user.uid,
         otherUserId
@@ -105,6 +196,62 @@ const Messages: React.FC = () => {
         return existingConv;
       }
 
+      // Double-check by querying message_threads with a where clause to prevent race conditions
+      const threadsRef = collection(db, "message_threads");
+      const threadsSnapshot = await getDocs(threadsRef);
+      
+      // Check for existing thread with these exact participants
+      for (const threadDoc of threadsSnapshot.docs) {
+        const threadData = threadDoc.data();
+        const participants = threadData.participants || [];
+        
+        if (
+          participants.includes(user.uid) &&
+          participants.includes(otherUserId) &&
+          participants.length === 2
+        ) {
+          // Found existing thread, return it
+          const threadId = threadDoc.id;
+          const otherUserDoc = await getDoc(doc(db, "users", otherUserId));
+          const otherUsernameFromDoc = otherUserDoc.data()?.username || otherUsername;
+          const currentUserDoc = await getDoc(doc(db, "users", user.uid));
+          const currentUsername = currentUserDoc.data()?.username || "User";
+          
+          // Ensure conversation documents exist
+          const user1ConvRef = doc(db, "users", user.uid, "conversations", threadId);
+          const user1ConvSnap = await getDoc(user1ConvRef);
+          
+          if (!user1ConvSnap.exists()) {
+            await setDoc(user1ConvRef, {
+              otherUserId: otherUserId,
+              otherUsername: otherUsernameFromDoc,
+              messageThreadId: threadId,
+              lastMessageTimestamp: threadData.createdAt || serverTimestamp(),
+            });
+          }
+          
+          const user2ConvRef = doc(db, "users", otherUserId, "conversations", threadId);
+          const user2ConvSnap = await getDoc(user2ConvRef);
+          
+          if (!user2ConvSnap.exists()) {
+            await setDoc(user2ConvRef, {
+              otherUserId: user.uid,
+              otherUsername: currentUsername,
+              messageThreadId: threadId,
+              lastMessageTimestamp: threadData.createdAt || serverTimestamp(),
+            });
+          }
+          
+          return {
+            id: threadId,
+            username: otherUsernameFromDoc,
+            userId: otherUserId,
+            messageThreadId: threadId,
+          };
+        }
+      }
+
+      // No existing conversation found, create a new one
       // Get current user's username
       const currentUserDoc = await getDoc(doc(db, "users", user.uid));
       const currentUsername = currentUserDoc.data()?.username || "User";
@@ -141,7 +288,7 @@ const Messages: React.FC = () => {
         messageThreadId: threadId,
       };
     },
-    [user]
+    [user, findExistingConversation]
   );
 
   // Fetch blocked users
@@ -221,35 +368,20 @@ const Messages: React.FC = () => {
         );
         setBlockedByUsers((prev) => prev);
 
-        await deleteConversation(conversation.id, conversation.messageThreadId);
-
+        // Stop typing status when blocking
         if (conversation.messageThreadId) {
-          await deleteDoc(
-            doc(
-              db,
-              "users",
-              userIdToBlock,
-              "conversations",
-              conversation.messageThreadId
-            )
-          );
-
           await updateTypingStatus(conversation.messageThreadId, user.uid, false);
           await updateTypingStatus(
             conversation.messageThreadId,
             userIdToBlock,
             false
           );
-
-          await deleteDoc(
-            doc(db, "message_threads", conversation.messageThreadId)
-          );
         }
       } catch (error) {
         console.error("Error blocking user:", error);
       }
     },
-    [user, deleteConversation, updateTypingStatus]
+    [user, updateTypingStatus]
   );
 
   // Unblock a user
@@ -283,26 +415,6 @@ const Messages: React.FC = () => {
     [user, blockedUsers]
   );
 
-  // Find existing conversation between two users
-  const findExistingConversation = async (userId1: string, userId2: string) => {
-    const user1ConvsRef = collection(db, "users", userId1, "conversations");
-    const snapshot = await getDocs(user1ConvsRef);
-
-    for (const convDoc of snapshot.docs) {
-      const convData = convDoc.data();
-      if (convData.otherUserId === userId2) {
-        const otherUserDoc = await getDoc(doc(db, "users", userId2));
-        const otherUsername = otherUserDoc.data()?.username || "User";
-        return {
-          id: convDoc.id,
-          username: otherUsername,
-          userId: userId2,
-          messageThreadId: convData.messageThreadId,
-        };
-      }
-    }
-    return null;
-  };
 
   // Fetch user conversations
   const fetchUserConversations = useCallback(
@@ -393,7 +505,7 @@ const Messages: React.FC = () => {
     [blockedUsers, blockedByUsers]
   );
 
-  // Listen to messages in real-time
+  // Listen to messages in real-time with caching
   useEffect(() => {
     if (!selectedConversation?.messageThreadId) {
       setMessages([]);
@@ -401,33 +513,58 @@ const Messages: React.FC = () => {
       return;
     }
 
-    const messagesRef = collection(
-      db,
-      "message_threads",
-      selectedConversation.messageThreadId,
-      "messages"
-    );
-    const q = query(messagesRef, orderBy("timestamp", "asc"));
+    const threadId = selectedConversation.messageThreadId;
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs: Message[] = snapshot.docs
-        .map((doc) => {
-          const data = doc.data();
-          if (!doc.id || !data) {
-            return null;
-          }
-          return {
-            id: doc.id,
-            text: data.text || "",
-            senderId: data.senderId || "",
-            timestamp: data.timestamp,
-          };
-        })
-        .filter((msg): msg is Message => msg !== null); // Filter out null messages
-      setMessages(msgs);
-    });
+    // If we have cached messages, set them immediately
+    if (messagesCache.current[threadId]) {
+      setMessages(messagesCache.current[threadId]);
+    } else {
+      setMessages([]);
+    }
 
-    return () => unsubscribe();
+    // Only create a new listener if one doesn't exist for this thread
+    if (!messageListeners.current[threadId]) {
+      const messagesRef = collection(
+        db,
+        "message_threads",
+        threadId,
+        "messages"
+      );
+      const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const msgs: Message[] = snapshot.docs
+          .map((doc) => {
+            const data = doc.data();
+            if (!doc.id || !data) {
+              return null;
+            }
+            return {
+              id: doc.id,
+              text: data.text || "",
+              senderId: data.senderId || "",
+              timestamp: data.timestamp,
+            };
+          })
+          .filter((msg): msg is Message => msg !== null);
+        
+        // Cache the messages
+        messagesCache.current[threadId] = msgs;
+        
+        // Only update state if this is the currently selected conversation
+        if (selectedConversation?.messageThreadId === threadId) {
+          setMessages(msgs);
+        }
+      });
+
+      messageListeners.current[threadId] = unsubscribe;
+    }
+
+    // Cleanup: only remove listener if component unmounts, not when switching conversations
+    return () => {
+      // Don't clean up here - we want to keep listeners active
+      // They'll be cleaned up on component unmount
+    };
   }, [selectedConversation?.messageThreadId]);
 
   useEffect(() => {
@@ -436,27 +573,70 @@ const Messages: React.FC = () => {
       return;
     }
 
-    const threadRef = doc(db, "message_threads", selectedConversation.messageThreadId);
-    const unsubscribe = onSnapshot(threadRef, (snapshot) => {
-      const data = snapshot.data();
-      const typingStatus = data?.typingStatus || {};
-      if (selectedConversation?.userId) {
-        setIsOtherTyping(Boolean(typingStatus[selectedConversation.userId]));
-      } else {
-        setIsOtherTyping(false);
-      }
-    });
+    const threadId = selectedConversation.messageThreadId;
 
-    return () => unsubscribe();
+    // Only create a new typing listener if one doesn't exist for this thread
+    if (!typingListeners.current[threadId]) {
+      const threadRef = doc(db, "message_threads", threadId);
+      const unsubscribe = onSnapshot(threadRef, (snapshot) => {
+        const data = snapshot.data();
+        const typingStatus = data?.typingStatus || {};
+        // Only update if this is still the selected conversation
+        if (selectedConversation?.messageThreadId === threadId && selectedConversation?.userId) {
+          setIsOtherTyping(Boolean(typingStatus[selectedConversation.userId]));
+        }
+      });
+
+      typingListeners.current[threadId] = unsubscribe;
+    } else {
+      // Update typing status immediately for the current conversation
+      const threadRef = doc(db, "message_threads", threadId);
+      getDoc(threadRef).then((snapshot) => {
+        const data = snapshot.data();
+        const typingStatus = data?.typingStatus || {};
+        // Only update if this is still the selected conversation
+        if (selectedConversation?.messageThreadId === threadId) {
+          if (selectedConversation?.userId) {
+            setIsOtherTyping(Boolean(typingStatus[selectedConversation.userId]));
+          } else {
+            setIsOtherTyping(false);
+          }
+        }
+      });
+    }
+
+    return () => {
+      // Don't clean up here - keep listeners active
+    };
   }, [selectedConversation?.messageThreadId, selectedConversation?.userId]);
 
+  // Cleanup all listeners and typing status on unmount
   useEffect(() => {
     return () => {
-      if (user?.uid && selectedConversation?.messageThreadId) {
-        updateTypingStatus(selectedConversation.messageThreadId, user.uid, false);
+      // Clean up all message listeners
+      Object.values(messageListeners.current).forEach((unsubscribe) => {
+        if (typeof unsubscribe === "function") {
+          unsubscribe();
+        }
+      });
+      messageListeners.current = {};
+
+      // Clean up all typing listeners
+      Object.values(typingListeners.current).forEach((unsubscribe) => {
+        if (typeof unsubscribe === "function") {
+          unsubscribe();
+        }
+      });
+      typingListeners.current = {};
+
+      // Clear typing status for all active threads
+      if (user?.uid) {
+        Object.keys(messagesCache.current).forEach((threadId) => {
+          updateTypingStatus(threadId, user.uid, false);
+        });
       }
     };
-  }, [selectedConversation?.messageThreadId, updateTypingStatus, user?.uid]);
+  }, [user?.uid, updateTypingStatus]);
 
   // Fetch blocked users when user is set
   useEffect(() => {
@@ -805,25 +985,6 @@ const Messages: React.FC = () => {
                     } as any)}
                   />
                   <div className="conversation-actions">
-                    <button
-                      className="delete-conversation-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this conversation?"
-                          )
-                        ) {
-                          deleteConversation(
-                            selectedConversation.id,
-                            selectedConversation.messageThreadId
-                          );
-                        }
-                      }}
-                      title="Delete conversation"
-                    >
-                      🗑️
-                    </button>
                     {blockedUsers.includes(selectedConversation.userId) ? (
                       <button
                         className="unblock-user-btn"
