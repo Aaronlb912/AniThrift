@@ -21,6 +21,7 @@ const ItemListing = lazy(() => import("./pages/ItemInfo"));
 const Cart = lazy(() => import("./pages/Cart"));
 const EditItem = lazy(() => import("./pages/EditItem"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const SellerReviews = lazy(() => import("./pages/SellerReviews"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Checkout = lazy(() => import("./pages/CheckOut"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
@@ -134,6 +135,7 @@ root.render(
               <Route path="/cart" element={<Cart />} />
               <Route path="/edit-item/:id" element={<EditItem />} />
               <Route path="/user/:username" element={<PublicProfile />} />
+              <Route path="/user/:username/reviews" element={<SellerReviews />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:userId" element={<Messages />} />
               <Route path="/checkout" element={<Checkout />} />

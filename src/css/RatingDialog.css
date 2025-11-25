@@ -57,3 +57,28 @@
   margin-top: 10px;
 }
 
+.review-text-field {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.existing-review {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.review-label {
+  font-weight: 600;
+  color: var(--font-color-dark);
+  margin-bottom: 8px;
+}
+
+.review-text {
+  color: #555;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+

@@ -6,6 +6,7 @@ import {
   DialogActions,
   Button,
   Typography,
+  TextField,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
@@ -14,11 +15,12 @@ import "../css/RatingDialog.css";
 interface RatingDialogProps {
   open: boolean;
   onClose: () => void;
-  onRate: (rating: number) => void;
+  onRate: (rating: number, review?: string) => void;
   sellerName: string;
   itemName: string;
   alreadyRated?: boolean;
   existingRating?: number;
+  existingReview?: string;
 }
 
 const RatingDialog: React.FC<RatingDialogProps> = ({
@@ -29,9 +31,11 @@ const RatingDialog: React.FC<RatingDialogProps> = ({
   itemName,
   alreadyRated = false,
   existingRating = 0,
+  existingReview = "",
 }) => {
   const [hoveredStar, setHoveredStar] = useState(0);
   const [selectedRating, setSelectedRating] = useState(existingRating || 0);
+  const [reviewText, setReviewText] = useState(existingReview || "");
 
   const handleStarClick = (rating: number) => {
     if (!alreadyRated) {
@@ -41,7 +45,7 @@ const RatingDialog: React.FC<RatingDialogProps> = ({
 
   const handleSubmit = () => {
     if (selectedRating > 0 && !alreadyRated) {
-      onRate(selectedRating);
+      onRate(selectedRating, reviewText.trim() || undefined);
       onClose();
     }
   };
@@ -49,6 +53,7 @@ const RatingDialog: React.FC<RatingDialogProps> = ({
   const handleClose = () => {
     setSelectedRating(existingRating || 0);
     setHoveredStar(0);
+    setReviewText(existingReview || "");
     onClose();
   };
 
@@ -91,6 +96,31 @@ const RatingDialog: React.FC<RatingDialogProps> = ({
             <Typography variant="body2" className="rating-text">
               {selectedRating} out of 5 stars
             </Typography>
+          )}
+          {!alreadyRated && (
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Write a review (optional)"
+              placeholder="Share your experience with this seller..."
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              variant="outlined"
+              className="review-text-field"
+              inputProps={{ maxLength: 1000 }}
+              helperText={`${reviewText.length}/1000 characters`}
+            />
+          )}
+          {alreadyRated && existingReview && (
+            <div className="existing-review">
+              <Typography variant="body2" className="review-label">
+                Your Review:
+              </Typography>
+              <Typography variant="body2" className="review-text">
+                {existingReview}
+              </Typography>
+            </div>
           )}
         </div>
       </DialogContent>

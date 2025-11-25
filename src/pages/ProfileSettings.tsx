@@ -45,6 +45,9 @@ const ProfileSettings = () => {
         >
           <ListItemText primary="Communication Preferences" />
         </ListItem>
+        <ListItem button component={Link} to="/settings/content-preferences">
+          <ListItemText primary="Content Preferences" />
+        </ListItem>
         <ListItem button component={Link} to="/settings/blocked-users">
           <ListItemText primary="Blocked Users" />
         </ListItem>
@@ -57,6 +60,9 @@ const ProfileSettings = () => {
         <h3>Selling</h3>
         <ListItem button component={Link} to="/settings/seller-dashboard">
           <ListItemText primary="Seller Dashboard" />
+        </ListItem>
+        <ListItem button component={Link} to="/addresses">
+          <ListItemText primary="Shipping Address" />
         </ListItem>
         <ListItem button component={Link} to="/settings/subscriptions">
           <ListItemText primary="Subscriptions" />

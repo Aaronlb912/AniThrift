@@ -8,8 +8,11 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
+  limit,
 } from "firebase/firestore";
-import "../css/Profile.css"; // You might want to reuse or create a new stylesheet
+import "../css/Profile.css";
+import "../css/Reviews.css";
 import StarRating from "../components/StarRating";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -22,6 +25,8 @@ const PublicProfile: React.FC = () => {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [recentReviews, setRecentReviews] = useState<any[]>([]);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +82,7 @@ const PublicProfile: React.FC = () => {
 
         await fetchUserItems(userId);
         await fetchSoldItems(userId);
+        await fetchRecentReviews(userId);
       } catch (error) {
         console.error("Error loading seller profile:", error);
         navigate("/seller-not-found", { replace: true });
@@ -120,6 +126,31 @@ const PublicProfile: React.FC = () => {
   const fetchSoldItems = async (uid: string) => {
     // Placeholder for sold items fetch
     setSoldItems([]);
+  };
+
+  const fetchRecentReviews = async (uid: string) => {
+    try {
+      const reviewsRef = collection(db, "users", uid, "ratings");
+      const q = query(reviewsRef, orderBy("timestamp", "desc"), limit(3));
+      const querySnapshot = await getDocs(q);
+
+      const reviews = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Get total count
+      const allReviewsSnapshot = await getDocs(
+        collection(db, "users", uid, "ratings")
+      );
+      setTotalReviews(allReviewsSnapshot.size);
+
+      setRecentReviews(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setRecentReviews([]);
+      setTotalReviews(0);
+    }
   };
 
   if (isLoading) {
@@ -263,16 +294,72 @@ const PublicProfile: React.FC = () => {
         </div>
       </section>
 
+      {/* Reviews Section */}
+      <section className="profile-section">
+        <div className="profile-section-header">
+          <h2>Reviews</h2>
+          {totalReviews > 0 && (
+            <span className="profile-section-note">
+              {totalReviews} review{totalReviews === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+        {recentReviews.length > 0 ? (
+          <div className="reviews-container">
+            {recentReviews.map((review) => (
+              <div key={review.id} className="review-card">
+                <div className="review-header">
+                  <div className="review-rater">
+                    <span className="review-rater-name">
+                      {review.raterName || "Anonymous"}
+                    </span>
+                    <StarRating rating={review.rating || 0} />
+                  </div>
+                  <span className="review-date">
+                    {review.timestamp?.toDate
+                      ? review.timestamp.toDate().toLocaleDateString()
+                      : "Recently"}
+                  </span>
+                </div>
+                {review.review && (
+                  <p className="review-text">{review.review}</p>
+                )}
+                {review.itemName && (
+                  <p className="review-item">
+                    For:{" "}
+                    <Link to={`/item/${review.itemId}`}>{review.itemName}</Link>
+                  </p>
+                )}
+              </div>
+            ))}
+            {totalReviews > 3 && (
+              <div className="reviews-footer">
+                <button
+                  className="view-all-reviews-btn"
+                  onClick={() => navigate(`/user/${username}/reviews`)}
+                >
+                  View All Reviews ({totalReviews})
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="profile-empty-state">
+            This seller hasn't received any reviews yet.
+          </p>
+        )}
+      </section>
+
       {renderItemSection(
         "Items for sale",
         userItems,
-        "This seller hasn’t listed any items yet."
+        "This seller hasn't listed any items yet."
       )}
 
       {renderItemSection(
         "Recently sold",
         soldItems,
-        "This seller hasn’t sold any items yet."
+        "This seller hasn't sold any items yet."
       )}
     </div>
   );
