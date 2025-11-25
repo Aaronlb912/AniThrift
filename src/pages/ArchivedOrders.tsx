@@ -14,8 +14,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import "../css/ArchivedOrders.css";
+import { useNavigate, Link } from "react-router-dom";
+import "../css/orders.css";
 import RatingDialog from "../components/RatingDialog";
 
 const YourArchivedPage = () => {
@@ -196,7 +196,6 @@ const YourArchivedPage = () => {
       const archivesRef = collection(db, "users", user.uid, "archive");
       const archivesSnapshot = await getDocs(archivesRef);
       const archivesWithItems = [];
-
       const ratingsMap: Record<string, number> = {};
 
       for (const archiveDoc of archivesSnapshot.docs) {
@@ -226,16 +225,42 @@ const YourArchivedPage = () => {
           })
         );
 
+        const validItems = itemsDetails.filter((item) => item !== null);
+        const orderTotal = validItems.reduce((sum, item) => {
+          const price = parseFloat(item.price || "0");
+          const quantity = item.quantity || 1;
+          return sum + price * quantity;
+        }, 0);
+
+        const sellersMap: Record<string, { sellerName: string; total: number; items: any[] }> = {};
+        validItems.forEach((item) => {
+          const sellerKey = item.sellerId || "unknown";
+          const sellerName = item.sellerName || "Seller";
+          if (!sellersMap[sellerKey]) {
+            sellersMap[sellerKey] = { sellerName, total: 0, items: [] };
+          }
+          const price = parseFloat(item.price || "0");
+          const quantity = item.quantity || 1;
+          sellersMap[sellerKey].total += price * quantity;
+          sellersMap[sellerKey].items.push(item);
+        });
+
         archivesWithItems.push({
           id: archiveDoc.id,
-          items: itemsDetails.filter((item) => item !== null),
-          ...archiveData, // Spread additional order data such as date and total price
+          items: validItems,
+          sellers: sellersMap,
+          computedTotal: orderTotal,
+          ...archiveData,
         });
       }
 
       setExistingRatings(ratingsMap);
-
-      setArchives(archivesWithItems);
+      const sortedArchives = archivesWithItems.sort((a, b) => {
+        const aTime = a.date?.seconds || 0;
+        const bTime = b.date?.seconds || 0;
+        return bTime - aTime;
+      });
+      setArchives(sortedArchives);
     };
 
     fetchArchivesAndItems();
@@ -243,7 +268,34 @@ const YourArchivedPage = () => {
 
   return (
     <div className="your-orders-page">
-      <h1>Your Archived Orders</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1>Your Archived Orders</h1>
+        <Link
+          to="/orders"
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "var(--primary-color)",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "8px",
+            fontWeight: "600",
+            transition: "all 0.2s ease",
+            border: "2px solid var(--primary-dark)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--primary-dark)";
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 71, 171, 0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--primary-color)";
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          View Active Orders
+        </Link>
+      </div>
       {archives.map((order) => (
         <div key={order.id} className="order-card">
           <div className="order-top">
@@ -256,7 +308,9 @@ const YourArchivedPage = () => {
               </div>
               <div>
                 <p>TOTAL</p>
-                <p className="order-total-amount">${order.total}</p>
+                <p className="order-total-amount">${
+                  order.computedTotal?.toFixed?.(2) || parseFloat(order.total || 0).toFixed(2)
+                }</p>
               </div>
             </div>
             <div>
@@ -264,6 +318,27 @@ const YourArchivedPage = () => {
               <p className="order-number">${order.id}</p>
             </div>
           </div>
+          {order.sellers && (
+            <div className="order-sellers-summary">
+              {Object.entries(order.sellers).map(([sellerId, summary]) => (
+                <div key={sellerId} className="seller-summary-card">
+                  <div className="seller-summary-header">
+                    <span className="seller-name">{summary.sellerName}</span>
+                    <span className="seller-total">${summary.total.toFixed(2)}</span>
+                  </div>
+                  <ul className="seller-items-list">
+                    {summary.items.map((item, idx) => (
+                      <li key={`${item.itemId}-${idx}`}>
+                        <span className="item-name">{item.title}</span>
+                        <span className="item-quantity">Qty: {item.quantity || 1}</span>
+                        <span className="item-price">${parseFloat(item.price || 0).toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="order-middle">
             {order.items.map((item, index) => (
               <div key={index} className="item">
@@ -274,6 +349,9 @@ const YourArchivedPage = () => {
                 />
                 <div className="item-details">
                   <p className="item-title">{item.title}</p>
+                  <span className="item-quantity-count">
+                    Quantity: {item.quantity || 1}
+                  </span>
                   <button onClick={() => navigate(`/item/${item.itemId}`)}>
                     View item
                   </button>
@@ -303,10 +381,14 @@ const YourArchivedPage = () => {
                   {item.sellerId && (
                     <button
                       onClick={async () => {
+                        // Get seller's name
                         const sellerDoc = await getDoc(doc(db, "users", item.sellerId));
                         const sellerName = sellerDoc.exists()
                           ? sellerDoc.data().username || "Seller"
                           : "Seller";
+
+                        // Check if already rated
+                        const existingRating = existingRatings[item.sellerId] || 0;
 
                         setRatingDialog({
                           open: true,

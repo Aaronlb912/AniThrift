@@ -14,7 +14,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../css/orders.css";
 import RatingDialog from "../components/RatingDialog";
 
@@ -269,7 +269,34 @@ const YourOrdersPage = () => {
 
   return (
     <div className="your-orders-page">
-      <h1>Your Orders</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1>Your Orders</h1>
+        <Link
+          to="/archives"
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "var(--primary-color)",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "8px",
+            fontWeight: "600",
+            transition: "all 0.2s ease",
+            border: "2px solid var(--primary-dark)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--primary-dark)";
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 71, 171, 0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--primary-color)";
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          View Archived Orders
+        </Link>
+      </div>
       {orders.map((order) => (
         <div key={order.id} className="order-card">
           <div className="order-top">
