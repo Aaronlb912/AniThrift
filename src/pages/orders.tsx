@@ -35,7 +35,9 @@ const YourOrdersPage = () => {
     itemId: "",
     orderId: "",
   });
-  const [existingRatings, setExistingRatings] = useState<Record<string, number>>({});
+  const [existingRatings, setExistingRatings] = useState<
+    Record<string, number>
+  >({});
   const auth = getAuth();
   const navigate = useNavigate();
 
@@ -205,7 +207,7 @@ const YourOrdersPage = () => {
           orderData.cartItems.map(async (cartItem) => {
             const itemDocRef = doc(db, "items", cartItem.itemId);
             const itemSnapshot = await getDoc(itemDocRef);
-            
+
             if (itemSnapshot.exists()) {
               const itemData = itemSnapshot.data();
               // Check if user has already rated this seller
@@ -215,7 +217,7 @@ const YourOrdersPage = () => {
                   ratingsMap[itemData.sellerId] = rating;
                 }
               }
-              
+
               return {
                 ...itemData,
                 itemId: cartItem.itemId,
@@ -233,7 +235,10 @@ const YourOrdersPage = () => {
           return sum + price * quantity;
         }, 0);
 
-        const sellersMap: Record<string, { sellerName: string; total: number; items: any[] }> = {};
+        const sellersMap: Record<
+          string,
+          { sellerName: string; total: number; items: any[] }
+        > = {};
         validItems.forEach((item) => {
           const sellerKey = item.sellerId || "unknown";
           const sellerName = item.sellerName || "Seller";
@@ -269,7 +274,14 @@ const YourOrdersPage = () => {
 
   return (
     <div className="your-orders-page">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
         <h1>Your Orders</h1>
         <Link
           to="/archives"
@@ -286,7 +298,8 @@ const YourOrdersPage = () => {
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = "var(--primary-dark)";
             e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 71, 171, 0.4)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 12px rgba(0, 71, 171, 0.4)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = "var(--primary-color)";
@@ -309,9 +322,11 @@ const YourOrdersPage = () => {
               </div>
               <div>
                 <p>TOTAL</p>
-                <p className="order-total-amount">${
-                  order.computedTotal?.toFixed?.(2) || parseFloat(order.total || 0).toFixed(2)
-                }</p>
+                <p className="order-total-amount">
+                  $
+                  {order.computedTotal?.toFixed?.(2) ||
+                    parseFloat(order.total || 0).toFixed(2)}
+                </p>
               </div>
             </div>
             <div>
@@ -325,14 +340,20 @@ const YourOrdersPage = () => {
                 <div key={sellerId} className="seller-summary-card">
                   <div className="seller-summary-header">
                     <span className="seller-name">{summary.sellerName}</span>
-                    <span className="seller-total">${summary.total.toFixed(2)}</span>
+                    <span className="seller-total">
+                      ${summary.total.toFixed(2)}
+                    </span>
                   </div>
                   <ul className="seller-items-list">
                     {summary.items.map((item, idx) => (
                       <li key={`${item.itemId}-${idx}`}>
                         <span className="item-name">{item.title}</span>
-                        <span className="item-quantity">Qty: {item.quantity || 1}</span>
-                        <span className="item-price">${parseFloat(item.price || 0).toFixed(2)}</span>
+                        <span className="item-quantity">
+                          Qty: {item.quantity || 1}
+                        </span>
+                        <span className="item-price">
+                          ${parseFloat(item.price || 0).toFixed(2)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -341,72 +362,81 @@ const YourOrdersPage = () => {
             </div>
           )}
           <div className="order-middle">
-            {order.items.map((item, index) => (
-              <div key={index} className="item">
-                <img
-                  src={item.photos[0]}
-                  alt={item.title}
-                  className="item-image"
-                />
-                <div className="item-details">
-                  <p className="item-title">{item.title}</p>
-                  <span className="item-quantity-count">
-                    Quantity: {item.quantity || 1}
-                  </span>
-                  <button onClick={() => navigate(`/item/${item.itemId}`)}>
-                    View item
-                  </button>
-                </div>
-                <div className="item-actions">
-                  {item.sellerId && (
-                    <button
-                      onClick={() => {
-                        if (!auth.currentUser) {
-                          navigate("/signin", {
-                            state: { redirectTo: `/messages/${item.sellerId}` },
+            <ul className="seller-items-list">
+              {order.items.map((item, index) => (
+                <li key={index} className="item">
+                  <img
+                    src={item.photos[0]}
+                    alt={item.title}
+                    className="item-image"
+                  />
+                  <div className="item-details">
+                    <p className="item-title">{item.title}</p>
+                    <span className="item-quantity-count">
+                      Quantity: {item.quantity || 1}
+                    </span>
+                    <button onClick={() => navigate(`/item/${item.itemId}`)}>
+                      View item
+                    </button>
+                  </div>
+                  <div className="item-actions">
+                    {item.sellerId && (
+                      <button
+                        onClick={() => {
+                          if (!auth.currentUser) {
+                            navigate("/signin", {
+                              state: {
+                                redirectTo: `/messages/${item.sellerId}`,
+                              },
+                            });
+                            return;
+                          }
+                          navigate(`/messages/${item.sellerId}`, {
+                            state: {
+                              itemTitle: item.title,
+                              itemId: item.itemId,
+                              orderId: order.id,
+                            },
                           });
-                          return;
-                        }
-                        navigate(`/messages/${item.sellerId}`, {
-                          state: {
-                            itemTitle: item.title,
+                        }}
+                      >
+                        Message seller
+                      </button>
+                    )}
+                    {item.sellerId && (
+                      <button
+                        onClick={async () => {
+                          // Get seller's name
+                          const sellerDoc = await getDoc(
+                            doc(db, "users", item.sellerId)
+                          );
+                          const sellerName = sellerDoc.exists()
+                            ? sellerDoc.data().username || "Seller"
+                            : "Seller";
+
+                          // Check if already rated
+                          const existingRating =
+                            existingRatings[item.sellerId] || 0;
+
+                          setRatingDialog({
+                            open: true,
+                            sellerId: item.sellerId,
+                            sellerName: sellerName,
+                            itemName: item.title,
                             itemId: item.itemId,
                             orderId: order.id,
-                          },
-                        });
-                      }}
-                    >
-                      Message seller
-                    </button>
-                  )}
-                  {item.sellerId && (
-                    <button
-                      onClick={async () => {
-                        // Get seller's name
-                        const sellerDoc = await getDoc(doc(db, "users", item.sellerId));
-                        const sellerName = sellerDoc.exists()
-                          ? sellerDoc.data().username || "Seller"
-                          : "Seller";
-
-                        // Check if already rated
-                        const existingRating = existingRatings[item.sellerId] || 0;
-
-                        setRatingDialog({
-                          open: true,
-                          sellerId: item.sellerId,
-                          sellerName: sellerName,
-                          itemName: item.title,
-                          itemId: item.itemId,
-                          orderId: order.id,
-                        });
-                      }}
-                    >
-                      {existingRatings[item.sellerId] ? "View Rating" : "Rate Seller"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+                          });
+                        }}
+                      >
+                        {existingRatings[item.sellerId]
+                          ? "View Rating"
+                          : "Rate Seller"}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="order-bottom">
             <a href="#" onClick={() => archiveOrder(order.id)}>

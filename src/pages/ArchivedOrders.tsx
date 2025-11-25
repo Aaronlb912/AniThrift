@@ -340,8 +340,9 @@ const YourArchivedPage = () => {
             </div>
           )}
           <div className="order-middle">
-            {order.items.map((item, index) => (
-              <div key={index} className="item">
+            <ul className="seller-items-list">
+              {order.items.map((item, index) => (
+                <li key={index} className="item">
                 <img
                   src={item.photos[0]}
                   alt={item.title}
@@ -404,8 +405,9 @@ const YourArchivedPage = () => {
                     </button>
                   )}
                 </div>
-              </div>
-            ))}
+              </li>
+              ))}
+            </ul>
           </div>
           <div className="order-bottom">
             <a href="#" onClick={() => archiveOrder(order.id)}>
