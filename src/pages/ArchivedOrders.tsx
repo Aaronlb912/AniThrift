@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { db } from "../firebase-config"; // Make sure this path is correct for your setup
 import {
   collection,
@@ -36,6 +36,7 @@ const YourArchivedPage = () => {
     orderId: "",
   });
   const [existingRatings, setExistingRatings] = useState<Record<string, number>>({});
+  const [existingReviews, setExistingReviews] = useState<Record<string, string>>({});
   const auth = getAuth();
   const navigate = useNavigate();
 
@@ -46,9 +47,9 @@ const YourArchivedPage = () => {
   };
 
   // Check if user has already rated a seller
-  const checkExistingRating = async (sellerId: string) => {
+  const checkExistingRating = useCallback(async (sellerId: string): Promise<{ rating: number; review: string }> => {
     const user = auth.currentUser;
-    if (!user || !sellerId) return 0;
+    if (!user || !sellerId) return { rating: 0, review: "" };
 
     try {
       const ratingsRef = collection(db, "users", sellerId, "ratings");
@@ -57,14 +58,17 @@ const YourArchivedPage = () => {
 
       if (!querySnapshot.empty) {
         const ratingData = querySnapshot.docs[0].data();
-        return ratingData.rating || 0;
+        return {
+          rating: ratingData.rating || 0,
+          review: ratingData.review || "",
+        };
       }
-      return 0;
+      return { rating: 0, review: "" };
     } catch (error) {
       console.error("Error checking existing rating:", error);
-      return 0;
+      return { rating: 0, review: "" };
     }
-  };
+  }, [auth.currentUser]);
 
   // Calculate and update seller's average rating
   const updateSellerRating = async (sellerId: string) => {
@@ -101,14 +105,14 @@ const YourArchivedPage = () => {
   };
 
   // Handle rating submission
-  const handleRateSeller = async (rating: number) => {
+  const handleRateSeller = async (rating: number, review?: string) => {
     const user = auth.currentUser;
     if (!user || !ratingDialog.sellerId) return;
 
     try {
       // Check if user has already rated this seller
-      const existingRating = await checkExistingRating(ratingDialog.sellerId);
-      if (existingRating > 0) {
+      const existingRatingData = await checkExistingRating(ratingDialog.sellerId);
+      if (existingRatingData.rating > 0) {
         alert("You have already rated this seller.");
         return;
       }
@@ -130,6 +134,7 @@ const YourArchivedPage = () => {
         raterId: user.uid,
         raterName: raterName,
         rating: rating,
+        review: review || "",
         itemId: ratingDialog.itemId,
         itemName: ratingDialog.itemName,
         orderId: ratingDialog.orderId,
@@ -197,11 +202,12 @@ const YourArchivedPage = () => {
       const archivesSnapshot = await getDocs(archivesRef);
       const archivesWithItems = [];
       const ratingsMap: Record<string, number> = {};
+      const reviewsMap: Record<string, string> = {};
 
       for (const archiveDoc of archivesSnapshot.docs) {
         const archiveData = archiveDoc.data();
         const itemsDetails = await Promise.all(
-          archiveData.cartItems.map(async (cartItem) => {
+          archiveData.cartItems.map(async (cartItem: { itemId: string; quantity: number }) => {
             const itemDocRef = doc(db, "items", cartItem.itemId);
             const itemSnapshot = await getDoc(itemDocRef);
             
@@ -209,9 +215,12 @@ const YourArchivedPage = () => {
               const itemData = itemSnapshot.data();
               // Check if user has already rated this seller
               if (itemData.sellerId) {
-                const rating = await checkExistingRating(itemData.sellerId);
-                if (rating > 0) {
-                  ratingsMap[itemData.sellerId] = rating;
+                const ratingData = await checkExistingRating(itemData.sellerId);
+                if (ratingData.rating > 0) {
+                  ratingsMap[itemData.sellerId] = ratingData.rating;
+                  if (ratingData.review) {
+                    reviewsMap[itemData.sellerId] = ratingData.review;
+                  }
                 }
               }
               
@@ -255,6 +264,7 @@ const YourArchivedPage = () => {
       }
 
       setExistingRatings(ratingsMap);
+      setExistingReviews(reviewsMap);
       const sortedArchives = archivesWithItems.sort((a, b) => {
         const aTime = a.date?.seconds || 0;
         const bTime = b.date?.seconds || 0;
@@ -264,7 +274,7 @@ const YourArchivedPage = () => {
     };
 
     fetchArchivesAndItems();
-  }, [auth.currentUser]); // Re-fetch when currentUser changes
+  }, [auth.currentUser, checkExistingRating]); // Re-fetch when currentUser changes
 
   return (
     <div className="your-orders-page">
@@ -300,22 +310,26 @@ const YourArchivedPage = () => {
         <div key={order.id} className="order-card">
           <div className="order-top">
             <div className="order-info">
-              <div className="order-placed">
-                <div>
-                  <p>ORDER PLACED</p>
-                  <p className="order-date">{formatDate(order.date)}</p>
-                </div>
+              <div className="order-info-item">
+                <span className="order-info-label">Order Placed</span>
+                <span className="order-info-value">
+                  {formatDate(order.date)}
+                </span>
               </div>
-              <div>
-                <p>TOTAL</p>
-                <p className="order-total-amount">${
-                  order.computedTotal?.toFixed?.(2) || parseFloat(order.total || 0).toFixed(2)
-                }</p>
+              <div className="order-info-divider"></div>
+              <div className="order-info-item">
+                <span className="order-info-label">Order #</span>
+                <span className="order-info-value order-id">{order.id}</span>
               </div>
-            </div>
-            <div>
-              <p>Order</p>
-              <p className="order-number">${order.id}</p>
+              <div className="order-info-divider"></div>
+              <div className="order-info-item order-total-item">
+                <span className="order-info-label">Total</span>
+                <span className="order-info-value order-total-amount">
+                  $
+                  {order.computedTotal?.toFixed?.(2) ||
+                    parseFloat(String(order.total || 0)).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
           {order.sellers && (
@@ -344,7 +358,7 @@ const YourArchivedPage = () => {
               {order.items.map((item, index) => (
                 <li key={index} className="item">
                 <img
-                  src={item.photos[0]}
+                  src={item.photos?.[0] || ""}
                   alt={item.title}
                   className="item-image"
                 />
@@ -388,9 +402,6 @@ const YourArchivedPage = () => {
                           ? sellerDoc.data().username || "Seller"
                           : "Seller";
 
-                        // Check if already rated
-                        const existingRating = existingRatings[item.sellerId] || 0;
-
                         setRatingDialog({
                           open: true,
                           sellerId: item.sellerId,
@@ -410,9 +421,21 @@ const YourArchivedPage = () => {
             </ul>
           </div>
           <div className="order-bottom">
-            <a href="#" onClick={() => archiveOrder(order.id)}>
+            <button
+              type="button"
+              onClick={() => archiveOrder(order.id)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "inherit",
+                textDecoration: "underline",
+                cursor: "pointer",
+                padding: 0,
+                font: "inherit",
+              }}
+            >
               Unarchive order
-            </a>
+            </button>
           </div>
         </div>
       ))}
@@ -440,6 +463,11 @@ const YourArchivedPage = () => {
           ratingDialog.sellerId
             ? existingRatings[ratingDialog.sellerId] || 0
             : 0
+        }
+        existingReview={
+          ratingDialog.sellerId
+            ? existingReviews[ratingDialog.sellerId] || ""
+            : ""
         }
       />
     </div>
