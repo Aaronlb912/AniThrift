@@ -18,6 +18,8 @@ import {
 import axios from "axios";
 import "../css/Checkout.css";
 import { getAuth } from "firebase/auth";
+import { db } from "../firebase-config";
+import { doc, getDoc } from "firebase/firestore";
 // SECURITY: Seller addresses are fetched server-side via Cloud Function to prevent doxxing
 // Removed direct Firestore access - seller addresses are never exposed to client
 import {
@@ -273,9 +275,38 @@ const CheckoutPage = () => {
         alert(`You have items from ${checkoutSessions.length} different sellers. You'll complete checkout for each seller separately. Starting with the first seller...`);
         window.location.href = checkoutSessions[0];
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to start the payment process:", error);
-      alert("Payment process failed.");
+      console.error("Full error object:", JSON.stringify(error, null, 2));
+      
+      let errorMessage = "Payment process failed.";
+      
+      if (error.response) {
+        // Server responded with error
+        const errorData = error.response.data;
+        console.error("Server error response:", errorData);
+        console.error("Status code:", error.response.status);
+        
+        // Try multiple possible error message fields
+        errorMessage = 
+          errorData?.error || 
+          errorData?.message || 
+          errorData?.details ||
+          error.response.statusText ||
+          `Server error (${error.response.status})` ||
+          errorMessage;
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = "Unable to connect to payment server. Please check your internet connection.";
+        console.error("Network error - no response:", error.request);
+      } else {
+        // Something else happened
+        errorMessage = error.message || errorMessage;
+        console.error("Client-side error:", error.message);
+      }
+      
+      // Show detailed error in alert
+      alert(`Payment process failed: ${errorMessage}\n\nCheck the browser console for more details.`);
     } finally {
       setIsLoading(false);
     }

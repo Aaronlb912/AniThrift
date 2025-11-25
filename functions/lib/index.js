@@ -2,10 +2,8 @@
 /**
  * Firebase Cloud Functions for AniThrift
  */
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchStripeAccountInfo = exports.completeStripeOnboarding = exports.createStripeAccountOnFirstItem = exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
-const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
@@ -13,15 +11,21 @@ const stripe_1 = require("stripe");
 // Initialize Firebase Admin
 admin.initializeApp();
 // Initialize Stripe
-const stripe = new stripe_1.default(((_a = functions.config().stripe) === null || _a === void 0 ? void 0 : _a.secret_key) || process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2023-10-16" });
+const getStripeSecretKey = () => {
+    var _a;
+    return (((_a = functions.config().stripe) === null || _a === void 0 ? void 0 : _a.secret_key) || process.env.STRIPE_SECRET_KEY || "");
+};
+const stripeSecretKey = getStripeSecretKey();
+// Initialize Stripe - will throw error if key is invalid, but we check for empty key in functions
+const stripe = new stripe_1.default(stripeSecretKey || "sk_test_placeholder", {
+    apiVersion: "2023-10-16",
+});
 // Get Shippo API Key (secure - only accessible server-side, never exposed to client)
 // Priority: 1. Firebase Functions config, 2. Environment variable
 // This is secure because functions.config() is only available in Cloud Functions runtime
 const getShippoApiKey = () => {
     var _a;
-    return ((_a = functions.config().shippo) === null || _a === void 0 ? void 0 : _a.api_key) ||
-        process.env.SHIPPO_API_KEY ||
-        "";
+    return ((_a = functions.config().shippo) === null || _a === void 0 ? void 0 : _a.api_key) || process.env.SHIPPO_API_KEY || "";
 };
 const SHIPPO_API_URL = "https://api.goshippo.com";
 /**
@@ -34,11 +38,15 @@ const SHIPPO_API_URL = "https://api.goshippo.com";
  *   parcel: { length, width, height, weight }
  * }
  */
-exports.calculateShippoRates = (0, https_1.onRequest)({
-    cors: true,
-    region: "us-central1",
-    timeoutSeconds: 60,
-}, async (req, res) => {
+exports.calculateShippoRates = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
@@ -97,7 +105,7 @@ exports.calculateShippoRates = (0, https_1.onRequest)({
         const response = await fetch(`${SHIPPO_API_URL}/shipments`, {
             method: "POST",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(shipmentData),
@@ -116,7 +124,7 @@ exports.calculateShippoRates = (0, https_1.onRequest)({
         const ratesResponse = await fetch(`${SHIPPO_API_URL}/shipments/${shipment.object_id}/rates`, {
             method: "GET",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
             },
         });
         if (!ratesResponse.ok) {
@@ -189,11 +197,17 @@ exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, re
     try {
         const { sellerId, toAddress, parcel } = req.body;
         if (!sellerId || !toAddress || !parcel) {
-            res.status(400).json({ error: "Missing required fields: sellerId, toAddress, parcel" });
+            res.status(400).json({
+                error: "Missing required fields: sellerId, toAddress, parcel",
+            });
             return;
         }
         // Fetch seller's address server-side (never exposed to client)
-        const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+        const sellerDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(sellerId)
+            .get();
         if (!sellerDoc.exists) {
             res.status(404).json({ error: "Seller not found" });
             return;
@@ -201,7 +215,9 @@ exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, re
         const sellerData = sellerDoc.data();
         const sellerAddressStr = (sellerData === null || sellerData === void 0 ? void 0 : sellerData.shipFromAddress) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.registrationAddress);
         if (!sellerAddressStr) {
-            res.status(400).json({ error: "Seller has not set a shipping address" });
+            res
+                .status(400)
+                .json({ error: "Seller has not set a shipping address" });
             return;
         }
         // Parse seller address
@@ -248,7 +264,7 @@ exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, re
         const response = await fetch(`${SHIPPO_API_URL}/shipments`, {
             method: "POST",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(shipmentData),
@@ -267,7 +283,7 @@ exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, re
         const ratesResponse = await fetch(`${SHIPPO_API_URL}/shipments/${shipment.object_id}/rates`, {
             method: "GET",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
             },
         });
         if (!ratesResponse.ok) {
@@ -316,11 +332,15 @@ exports.calculateShippoRatesForSeller = functions.https.onRequest(async (req, re
  *   metadata?: object
  * }
  */
-exports.createShippoLabel = (0, https_1.onRequest)({
-    cors: true,
-    region: "us-central1",
-    timeoutSeconds: 60,
-}, async (req, res) => {
+exports.createShippoLabel = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
@@ -336,7 +356,9 @@ exports.createShippoLabel = (0, https_1.onRequest)({
     try {
         const { rateId, orderId, metadata } = req.body;
         if (!rateId || !orderId) {
-            res.status(400).json({ error: "Missing required fields: rateId, orderId" });
+            res
+                .status(400)
+                .json({ error: "Missing required fields: rateId, orderId" });
             return;
         }
         // Create transaction (purchase label)
@@ -348,7 +370,7 @@ exports.createShippoLabel = (0, https_1.onRequest)({
         const response = await fetch(`${SHIPPO_API_URL}/transactions`, {
             method: "POST",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(transactionData),
@@ -405,11 +427,15 @@ exports.createShippoLabel = (0, https_1.onRequest)({
  *   carrier: string (e.g., "usps", "ups", "fedex")
  * }
  */
-exports.getShippoTracking = (0, https_1.onRequest)({
-    cors: true,
-    region: "us-central1",
-    timeoutSeconds: 60,
-}, async (req, res) => {
+exports.getShippoTracking = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
@@ -425,7 +451,9 @@ exports.getShippoTracking = (0, https_1.onRequest)({
     try {
         const { trackingNumber, carrier } = req.body;
         if (!trackingNumber || !carrier) {
-            res.status(400).json({ error: "Missing required fields: trackingNumber, carrier" });
+            res
+                .status(400)
+                .json({ error: "Missing required fields: trackingNumber, carrier" });
             return;
         }
         // Create tracking request
@@ -436,7 +464,7 @@ exports.getShippoTracking = (0, https_1.onRequest)({
         const response = await fetch(`${SHIPPO_API_URL}/tracks`, {
             method: "POST",
             headers: {
-                "Authorization": `ShippoToken ${SHIPPO_API_KEY}`,
+                Authorization: `ShippoToken ${SHIPPO_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(trackingData),
@@ -495,17 +523,35 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     try {
         const { cartItems, buyerId, sellerId, shippingAddress, shippingRates, shippingCost = 0, itemTotal, } = req.body;
         if (!cartItems || !buyerId) {
-            res.status(400).json({ error: "Missing required fields" });
+            res.status(400).json({
+                error: "Missing required fields: cartItems and buyerId are required",
+            });
+            return;
+        }
+        // Validate Stripe is configured
+        const currentStripeKey = getStripeSecretKey();
+        if (!currentStripeKey || !stripe) {
+            logger.error("Stripe secret key not configured");
+            res.status(500).json({
+                error: "Stripe is not configured. Please set stripe.secret_key in Firebase Functions config.",
+            });
             return;
         }
         // Get seller's Stripe account ID if available (for Stripe Connect)
         let sellerStripeAccountId = null;
         if (sellerId) {
             try {
-                const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+                const sellerDoc = await admin
+                    .firestore()
+                    .collection("users")
+                    .doc(sellerId)
+                    .get();
                 if (sellerDoc.exists) {
                     const sellerData = sellerDoc.data();
-                    sellerStripeAccountId = (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripeAccountId) || (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripe_account_id) || null;
+                    sellerStripeAccountId =
+                        (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripeAccountId) ||
+                            (sellerData === null || sellerData === void 0 ? void 0 : sellerData.stripe_account_id) ||
+                            null;
                 }
             }
             catch (error) {
@@ -513,12 +559,25 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             }
         }
         // Calculate total
-        const calculatedItemTotal = itemTotal || cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+        const calculatedItemTotal = itemTotal ||
+            cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
         const totalAmount = calculatedItemTotal + (shippingCost || 0);
+        const totalAmountInCents = Math.round(totalAmount * 100);
+        // Calculate platform fee: 10% with $1 minimum
+        const platformFeePercentage = 0.1; // 10%
+        const platformFeeMinimum = 100; // $1.00 in cents
+        const calculatedPlatformFee = Math.max(Math.round(totalAmountInCents * platformFeePercentage), // 10% of total in cents
+        platformFeeMinimum // Minimum $1.00
+        );
+        const sellerPayoutAmount = totalAmountInCents - calculatedPlatformFee;
         // Create line items for Stripe
         const lineItems = [];
         // Add item line items
         cartItems.forEach((item) => {
+            const itemPrice = Number(item.price) || 0;
+            if (itemPrice <= 0) {
+                throw new Error(`Invalid price for item: ${item.title}`);
+            }
             lineItems.push({
                 price_data: {
                     currency: "usd",
@@ -526,9 +585,9 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
                         name: item.title,
                         images: item.imageUrl ? [item.imageUrl] : [],
                     },
-                    unit_amount: Math.round(item.price * 100), // Convert to cents
+                    unit_amount: Math.round(itemPrice * 100), // Convert to cents
                 },
-                quantity: item.quantity,
+                quantity: Number(item.quantity) || 1,
             });
         });
         // Add shipping as a line item if there's a shipping cost
@@ -555,21 +614,41 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             metadata: {
                 buyerId,
                 sellerId: sellerId || "",
-                cartItems: JSON.stringify(cartItems),
-                shippingAddress: JSON.stringify(shippingAddress || {}),
-                shippingRates: JSON.stringify(shippingRates || {}),
+                // Store only item IDs to stay within Stripe's 500 character metadata limit
+                itemIds: cartItems.map((item) => item.itemId || item.id).join(","),
+                itemCount: cartItems.length.toString(),
                 shippingCost: shippingCost.toString(),
                 itemTotal: calculatedItemTotal.toString(),
+                // Note: Full cart items, shipping address, and rates are stored in Firestore order document
             },
         };
-        // If seller has a Stripe Connect account, use it for direct payout
+        // If seller has a Stripe Connect account, use it for direct payout with platform fee
         if (sellerStripeAccountId) {
-            sessionParams.payment_intent_data = {
-                on_behalf_of: sellerStripeAccountId,
-                transfer_data: {
-                    destination: sellerStripeAccountId,
-                },
-            };
+            // Verify the account is ready to receive transfers
+            try {
+                const account = await stripe.accounts.retrieve(sellerStripeAccountId);
+                if (account.charges_enabled && account.payouts_enabled) {
+                    sessionParams.payment_intent_data = {
+                        application_fee_amount: calculatedPlatformFee,
+                        transfer_data: {
+                            destination: sellerStripeAccountId, // Seller receives the remainder
+                        },
+                    };
+                }
+                else {
+                    logger.warn(`Seller ${sellerId} Stripe account is not fully enabled. Charges enabled: ${account.charges_enabled}, Payouts enabled: ${account.payouts_enabled}. Payment will be processed but seller needs to complete onboarding.`);
+                    // Don't set transfer_data if account isn't ready - payment will go to platform
+                }
+            }
+            catch (accountError) {
+                logger.error(`Error retrieving seller Stripe account ${sellerStripeAccountId}:`, accountError);
+                // Continue without transfer_data - payment will go to platform account
+            }
+        }
+        else {
+            // If seller doesn't have a Stripe Connect account yet, log a warning
+            // The payment will still go through, but seller won't receive payout until they set up Stripe
+            logger.warn(`Seller ${sellerId} does not have a Stripe Connect account. Payment will be processed but seller needs to complete onboarding.`);
         }
         const session = await stripe.checkout.sessions.create(sessionParams);
         // Store order information in Firestore (optional, for tracking)
@@ -577,12 +656,15 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             const orderRef = admin.firestore().collection("orders").doc();
             await orderRef.set({
                 buyerId,
+                sellerId: sellerId || "",
                 cartItems,
                 shippingAddress: shippingAddress || {},
                 shippingRates: shippingRates || {},
                 shippingCost,
                 itemTotal: calculatedItemTotal,
                 totalAmount,
+                platformFee: calculatedPlatformFee / 100,
+                sellerPayoutAmount: sellerPayoutAmount / 100,
                 stripeSessionId: session.id,
                 status: "pending",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -596,10 +678,45 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
     }
     catch (error) {
         logger.error("Error creating checkout session:", error);
-        res.status(500).json({
-            error: "Failed to create checkout session",
-            message: error.message,
+        logger.error("Error stack:", error.stack);
+        logger.error("Error type:", error.type);
+        logger.error("Error code:", error.code);
+        // Provide more detailed error information
+        const errorMessage = error.message || "Unknown error";
+        const errorDetails = error.type || error.code || "No additional details";
+        // Provide more specific error messages
+        let userFriendlyError = "Failed to create checkout session";
+        let statusCode = 500;
+        if (error.type === "StripeInvalidRequestError") {
+            userFriendlyError = error.message || "Invalid payment request. Please check your cart items.";
+            statusCode = 400;
+        }
+        else if (error.type === "StripeAPIError") {
+            userFriendlyError = "Payment service error. Please try again later.";
+            statusCode = 503;
+        }
+        else if (error.type === "StripeAuthenticationError") {
+            userFriendlyError = "Payment authentication failed. Please contact support.";
+            statusCode = 500;
+        }
+        else if (error.message) {
+            // Use the actual Stripe error message if available
+            userFriendlyError = error.message;
+        }
+        // Log the full error for debugging
+        logger.error("Sending error response:", {
+            error: userFriendlyError,
+            message: errorMessage,
+            type: error.type,
+            code: error.code,
+            statusCode,
         });
+        res.status(statusCode).json(Object.assign({ error: userFriendlyError, message: errorMessage, details: errorDetails, type: error.type, code: error.code }, (errorMessage.includes("No API key") ||
+            errorMessage.includes("Invalid API Key")
+            ? {
+                hint: "Please check that stripe.secret_key is set in Firebase Functions config",
+            }
+            : {})));
     }
 });
 /**
@@ -627,12 +744,18 @@ exports.createStripeAccountOnFirstItem = functions.https.onRequest(async (req, r
     try {
         const { item } = req.body;
         if (!item || !item.sellerId) {
-            res.status(400).json({ error: "Missing required fields: item with sellerId" });
+            res
+                .status(400)
+                .json({ error: "Missing required fields: item with sellerId" });
             return;
         }
         const sellerId = item.sellerId;
         // Check if user already has a Stripe account
-        const sellerDoc = await admin.firestore().collection("users").doc(sellerId).get();
+        const sellerDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(sellerId)
+            .get();
         if (!sellerDoc.exists) {
             res.status(404).json({ error: "Seller not found" });
             return;
@@ -715,7 +838,11 @@ exports.completeStripeOnboarding = functions.https.onRequest(async (req, res) =>
             return;
         }
         // Get user's Stripe account ID
-        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        const userDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(userId)
+            .get();
         if (!userDoc.exists) {
             res.status(404).json({ error: "User not found" });
             return;
@@ -723,7 +850,9 @@ exports.completeStripeOnboarding = functions.https.onRequest(async (req, res) =>
         const userData = userDoc.data();
         const stripeAccountId = (userData === null || userData === void 0 ? void 0 : userData.stripeAccountId) || (userData === null || userData === void 0 ? void 0 : userData.stripe_account_id);
         if (!stripeAccountId) {
-            res.status(400).json({ error: "User does not have a Stripe account. Please list an item first." });
+            res.status(400).json({
+                error: "User does not have a Stripe account. Please list an item first.",
+            });
             return;
         }
         // Create account link for onboarding
@@ -767,11 +896,17 @@ exports.fetchStripeAccountInfo = functions.https.onRequest(async (req, res) => {
     try {
         const userId = req.query.userId;
         if (!userId) {
-            res.status(400).json({ error: "Missing required query parameter: userId" });
+            res
+                .status(400)
+                .json({ error: "Missing required query parameter: userId" });
             return;
         }
         // Get user's Stripe account ID
-        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        const userDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(userId)
+            .get();
         if (!userDoc.exists) {
             res.status(404).json({ error: "User not found" });
             return;

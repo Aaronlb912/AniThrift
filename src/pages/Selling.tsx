@@ -115,6 +115,10 @@ const Selling = () => {
   const [hasShippingAddress, setHasShippingAddress] = useState<boolean | null>(
     null
   );
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<{
+    hasAccount: boolean;
+    isReady: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -669,6 +673,71 @@ const Selling = () => {
             }}
           >
             Set Address
+          </Button>
+        </Box>
+      )}
+
+      {stripeAccountStatus && !stripeAccountStatus.isReady && (
+        <Box
+          sx={{
+            margin: "20px auto",
+            maxWidth: "800px",
+            padding: "16px 24px",
+            backgroundColor: stripeAccountStatus.hasAccount
+              ? "#fff3cd"
+              : "#d1ecf1",
+            border: `1px solid ${
+              stripeAccountStatus.hasAccount ? "#ffc107" : "#0c5460"
+            }`,
+            borderRadius: "8px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <strong
+              style={{
+                display: "block",
+                marginBottom: "4px",
+                color: stripeAccountStatus.hasAccount ? "#856404" : "#0c5460",
+              }}
+            >
+              {stripeAccountStatus.hasAccount
+                ? "Stripe Account Setup Incomplete"
+                : "Stripe Account Not Connected"}
+            </strong>
+            <p
+              style={{
+                margin: 0,
+                color: stripeAccountStatus.hasAccount ? "#856404" : "#0c5460",
+                fontSize: "0.9rem",
+              }}
+            >
+              {stripeAccountStatus.hasAccount
+                ? "Your Stripe account needs to be fully set up to receive payments. Complete the onboarding process to enable payouts."
+                : "Connect your Stripe account to receive payments from sales. Your account will be created automatically when you list your first item, or you can set it up now."}
+            </p>
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/settings/stripe-account")}
+            sx={{
+              backgroundColor: stripeAccountStatus.hasAccount
+                ? "#ffc107"
+                : "#0c5460",
+              color: "#fff",
+              alignSelf: "flex-start",
+              "&:hover": {
+                backgroundColor: stripeAccountStatus.hasAccount
+                  ? "#e0a800"
+                  : "#0a4550",
+              },
+            }}
+          >
+            {stripeAccountStatus.hasAccount
+              ? "Complete Stripe Setup"
+              : "Set Up Stripe Account"}
           </Button>
         </Box>
       )}
