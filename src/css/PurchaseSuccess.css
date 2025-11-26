@@ -1,0 +1,44 @@
+.purchase-success-container {
+  min-height: 80vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.purchase-success-container .MuiPaper-root {
+  border-radius: 12px;
+}
+
+.purchase-success-container .MuiTypography-h3 {
+  font-size: 2.5rem;
+}
+
+.purchase-success-container .MuiTypography-h4 {
+  font-size: 1.75rem;
+}
+
+.purchase-success-container .MuiTypography-h5 {
+  font-size: 1.5rem;
+}
+
+.purchase-success-container .MuiTypography-h6 {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .purchase-success-container {
+    padding: 20px 10px;
+  }
+
+  .purchase-success-container .MuiTypography-h3 {
+    font-size: 2rem;
+  }
+
+  .purchase-success-container .MuiTypography-h4 {
+    font-size: 1.5rem;
+  }
+
+  .purchase-success-container .MuiBox-root {
+    padding: 16px !important;
+  }
+}
+

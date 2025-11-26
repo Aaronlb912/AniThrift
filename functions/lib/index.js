@@ -3,7 +3,7 @@
  * Firebase Cloud Functions for AniThrift
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchStripeAccountInfo = exports.completeStripeOnboarding = exports.createStripeAccountOnFirstItem = exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
+exports.stripeWebhook = exports.fetchStripeAccountInfo = exports.completeStripeOnboarding = exports.createStripeAccountOnFirstItem = exports.createCheckoutSession = exports.getShippoTracking = exports.createShippoLabel = exports.calculateShippoRatesForSeller = exports.calculateShippoRates = void 0;
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
@@ -651,10 +651,10 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
             logger.warn(`Seller ${sellerId} does not have a Stripe Connect account. Payment will be processed but seller needs to complete onboarding.`);
         }
         const session = await stripe.checkout.sessions.create(sessionParams);
-        // Store order information in Firestore (optional, for tracking)
+        // Store order information in Firestore
         try {
-            const orderRef = admin.firestore().collection("orders").doc();
-            await orderRef.set({
+            const orderId = admin.firestore().collection("orders").doc().id;
+            const orderData = {
                 buyerId,
                 sellerId: sellerId || "",
                 cartItems,
@@ -668,7 +668,19 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
                 stripeSessionId: session.id,
                 status: "pending",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            };
+            // Save to global orders collection (for admin/system use)
+            const globalOrderRef = admin.firestore().collection("orders").doc(orderId);
+            await globalOrderRef.set(orderData);
+            // Also save to user's orders subcollection (for user viewing)
+            const userOrderRef = admin
+                .firestore()
+                .collection("users")
+                .doc(buyerId)
+                .collection("orders")
+                .doc(orderId);
+            await userOrderRef.set(orderData);
+            logger.info(`Order ${orderId} saved for buyer ${buyerId}`);
         }
         catch (firestoreError) {
             logger.error("Error storing order in Firestore:", firestoreError);
@@ -947,6 +959,98 @@ exports.fetchStripeAccountInfo = functions.https.onRequest(async (req, res) => {
             error: "Failed to fetch Stripe account info",
             message: error.message,
         });
+    }
+});
+/**
+ * Stripe Webhook Handler
+ * Handles checkout.session.completed events to update order status
+ *
+ * Note: This webhook needs to be configured in Stripe Dashboard:
+ * 1. Go to Stripe Dashboard > Developers > Webhooks
+ * 2. Add endpoint: https://us-central1-anithrift-e77a9.cloudfunctions.net/stripeWebhook
+ * 3. Select event: checkout.session.completed
+ * 4. Copy the webhook signing secret and set it: firebase functions:config:set stripe.webhook_secret="whsec_..."
+ */
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+    var _a;
+    const sig = req.headers["stripe-signature"];
+    const webhookSecret = ((_a = functions.config().stripe) === null || _a === void 0 ? void 0 : _a.webhook_secret) || "";
+    if (!webhookSecret) {
+        logger.error("Stripe webhook secret not configured");
+        res.status(500).json({ error: "Webhook secret not configured" });
+        return;
+    }
+    let event;
+    try {
+        // For Firebase Functions, req.body is already parsed, but we need raw body for webhook verification
+        // Use req.rawBody if available (Firebase Functions v1), otherwise stringify
+        const rawBody = req.rawBody
+            ? Buffer.from(req.rawBody)
+            : typeof req.body === "string"
+                ? req.body
+                : JSON.stringify(req.body);
+        event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+    }
+    catch (err) {
+        logger.error(`Webhook signature verification failed: ${err.message}`);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+        return;
+    }
+    // Handle the checkout.session.completed event
+    if (event.type === "checkout.session.completed") {
+        const session = event.data.object;
+        const sessionId = session.id;
+        try {
+            // Find orders with this session ID and update their status
+            const ordersRef = admin.firestore().collection("orders");
+            const ordersSnapshot = await ordersRef
+                .where("stripeSessionId", "==", sessionId)
+                .get();
+            if (!ordersSnapshot.empty) {
+                const updatePromises = ordersSnapshot.docs.map(async (orderDoc) => {
+                    const orderId = orderDoc.id;
+                    const orderData = orderDoc.data();
+                    const buyerId = orderData.buyerId;
+                    // Update order status to completed
+                    await orderDoc.ref.update({
+                        status: "completed",
+                        paymentStatus: "paid",
+                        completedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    });
+                    // Also update in user's orders subcollection
+                    if (buyerId) {
+                        const userOrderRef = admin
+                            .firestore()
+                            .collection("users")
+                            .doc(buyerId)
+                            .collection("orders")
+                            .doc(orderId);
+                        const userOrderDoc = await userOrderRef.get();
+                        if (userOrderDoc.exists) {
+                            await userOrderRef.update({
+                                status: "completed",
+                                paymentStatus: "paid",
+                                completedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            });
+                        }
+                    }
+                    logger.info(`Order ${orderId} marked as completed for session ${sessionId}`);
+                });
+                await Promise.all(updatePromises);
+            }
+            else {
+                logger.warn(`No orders found for session ${sessionId}`);
+            }
+            res.json({ received: true });
+        }
+        catch (error) {
+            logger.error("Error processing webhook:", error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+    else {
+        // Return a response to acknowledge receipt of the event
+        res.json({ received: true });
     }
 });
 //# sourceMappingURL=index.js.map

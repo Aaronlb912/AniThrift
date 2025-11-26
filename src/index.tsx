@@ -152,6 +152,7 @@ root.render(
               />
               <Route path="/addresses" element={<AddressesPage />} />
               <Route path="/success" element={<PurchaseSuccess />} />
+              <Route path="/purchase-success" element={<PurchaseSuccess />} />
               <Route
                 path="/StripeOnboardingForm"
                 element={<StripeOnboardingForm />}

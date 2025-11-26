@@ -15,11 +15,37 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Divider,
+  Box,
+} from "@mui/material";
 import "../css/orders.css";
 import RatingDialog from "../components/RatingDialog";
 
+interface OrderData {
+  id: string;
+  date?: any;
+  items: any[];
+  sellers: Record<string, { sellerName: string; total: number; items: any[] }>;
+  computedTotal: number;
+  createdAt?: any;
+  shippingAddress?: any;
+  shippingCost?: number;
+  itemTotal?: number;
+  totalAmount?: number;
+  platformFee?: number;
+  status?: string;
+  stripeSessionId?: string;
+}
+
 const YourOrdersPage = () => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [ratingDialog, setRatingDialog] = useState<{
     open: boolean;
     sellerId: string | null;
@@ -41,6 +67,13 @@ const YourOrdersPage = () => {
   const [existingReviews, setExistingReviews] = useState<
     Record<string, string>
   >({});
+  const [invoiceDialog, setInvoiceDialog] = useState<{
+    open: boolean;
+    order: OrderData | null;
+  }>({
+    open: false,
+    order: null,
+  });
   const auth = getAuth();
   const navigate = useNavigate();
 
@@ -50,24 +83,43 @@ const YourOrdersPage = () => {
       : "";
   };
 
-  const archiveOrder = async (orderId) => {
+  const archiveOrder = async (orderId: string) => {
     const user = auth.currentUser;
     if (!user) {
       console.error("User not logged in");
+      alert("You must be logged in to archive orders.");
       return;
     }
 
     try {
-      // Reference to the existing order document
-      const orderRef = doc(db, "users", user.uid, "orders", orderId);
+      // Try to get order from user's orders subcollection first
+      let orderRef = doc(db, "users", user.uid, "orders", orderId);
+      let orderSnap = await getDoc(orderRef);
+      let orderData = null;
 
-      // Get the current order data
-      const orderSnap = await getDoc(orderRef);
-      if (!orderSnap.exists()) {
-        console.error("Order does not exist");
+      if (orderSnap.exists()) {
+        orderData = orderSnap.data();
+      } else {
+        // If not in user's subcollection, check global orders collection
+        const globalOrderRef = doc(db, "orders", orderId);
+        const globalOrderSnap = await getDoc(globalOrderRef);
+
+        if (globalOrderSnap.exists()) {
+          const globalOrderData = globalOrderSnap.data();
+          // Only archive if it belongs to this user
+          if (globalOrderData.buyerId === user.uid) {
+            orderData = globalOrderData;
+            // Also create it in user's orders subcollection so we can archive it
+            await setDoc(orderRef, orderData);
+          }
+        }
+      }
+
+      if (!orderData) {
+        console.error("Order does not exist or does not belong to user");
+        alert("Order not found or you don't have permission to archive it.");
         return;
       }
-      const orderData = orderSnap.data();
 
       // Reference to the new location in the archive subcollection
       const archiveRef = doc(db, "users", user.uid, "archive", orderId);
@@ -75,14 +127,30 @@ const YourOrdersPage = () => {
       // Create a new document in the archive with the order data
       await setDoc(archiveRef, orderData);
 
-      // Delete the original order document
-      await deleteDoc(orderRef);
+      // Delete the original order document from user's orders
+      // Re-fetch to ensure we have the latest snapshot
+      const finalOrderSnap = await getDoc(orderRef);
+      if (finalOrderSnap.exists()) {
+        await deleteDoc(orderRef);
+      }
+
+      // Also delete from global orders collection if it exists there
+      const globalOrderRef = doc(db, "orders", orderId);
+      const globalOrderSnap = await getDoc(globalOrderRef);
+      if (
+        globalOrderSnap.exists() &&
+        globalOrderSnap.data().buyerId === user.uid
+      ) {
+        await deleteDoc(globalOrderRef);
+      }
 
       console.log("Order archived", orderId);
 
+      // Refresh the orders list
       window.location.reload();
     } catch (error) {
       console.error("Error archiving order:", error);
+      alert("Failed to archive order. Please try again.");
     }
   };
 
@@ -208,14 +276,56 @@ const YourOrdersPage = () => {
       const user = auth.currentUser;
       if (!user) return;
 
-      const ordersRef = collection(db, "users", user.uid, "orders");
-      const ordersSnapshot = await getDocs(ordersRef);
+      // Fetch from user's orders subcollection
+      const userOrdersRef = collection(db, "users", user.uid, "orders");
+      const userOrdersSnapshot = await getDocs(userOrdersRef);
+
+      // Also fetch from global orders collection as fallback (for older orders)
+      const globalOrdersRef = collection(db, "orders");
+      const globalOrdersQuery = query(
+        globalOrdersRef,
+        where("buyerId", "==", user.uid)
+      );
+      const globalOrdersSnapshot = await getDocs(globalOrdersQuery);
+
+      // Combine both sources, using user subcollection as primary
+      const userOrderIds = new Set(
+        userOrdersSnapshot.docs.map((doc) => doc.id)
+      );
+      const allOrderDocs = [
+        ...userOrdersSnapshot.docs,
+        ...globalOrdersSnapshot.docs.filter((doc) => !userOrderIds.has(doc.id)),
+      ];
+
       const ordersWithItems = [];
       const ratingsMap: Record<string, number> = {};
       const reviewsMap: Record<string, string> = {};
 
-      for (const orderDoc of ordersSnapshot.docs) {
+      for (const orderDoc of allOrderDocs) {
         const orderData = orderDoc.data();
+
+        // Only show orders that have been successfully purchased
+        // Filter out cancelled or failed orders, but show pending orders with payment confirmation
+        const orderStatus = orderData.status || "";
+        const hasPayment = !!orderData.stripeSessionId;
+
+        // Skip explicitly failed or cancelled orders
+        if (orderStatus === "cancelled" || orderStatus === "failed") {
+          continue;
+        }
+
+        // Show orders that:
+        // 1. Are completed/paid (explicitly successful)
+        // 2. Have a stripeSessionId (payment was processed, even if status is pending)
+        //    (This handles cases where webhook hasn't fired yet but payment succeeded)
+        if (
+          !hasPayment &&
+          orderStatus !== "completed" &&
+          orderStatus !== "paid"
+        ) {
+          continue; // Skip orders without payment confirmation
+        }
+
         const itemsDetails = await Promise.all(
           orderData.cartItems.map(async (cartItem) => {
             const itemDocRef = doc(db, "items", cartItem.itemId);
@@ -279,8 +389,8 @@ const YourOrdersPage = () => {
       setExistingRatings(ratingsMap);
       setExistingReviews(reviewsMap);
       const sortedOrders = ordersWithItems.sort((a, b) => {
-        const aTime = a.date?.seconds || 0;
-        const bTime = b.date?.seconds || 0;
+        const aTime = a.date?.seconds || a.createdAt?.seconds || 0;
+        const bTime = b.date?.seconds || b.createdAt?.seconds || 0;
         return bTime - aTime;
       });
       setOrders(sortedOrders);
@@ -350,6 +460,17 @@ const YourOrdersPage = () => {
                   {order.computedTotal?.toFixed?.(2) ||
                     parseFloat(String(order.total || 0)).toFixed(2)}
                 </span>
+              </div>
+              <div className="order-info-divider"></div>
+              <div className="order-info-item">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setInvoiceDialog({ open: true, order })}
+                  sx={{ mt: 1 }}
+                >
+                  View Invoice
+                </Button>
               </div>
             </div>
           </div>
@@ -458,9 +579,28 @@ const YourOrdersPage = () => {
             </ul>
           </div>
           <div className="order-bottom">
-            <a href="#" onClick={() => archiveOrder(order.id)}>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                if (
+                  window.confirm("Are you sure you want to archive this order?")
+                ) {
+                  archiveOrder(order.id);
+                }
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--primary-color)",
+                cursor: "pointer",
+                textDecoration: "underline",
+                padding: 0,
+                fontSize: "inherit",
+                fontFamily: "inherit",
+              }}
+            >
               Archive order
-            </a>
+            </button>
           </div>
         </div>
       ))}
@@ -495,8 +635,178 @@ const YourOrdersPage = () => {
             : ""
         }
       />
+
+      {/* Invoice Dialog */}
+      <Dialog
+        open={invoiceDialog.open}
+        onClose={() => setInvoiceDialog({ open: false, order: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+            Order Invoice
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          {invoiceDialog.order && (
+            <Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" sx={{ color: "#666", mb: 1 }}>
+                  Order ID: {invoiceDialog.order.id}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#666" }}>
+                  Date:{" "}
+                  {formatDate(
+                    invoiceDialog.order.date || invoiceDialog.order.createdAt
+                  )}
+                </Typography>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Shipping Address */}
+              {invoiceDialog.order.shippingAddress && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+                    Shipping Address
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                    {(() => {
+                      const addr = invoiceDialog.order.shippingAddress;
+                      if (typeof addr === "string") {
+                        try {
+                          const parsed = JSON.parse(addr);
+                          return formatInvoiceAddress(parsed);
+                        } catch {
+                          return addr;
+                        }
+                      }
+                      return formatInvoiceAddress(addr);
+                    })()}
+                  </Typography>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Order Items */}
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+                Order Items
+              </Typography>
+              {invoiceDialog.order.items.map((item: any, index: number) => (
+                <Box
+                  key={index}
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    mb: 2,
+                    p: 2,
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 1,
+                  }}
+                >
+                  {item.photos?.[0] && (
+                    <img
+                      src={item.photos[0]}
+                      alt={item.title}
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  )}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" sx={{ fontWeight: "medium" }}>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666", mt: 0.5 }}>
+                      Quantity: {item.quantity || 1}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                    $
+                    {(
+                      Number(item.price || 0) * Number(item.quantity || 1)
+                    ).toFixed(2)}
+                  </Typography>
+                </Box>
+              ))}
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Order Summary */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1">Subtotal:</Typography>
+                  <Typography variant="body1">
+                    ${Number(invoiceDialog.order.itemTotal || 0).toFixed(2)}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1">Shipping:</Typography>
+                  <Typography variant="body1">
+                    ${Number(invoiceDialog.order.shippingCost || 0).toFixed(2)}
+                  </Typography>
+                </Box>
+                {invoiceDialog.order.platformFee && (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" sx={{ color: "#666" }}>
+                      Platform Fee:
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666" }}>
+                      ${Number(invoiceDialog.order.platformFee).toFixed(2)}
+                    </Typography>
+                  </Box>
+                )}
+                <Divider sx={{ my: 1 }} />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    Total:
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    $
+                    {invoiceDialog.order.computedTotal?.toFixed(2) ||
+                      Number(invoiceDialog.order.totalAmount || 0).toFixed(2)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setInvoiceDialog({ open: false, order: null })}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
+};
+
+const formatInvoiceAddress = (address: any): string => {
+  if (!address) return "N/A";
+  if (typeof address === "string") {
+    try {
+      const parsed = JSON.parse(address);
+      return formatInvoiceAddress(parsed);
+    } catch {
+      return address;
+    }
+  }
+  const parts = [
+    address.street1,
+    address.street2,
+    `${address.city}, ${address.state} ${address.zip}`,
+    address.country,
+  ].filter(Boolean);
+  return parts.join("\n");
 };
 
 export default YourOrdersPage;
